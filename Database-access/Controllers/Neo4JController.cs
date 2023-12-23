@@ -25,7 +25,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ReadTransactionAsync(async tx =>
+                    var result = await session.ExecuteReadAsync(async tx =>
                     {
                         var query = "MATCH (n) RETURN n";
                         var cursor = await tx.RunAsync(query);
