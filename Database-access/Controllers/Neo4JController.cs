@@ -71,14 +71,14 @@ namespace Databaseaccess.Controllers
 
                     var parameters = new
                     {
-                        name = player.name,
-                        email = player.email,
-                        bio = player.bio,
-                        achievementPoints = player.achievementPoints,
-                        createdAt = player.createdAt,
-                        password = player.password,
-                        gold = player.gold,
-                        honor = player.honor
+                        name = player.Name,
+                        email = player.Email,
+                        bio = player.Bio,
+                        achievementPoints = player.AchievementPoints,
+                        createdAt = player.CreatedAt,
+                        password = player.Password,
+                        gold = player.Gold,
+                        honor = player.Honor
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
