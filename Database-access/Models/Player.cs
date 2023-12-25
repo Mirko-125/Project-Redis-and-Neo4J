@@ -16,5 +16,11 @@ namespace Databaseaccess.Models
         public string Password { get; set; }
         public int Gold { get; set; }
         public int Honor { get; set; }
+        // Milose ispravi me ako sam pogresio sada sa "Vezama"
+        public Inventory Inventory { get; set; }
+        public List<Equipment> Equipment { get; set; }
+        public List<Achievement> Achievements { get; set; }
+        public List<Ability> Abilities { get; set; }
+        public Class Class { get; set; }
     }
 }
