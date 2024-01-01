@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Databaseaccess.Models
 {
@@ -17,10 +18,15 @@ namespace Databaseaccess.Models
         public int Gold { get; set; }
         public int Honor { get; set; }
         // Milose ispravi me ako sam pogresio sada sa "Vezama"
+        [JsonIgnore]
         public Inventory Inventory { get; set; }
+        [JsonIgnore]
         public List<Equipment> Equipment { get; set; }
+        [JsonIgnore]
         public List<Achievement> Achievements { get; set; }
+        [JsonIgnore]
         public List<Ability> Abilities { get; set; }
+        [JsonIgnore]
         public Class Class { get; set; }
     }
 }

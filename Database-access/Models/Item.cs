@@ -20,7 +20,7 @@ public class Gear : Item
     public string Quality { get; set; }
     public Equipment Equipment { get; set; }
     public Class Class { get; set; }
-    public Attribute Attribute { get; set; } // not sure
+    public Attributes Attribute { get; set; } // not sure
 }
 public class Consumable : Item
 {

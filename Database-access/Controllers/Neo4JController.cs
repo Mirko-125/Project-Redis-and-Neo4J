@@ -45,72 +45,8 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        #region Ship to Player
-
-        [HttpPost]
-        public async Task<IActionResult> AddPlayer(Player player)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:Player {
-                            name: $name,
-                            email: $email,
-                            bio: $bio,
-                            achievementPoints: $achievementPoints,
-                            createdAt: $createdAt,
-                            password: $password,
-                            gold: $gold,
-                            honor: $honor
-                        })";
-
-                    var parameters = new
-                    {
-                        name = player.Name,
-                        email = player.Email,
-                        bio = player.Bio,
-                        achievementPoints = player.AchievementPoints,
-                        createdAt = player.CreatedAt,
-                        password = player.Password,
-                        gold = player.Gold,
-                        honor = player.Honor
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
                 return BadRequest(ex.Message);
             }
         }
-        #endregion
-
-        #region Ship to Player
-
-        [HttpDelete]
-        public async Task<IActionResult> RemovePlayer(String playerName)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Player {name: $name}) DELETE n";
-                    var parameters = new { name = playerName };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        #endregion
     }
 }
