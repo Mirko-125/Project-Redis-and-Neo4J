@@ -10,7 +10,6 @@ namespace Databaseaccess.Models
         public string Name { get; set; }
         public string Type { get; set; }
         public int Points { get; set; }
-        public string Conditions { get; set; } // Koji je ovo tip?
-        public Player Player { get; set; }
+        public string Conditions { get; set; }
     }
 }

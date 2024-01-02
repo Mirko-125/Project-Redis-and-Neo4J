@@ -8,12 +8,12 @@ namespace Databaseaccess.Models
     public class Ability
     {
         public string Name { get; set; }
-        public double Damage { get; set; }
+        public int Damage { get; set; }
         public int Cooldown { get; set; }
         public double Range { get; set; }
-        public string Special { get; set; } // nisam siguran za tip
-        public double Heal { get; set; } // takodje tip
+        public string Special { get; set; } 
+        public int Heal { get; set; } 
         public Player Player { get; set; }
-        public List<Class> Classes { get; set; } // ILI JEDNA
+        public Class Class { get; set; } 
     }
 }

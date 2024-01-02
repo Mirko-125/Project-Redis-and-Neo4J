@@ -17,6 +17,6 @@ namespace Databaseaccess.Models
         public int Level { get; set; } 
         // Klasa, Igrač, Oprema              
         public Gear Gear { get; set; } 
-        public Class Class { get; set; } // ovde mozda dve instance treba, not sure
+        // public Class Class { get; set; } // ovde mozda dve instance treba, not sure
     }
 }

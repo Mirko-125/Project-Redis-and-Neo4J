@@ -14,10 +14,9 @@ namespace Databaseaccess.Models
         //vreme
         public string EndedAt{ get; set; }
         public string Finalized { get; set; }
-        //??????????
-        [JsonIgnore]
         public Monster Monster { get; set; }
-        //[JsonIgnore]
-        //public Player Player { get; set; }
+        public Player Player { get; set; }
+
+        public List<Item> Loot { get; set; }
     }
 }

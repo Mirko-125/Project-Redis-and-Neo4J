@@ -12,8 +12,7 @@ namespace Databaseaccess.Models
         public string Type{ get; set; }
         public string ImageURL { get; set; }
         public string Status { get; set; }
-        
-        //Attributes???
-        
+        public Attributes Attributes { get; set; }
+        public List<Item> PossibleLoot { get; set; }
     }
 }

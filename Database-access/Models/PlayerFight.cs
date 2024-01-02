@@ -11,7 +11,6 @@ namespace Databaseaccess.Models
         public string Winner { get; set; }
         public string Experience { get; set; }
         public string Honor { get; set; }
-        //Igraci??
         [JsonIgnore]
         public Player Player1 { get; set; }
         [JsonIgnore]

@@ -26,15 +26,11 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"
-                        CREATE (n:Player {
+                        CREATE (n:Item {
                             name: $name,
-                            email: $email,
-                            bio: $bio,
-                            achievementPoints: $achievementPoints,
-                            createdAt: $createdAt,
-                            password: $password,
-                            gold: $gold,
-                            honor: $honor
+                            weight: $weight,
+                            dimensions: $dimensions,
+                            value: $value
                         })";
 
                     var parameters = new
