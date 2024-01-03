@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Databaseaccess.Models
 {
@@ -11,8 +12,7 @@ namespace Databaseaccess.Models
         public int Dimensions { get; set; }
         public int FreeSpots { get; set; }
         public int UsedSpots { get; set; }
-        // Player
-        public Player Player { get; set; }
+        [JsonIgnore]
         public List<Item> Items { get; set; }
     }
 }

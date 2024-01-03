@@ -12,8 +12,6 @@ namespace Databaseaccess.Models
         public int Cooldown { get; set; }
         public double Range { get; set; }
         public string Special { get; set; } 
-        public int Heal { get; set; } 
-        public Player Player { get; set; }
-        public Class Class { get; set; } 
+        public int Heal { get; set; }
     }
 }

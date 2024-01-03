@@ -17,10 +17,8 @@ namespace Databaseaccess.Models
         public string Password { get; set; }
         public int Gold { get; set; }
         public int Honor { get; set; }
-        // Milose ispravi me ako sam pogresio sada sa "Vezama"
-        [JsonIgnore]
+        public Attributes Attributes { get; set; }
         public Inventory Inventory { get; set; }
-        [JsonIgnore]
         public List<Equipment> Equipment { get; set; }
         [JsonIgnore]
         public List<Achievement> Achievements { get; set; }
@@ -28,5 +26,7 @@ namespace Databaseaccess.Models
         public List<Ability> Abilities { get; set; }
         [JsonIgnore]
         public Class Class { get; set; }
+        [JsonIgnore]
+        public List<NPC> NPCs { get; set; } // Peđa
     }
 }

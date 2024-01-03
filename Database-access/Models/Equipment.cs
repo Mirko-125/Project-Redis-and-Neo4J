@@ -8,8 +8,7 @@ namespace Databaseaccess.Models
     public class Equipment
     {
         public double AverageQuality { get; set; }
-        public double Weight { get; set; } // Mozda ce morati int
-        public Player Player { get; set; }
+        public double Weight { get; set; } 
         public List<Gear> EquippedGear { get; set; }
     }
 }

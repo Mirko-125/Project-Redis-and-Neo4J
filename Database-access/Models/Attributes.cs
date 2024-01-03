@@ -15,8 +15,5 @@ namespace Databaseaccess.Models
         public double Faith { get; set; }
         public double Experience { get; set; }
         public int Level { get; set; } 
-        // Klasa, Igrač, Oprema              
-        public Gear Gear { get; set; } 
-        // public Class Class { get; set; } // ovde mozda dve instance treba, not sure
     }
 }

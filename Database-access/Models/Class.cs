@@ -2,17 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Databaseaccess.Models
 {
+    public enum ClassName
+    {
+        Emperor,
+        Commander,
+        Wizzard,
+        Archer,
+        Soldier,
+        Assasin
+    }
     public class Class
     {
-        public string Name { get; set; }
-        // mozda treba da se dodaju instance (SIGURNO) mozda mozda
-        public Player Player { get; set; }
-        public List<Gear> Gear { get; set; } // not sure, come check this
+        public ClassName Name { get; set; }
+        [JsonIgnore]
+        public List<Gear> Gear { get; set; }
+        [JsonIgnore]
         public Attributes BaseAttributes { get; set; }
+        [JsonIgnore]
         public Attributes LevelGainAttributes { get; set; }
+        [JsonIgnore]
         public Ability Ability { get; set; }
     }
 }
