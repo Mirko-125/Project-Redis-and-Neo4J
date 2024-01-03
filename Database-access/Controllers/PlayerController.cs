@@ -26,16 +26,17 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"
-                        CREATE (n:Player {
-                            name: $name,
-                            email: $email,
-                            bio: $bio,
-                            achievementPoints: $achievementPoints,
-                            createdAt: $createdAt,
-                            password: $password,
-                            gold: $gold,
-                            honor: $honor
-                        })";
+                        CREATE 
+                        (n:Player { name: $name, email: $email, bio: $bio,
+                                    achievementPoints: $achievementPoints, 
+                                    createdAt: $createdAt, password: $password, 
+                                    gold: $gold, honor: $honor})
+                                    -[:OWNS]->
+                                    (m {weightLimit : $weightLimit, dimensions: $dimensions, freeSpots: $freeSpots, usedSpots: $usedSpots}), 
+                                    ((n)-[HAS]->(o:Attributes { strength: $strength, agility: $agility, 
+                                                                inteligence: $inteligence, stamina: $stamina, faith: $faith, experience: $experience, level: $level})), 
+                                    ((n)-[WEARS]->(p:Equipment { averageQuality: $averageQuality, weight: $weight}))
+                        ";
 
                     var parameters = new
                     {
@@ -46,7 +47,23 @@ namespace Databaseaccess.Controllers
                         createdAt = player.CreatedAt,
                         password = player.Password,
                         gold = player.Gold,
-                        honor = player.Honor
+                        honor = player.Honor,
+                        // Inventory
+                        weightLimit = player.Inventory.WeightLimit,
+                        dimensions = player.Inventory.Dimensions,
+                        freeSpots = player.Inventory.FreeSpots,
+                        usedSpots = player.Inventory.UsedSpots,
+                        // Attributes
+                        strength = player.Attributes.Strength,
+                        agility = player.Attributes.Agility,
+                        inteligence = player.Attributes.Inteligence,
+                        stamina = player.Attributes.Stanima,
+                        faith = player.Attributes.Faith,
+                        experience = player.Attributes.Experience,
+                        level = player.Attributes.Level,
+                        // Equipment
+                        averageQuality = player.Equipment.FirstOrDefault().AverageQuality,
+                        weight = player.Equipment.FirstOrDefault().Weight
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -57,7 +74,6 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
         [HttpDelete]
         public async Task<IActionResult> RemovePlayer(String playerName)
         {
