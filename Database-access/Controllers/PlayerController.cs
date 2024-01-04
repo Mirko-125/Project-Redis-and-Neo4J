@@ -25,18 +25,13 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"
-                        CREATE 
-                        (n:Player { name: $name, email: $email, bio: $bio,
-                                    achievementPoints: $achievementPoints, 
-                                    createdAt: $createdAt, password: $password, 
-                                    gold: $gold, honor: $honor})
-                                    -[:OWNS]->
-                                    (m {weightLimit : $weightLimit, dimensions: $dimensions, freeSpots: $freeSpots, usedSpots: $usedSpots}), 
-                                    ((n)-[HAS]->(o:Attributes { strength: $strength, agility: $agility, 
-                                                                inteligence: $inteligence, stamina: $stamina, faith: $faith, experience: $experience, level: $level})), 
-                                    ((n)-[WEARS]->(p:Equipment { averageQuality: $averageQuality, weight: $weight}))
-                        ";
+                    var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: $achievementPoints, createdAt: $createdAt, password: $password, gold: $gold, honor: $honor})
+                                CREATE (m:Inventory {weightLimit : $weightLimit, dimensions: $dimensions, freeSpots: $freeSpots, usedSpots: $usedSpots})
+                                CREATE (o:Attributes { strength: $strength, agility: $agility, inteligence: $inteligence, stamina: $stamina, faith: $faith, experience: $experience, level: $level})
+                                CREATE (p:Equipment { averageQuality: $averageQuality, weight: $weight})
+                                CREATE (n)-[:OWNS]->(m)
+                                CREATE (n)-[:HAS]->(o)
+                                CREATE (n)-[:WEARS]->(p)";
 
                     var parameters = new
                     {
@@ -75,14 +70,16 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> RemovePlayer(String playerName)
+        public async Task<IActionResult> RemovePlayer(int playerId)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Player {name: $name}) DELETE n";
-                    var parameters = new { name = playerName };
+                    var query = @"MATCH (p:Player) WHERE ID(p)=$id
+                                OPTIONAL MATCH (p)-[r]->(otherSide)
+                                DELETE r,p,otherSide"; 
+                    var parameters = new { id = playerId };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
