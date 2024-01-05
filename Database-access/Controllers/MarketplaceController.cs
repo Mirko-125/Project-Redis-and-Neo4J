@@ -111,7 +111,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Marketplace) set n.itemCount=$itemCount return n";
+                    var query = @"MATCH (n:Marketplace) SET n.itemCount=$itemCount RETURN n";
                     var parameters = new { itemCount = itemCount };
                     await session.RunAsync(query, parameters);
                     return Ok();

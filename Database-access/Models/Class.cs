@@ -6,18 +6,21 @@ using System.Text.Json.Serialization;
 
 namespace Databaseaccess.Models
 {
+    /* Ne funkcionise kako treba trenutno
     public enum ClassName
     {
         Emperor,
         Commander,
         Wizzard,
         Archer,
+        Spartan,
         Soldier,
         Assasin
     }
+    */
     public class Class
     {
-        public ClassName Name { get; set; }
+        public string Name { get; set; }
         [JsonIgnore]
         public List<Gear> Gear { get; set; }
         [JsonIgnore]
