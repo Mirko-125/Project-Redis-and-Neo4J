@@ -65,6 +65,32 @@ namespace Databaseaccess.Controllers
             }
         }
 
+        [HttpPost("ClassPermision")]
+        public async Task<IActionResult> ClassPermision(int classId, int abilityId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:Class) WHERE ID(n)=$cId
+                                MATCH (m:Ability) WHERE ID(m)=$aId
+                                CREATE (n)-[:PERMITS]->(m)";
+
+                    var parameters = new
+                    {
+                        cId = classId,
+                        aId = abilityId
+                    };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpDelete]
         public async Task<IActionResult> RemoveClass(int classId)
         {

@@ -11,7 +11,7 @@ namespace Databaseaccess.Models
     {
         Emperor,
         Commander,
-        Wizzard,
+        Wizard,
         Archer,
         Spartan,
         Soldier,
