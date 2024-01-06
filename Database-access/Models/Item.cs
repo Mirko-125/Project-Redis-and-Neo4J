@@ -23,4 +23,5 @@ public class Gear : Item
 public class Consumable : Item
 {
     public string Effect { get; set; }
+
 }

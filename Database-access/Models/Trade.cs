@@ -6,7 +6,7 @@ using Databaseaccess.Models;
 
 public class Trade
 {
-    public bool IsComplete { get; set; } 
+    public bool IsFinalized { get; set; } 
     public int ReceiverGold { get; set; } 
     public int RequesterGold { get; set; } 
     public string StartedAt { get; set; } 
