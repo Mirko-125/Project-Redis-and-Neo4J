@@ -18,7 +18,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         [HttpPost("AddMonsterBattle")]
-        public async Task<IActionResult> AddMonsterBattle(MonsterBattle mb, string monster,int playerID)
+        public async Task<IActionResult> AddMonsterBattle(MonsterBattle mb, int monsterId,int playerId)
         {
             try
             {
@@ -26,25 +26,22 @@ namespace Databaseaccess.Controllers
                 {
                     var query = @"
                         CREATE (n:MonsterBattle {
-                            status: $status,
                             startedAt: $startedAt,
                             endedAt: $endedAt,
-                            finalized: $finalized
-                        })
+                            isFinalized: $isFinalized
+                        }) 
                         WITH n
-                        MATCH (n1:Monster {name: $monsteri})
+                        MATCH (n1:Monster) WHERE id(n1)=$monsteri
                         MATCH (n2:Player) WHERE id(n2)=$playeri
-                        CREATE (n1)-[:ATTACKED_IN]->(n)<-[:ATTACKING_IN]-(n2)
-                         ";
+                        CREATE (n1)<-[:ATTACKED_MONSTER]-(n)-[:ATTACKING_PLAYER]->(n2)";
 
                     var parameters = new
                     {
-                        status= mb.Status,
                         startedAt=mb.StartedAt,
                         endedAt=mb.EndedAt,
-                        finalized=mb.Finalized,
-                        playeri=playerID,
-                        monsteri=monster
+                        isFinalized=mb.IsFinalized,
+                        playeri=playerId,
+                        monsteri=monsterId
                     };
                     var result=await session.RunAsync(query, parameters);
                    /* var idn=await result.SingleAsync();
@@ -68,6 +65,32 @@ namespace Databaseaccess.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetMonsterBattle")]
+        public async Task<IActionResult> GetMonsterBattle(int monsterBattleId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:MonsterBattle) WHERE id(n)=$idn RETURN n";
+                        var parameters = new { idn = monsterBattleId };
+                        var cursor = await tx.RunAsync(query,parameters);
+
+                         var n=await cursor.SingleAsync();
+                        var node = n["n"].As<INode>();
+                        return node;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
         }
         [HttpGet("GetAllMonsterBattles")]
@@ -101,7 +124,7 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpGet("GetMonsterBattlesOfPlayer")]
-        public async Task<IActionResult> GetMonsterBattlesOfPlayer(int playerID)
+        public async Task<IActionResult> GetMonsterBattlesOfPlayer(int playerId)
         {
             try
             {
@@ -109,8 +132,8 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:MonsterBattle)<-[:ATTACKING_IN]-(n1:Player) WHERE id(n1)=$playeri RETURN n";
-                        var parameters = new { playeri = playerID };
+                        var query = "MATCH (n:MonsterBattle)-[:ATTACKING_PLAYER]->(n1:Player) WHERE id(n1)=$playeri RETURN n";
+                        var parameters = new { playeri = playerId };
                         var cursor = await tx.RunAsync(query,parameters);
                         var nodes = new List<INode>();
 
@@ -131,16 +154,20 @@ namespace Databaseaccess.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-       [HttpDelete("DeleteMonsterBattle")]
-        public async Task<IActionResult> RemoveMonsterBattle(string monster,int playerID)
+        [HttpPut("UpdateMonsterBattle")]
+        public async Task<IActionResult> UpdateMonsterBattle(int mbId, string newEndedAt ,bool newIsFinalized)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
-                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
-                    var query = @"MATCH (n1:Monster {name: $monsteri})-[:ATTACKED_IN]->(n:MonsterBattle)<-[:ATTACKING_IN]-(n2:Player) WHERE id(n2)=$playeri DETACH DELETE n";
-                    var parameters = new { monsteri = monster,
-                    playeri=playerID };
+                {
+                    var query = @"MATCH (n:MonsterBattle) WHERE ID(n)=$monsterBattleId
+                                SET n.endedAt= $endedAt
+                                SET n.isFinalized= $isFinalized
+                                RETURN n";
+                    var parameters = new { monsterBattleId = mbId,
+                                        endedAt = newEndedAt,
+                                        isFinalized= newIsFinalized };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -150,5 +177,104 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpDelete("DeleteMonsterBattle")]
+        public async Task<IActionResult> RemoveMonsterBattle(int mbId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {   
+                    var query = @"MATCH (n1:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(n2:Player) WHERE id(n)=$mb DETACH DELETE n";
+                    var parameters = new { mb = mbId};
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
+        #region Loot
+        [HttpPost("AddLoot")]
+        public async Task<IActionResult> AddLoot(int monsterBattleId,int itemId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MATCH (n1:Item) WHERE id(n1)=$itId
+                        MATCH (n2:MonsterBattle) WHERE id(n2)=$monsteri
+                        CREATE (n2)-[:LOOT]->(n1)";
+
+                    var parameters = new
+                    {
+                        itId=itemId,
+                        monsteri=monsterBattleId
+                    };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetLoot")]
+        public async Task<IActionResult> GetLoot(int monsterBattleId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:MonsterBattle)-[:LOOT]->(n1:Item) WHERE id(n)=$id RETURN n1";
+                        var parameters = new{id=monsterBattleId};
+                        var cursor = await tx.RunAsync(query,parameters);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n1"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
+                    });
+
+                    return Ok(result);
+                }
+             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        
+        #endregion Loot
+        /*
+       [HttpDelete("DeleteMonsterBattles")]
+        public async Task<IActionResult> RemoveMonsterBattle(int monsterId,int playerID)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
+                    var query = @"MATCH (n1:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(n2:Player) WHERE id(n2)=$playeri and id(n1)=$monsteri DETACH DELETE n";
+                    var parameters = new { monsteri = monsterId,
+                    playeri=playerID };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }*/
     }
 }

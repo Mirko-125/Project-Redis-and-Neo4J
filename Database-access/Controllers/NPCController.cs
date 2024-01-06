@@ -51,6 +51,33 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPut("Interaction")]
+        public async Task<IActionResult> Interaction(int playerId, int npcId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                      var query = @"MATCH (n1:NPC) WHERE id(n1)=$npId 
+                                    MATCH (n2:Player) WHERE id(n2)=$plId
+                                    MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
+                                    SET rel.property_key = COALESCE(rel.property_key, 0) + 1
+                                    RETURN rel.property_key AS incrementedProperty;";
+                        
+                         var parameters = new {npId=npcId,
+                                                plId = playerId};
+                        var cursor = await session.RunAsync(query,parameters);
+                         var n=await cursor.SingleAsync();
+                        var seq = n["incrementedProperty"].As<int>();
+                    
+                   return Ok(seq);
+                }
+             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
         [HttpGet("GetNPCs")]
         public async Task<IActionResult> GetAllNPCs()
         {
@@ -82,7 +109,7 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpGet("GetNPC")]
-        public async Task<IActionResult> GetNPC(string npcName)
+        public async Task<IActionResult> GetNPC(int npcId)
         {
             try
             {
@@ -90,18 +117,12 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:NPC {name: $name}) RETURN n";
-                        var parameters = new { name = npcName };
+                        var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
+                        var parameters = new { id= npcId };
                         var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var n=await cursor.SingleAsync();
+                        var node = n["n"].As<INode>();
+                        return node;
                     });
 
                     return Ok(result);
@@ -113,14 +134,14 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpDelete("DeleteNPC")]
-        public async Task<IActionResult> RemoveNPC(string npcName)
+        public async Task<IActionResult> RemoveNPC(int npcId)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
-                    var query = @"MATCH (n:NPC {name: $name}) DETACH DELETE n";
-                    var parameters = new { name = npcName };
+                    var query = @"MATCH (n:NPC) WHERE id(n)=$id DETACH DELETE n";
+                    var parameters = new { id = npcId };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
