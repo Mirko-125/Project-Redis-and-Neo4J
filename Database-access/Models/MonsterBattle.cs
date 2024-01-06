@@ -13,7 +13,7 @@ namespace Databaseaccess.Models
         public string StartedAt { get; set; }
         //vreme
         public string EndedAt{ get; set; }
-        public string Finalized { get; set; }
+        public bool IsFinalized { get; set; }
         public Monster Monster { get; set; }
         public Player Player { get; set; }
 
