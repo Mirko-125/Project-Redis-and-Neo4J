@@ -18,7 +18,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         [HttpPost("AddMonsterBattle")]
-        public async Task<IActionResult> AddMonsterBattle(MonsterBattle mb, int monsterId,int playerId)
+        public async Task<IActionResult> AddMonsterBattle(MonsterBattle mb, int monsterId, int playerId)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Databaseaccess.Controllers
                         var parameters = new { idn = monsterBattleId };
                         var cursor = await tx.RunAsync(query,parameters);
 
-                         var n=await cursor.SingleAsync();
+                        var n=await cursor.SingleAsync();
                         var node = n["n"].As<INode>();
                         return node;
                     });
@@ -155,7 +155,7 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpPut("UpdateMonsterBattle")]
-        public async Task<IActionResult> UpdateMonsterBattle(int mbId, string newEndedAt ,bool newIsFinalized)
+        public async Task<IActionResult> UpdateMonsterBattle(int mbId, string newEndedAt, bool newIsFinalized)
         {
             try
             {
@@ -198,7 +198,7 @@ namespace Databaseaccess.Controllers
         
         #region Loot
         [HttpPost("AddLoot")]
-        public async Task<IActionResult> AddLoot(int monsterBattleId,int itemId)
+        public async Task<IActionResult> AddLoot(int monsterBattleId, int itemId)
         {
             try
             {

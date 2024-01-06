@@ -19,7 +19,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         [HttpPost("AddPlayerFight")]
-        public async Task<IActionResult> AddPlayerFight(PlayerFight plf, int player1Id,int player2Id)
+        public async Task<IActionResult> AddPlayerFight(PlayerFight plf, int player1Id, int player2Id)
         {
             try
             {
@@ -92,11 +92,11 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n1:PlayerFight) WHERE id(n1)=$plF RETURN n1";
+                        var query = "MATCH (n:PlayerFight) WHERE id(n)=$plF RETURN n";
                         var parameters = new { plF = plFiId };
                         var cursor = await tx.RunAsync(query,parameters);
                         var n=await cursor.SingleAsync();
-                        var node = n["n1"].As<INode>();
+                        var node = n["n"].As<INode>();
 
                         return node;
                     });
@@ -110,7 +110,7 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpGet("GetPlayerFightsBetweenTwoPlayers")]
-        public async Task<IActionResult> GetPlayerFightsBetweenTwoPlayers(int player1Id,int player2Id)
+        public async Task<IActionResult> GetPlayerFightsBetweenTwoPlayers(int player1Id, int player2Id)
         {
             try
             {
@@ -118,9 +118,13 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n1:Player)<-[:PARTICIPATING_PLAYERS]-(n)-[:PARTICIPATING_PLAYERS]->(n2:Player) WHERE id(n1)=$playeri1 and id(n2)=$playeri2 RETURN n";
-                        var parameters = new { playeri1 = player1Id,
-                        playeri2=player2Id };
+                        var query = @"
+                            MATCH (n1:Player)<-[:PARTICIPATING_PLAYERS]-(n)-[:PARTICIPATING_PLAYERS]->(n2:Player)   
+                                WHERE id(n1)=$playeri1 AND id(n2)=$playeri2 RETURN n";
+                        var parameters = new { 
+                            playeri1 = player1Id,
+                            playeri2 = player2Id 
+                        };
                         var cursor = await tx.RunAsync(query,parameters);
                         var nodes = new List<INode>();
 
@@ -141,8 +145,8 @@ namespace Databaseaccess.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-         [HttpPut("UpdatePlayerFight")]
-        public async Task<IActionResult> UpdatePlayerFight(int playerFightId, string newWinner ,string newExperience,string newHonor)
+        [HttpPut("UpdatePlayerFight")]
+        public async Task<IActionResult> UpdatePlayerFight(int playerFightId, string newWinner, string newExperience, string newHonor)
         {
             try
             {
@@ -166,7 +170,7 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-       [HttpDelete("DeletePlayerFight")]
+        [HttpDelete("DeletePlayerFight")]
         public async Task<IActionResult> RemovePlayerFight(int plFightId)
         {
             try
@@ -174,7 +178,7 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
                     var query = @"MATCH (n:PlayerFight) WHERE id(n)=$pfId DETACH DELETE n";
-                    var parameters = new { pfId=plFightId,};
+                    var parameters = new { pfId = plFightId };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -184,25 +188,5 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-       /*
-       [HttpDelete("DeletePlayerFight")]
-        public async Task<IActionResult> RemovePlayerFight(int player1ID,int player2ID)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
-                    var query = @"MATCH (n1:Player)<-[:PARTICIPATING_PLAYERS]-(n)-[:PARTICIPATING_PLAYERS]->(n2:Player) WHERE id(n1)=$playeri1 and id(n2)=$playeri2 DETACH DELETE n";
-                    var parameters = new { playeri1 = player1ID,
-                    playeri2=player2ID};
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }*/
     }
 }

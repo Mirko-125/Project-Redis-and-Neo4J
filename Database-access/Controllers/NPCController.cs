@@ -58,16 +58,16 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                      var query = @"MATCH (n1:NPC) WHERE id(n1)=$npId 
+                        var query = @"MATCH (n1:NPC) WHERE id(n1)=$npId 
                                     MATCH (n2:Player) WHERE id(n2)=$plId
                                     MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
                                     SET rel.property_key = COALESCE(rel.property_key, 0) + 1
                                     RETURN rel.property_key AS incrementedProperty;";
                         
-                         var parameters = new {npId=npcId,
+                        var parameters = new {npId=npcId,
                                                 plId = playerId};
                         var cursor = await session.RunAsync(query,parameters);
-                         var n=await cursor.SingleAsync();
+                        var n = await cursor.SingleAsync();
                         var seq = n["incrementedProperty"].As<int>();
                     
                    return Ok(seq);
@@ -120,7 +120,7 @@ namespace Databaseaccess.Controllers
                         var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
                         var parameters = new { id= npcId };
                         var cursor = await tx.RunAsync(query,parameters);
-                        var n=await cursor.SingleAsync();
+                        var n = await cursor.SingleAsync();
                         var node = n["n"].As<INode>();
                         return node;
                     });

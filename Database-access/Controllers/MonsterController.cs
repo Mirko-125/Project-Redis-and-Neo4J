@@ -18,7 +18,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
 
-         [HttpPost("AddMonster")]
+        [HttpPost("AddMonster")]
         public async Task<IActionResult> AddMonster(Monster monster)
         {
             try
@@ -144,7 +144,7 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpPut("UpdateMonster")]
-        public async Task<IActionResult> UpdateMonster(int monsterId, string newZone , string newImageURL,string newStatus)
+        public async Task<IActionResult> UpdateMonster(int monsterId, string newZone, string newImageURL, string newStatus)
         {
             try
             {
@@ -217,7 +217,7 @@ namespace Databaseaccess.Controllers
         }
         
         [HttpPut("UpdateMonsterAttributes")]
-        public async Task<IActionResult> UpdateMonsterAttributes(int monsterId, double newStrength ,double newAgility,double newInteligence, double newStamina, double newFaith ,double newExperience , int newLevel)
+        public async Task<IActionResult> UpdateMonsterAttributes(int monsterId, double newStrength, double newAgility, double newInteligence, double newStamina, double newFaith, double newExperience, int newLevel)
         {
             try
             {

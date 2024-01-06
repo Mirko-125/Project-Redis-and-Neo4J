@@ -65,8 +65,8 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpPost("ClassPermision")]
-        public async Task<IActionResult> ClassPermision(int classId, int abilityId)
+        [HttpPost("ClassPermission")]
+        public async Task<IActionResult> ClassPermission(int classId, int abilityId)
         {
             try
             {

@@ -122,6 +122,40 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetTradesBetweenPlayerAndMarketplace")]
+        public async Task<IActionResult> GetTradesBetweenPlayerAndMarketplace(int playerID,int marketplaceID)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n1:Player)-[:RECEIVER]->(n:Trade)<-[:REQUESTER]-(n2:Marketplace) WHERE id(n1)=$player and id(n2)=$marketplace RETURN n";
+                        
+                        var parameters = new { player = playerID,
+                        marketplace=marketplaceID};
+                        var cursor = await tx.RunAsync(query,parameters);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
         
     }
 }
