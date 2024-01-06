@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Databaseaccess.Controllers
 {
@@ -57,10 +58,42 @@ namespace Databaseaccess.Controllers
                         experience = player.Attributes.Experience,
                         level = player.Attributes.Level,
                         // Equipment
-                        averageQuality = player.Equipment.FirstOrDefault().AverageQuality,
-                        weight = player.Equipment.FirstOrDefault().Weight
+                        averageQuality = player.Equipment.AverageQuality,
+                        weight = player.Equipment.Weight
                     };
                     await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("AddItem")]
+        public async Task<IActionResult> AddItem(string itemName, int playerID)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var parameters = new {
+                        item = itemName,
+                        player = playerID
+                    };
+
+                    var query =@"
+                        MATCH (item:Item) 
+                            WHERE item.name = $item
+
+                        WITH item
+                        MATCH (player:Player)-[:OWNS]->(inventory:Inventory)
+                            WHERE ID(player) = $player
+                        
+                        CREATE (inventory)-[:HAS]->(item)"
+                    ;
+                    var result = await session.RunAsync(query, parameters);
                     return Ok();
                 }
             }

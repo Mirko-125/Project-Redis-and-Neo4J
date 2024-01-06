@@ -19,7 +19,7 @@ namespace Databaseaccess.Models
         public int Honor { get; set; }
         public Attributes Attributes { get; set; }
         public Inventory Inventory { get; set; }
-        public List<Equipment> Equipment { get; set; }
+        public Equipment Equipment { get; set; }
         [JsonIgnore]
         public List<Achievement> Achievements { get; set; }
         [JsonIgnore]

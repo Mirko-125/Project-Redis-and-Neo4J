@@ -15,6 +15,4 @@ public class Trade
     public Player Requester { get; set; }
     public List<Item> ReceiverItems { get; set; }
     public List<Item> RequesterItems { get; set; }
-    public List<Item> MarketItems { get; set; } 
-    public Marketplace Marketplace { get; set; }
 }

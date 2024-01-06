@@ -151,30 +151,21 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPost("AddMarketplaceItems")]
-        public async Task<IActionResult> AddMarketplaceItems(String zone, Item item)
+        public async Task<IActionResult> AddMarketplaceItems(string zoneName, string itemName)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                      var query = @"
-                        CREATE (n:Item {
-                            name: $name,
-                            weight: $weight,
-                            type: $type,
-                            dimensions: $dimensions,
-                            value: $value
-                        })
+                        MATCH (n:Item)
+                            WHERE n.name = $item
                         WITH n
                         MATCH (n1:Marketplace {zone: $zone})
                         CREATE (n1)-[:HAS]->(n)";
                     var parameters = new {  
-                        name = item.Name,
-                        weight = item.Weight,
-                        type = item.Type,
-                        dimensions = item.Dimensions,
-                        value = item.Value,
-                        zone=zone
+                        item = itemName,
+                        zone = zoneName
                         };
                     await session.RunAsync(query, parameters);
                     return Ok();
