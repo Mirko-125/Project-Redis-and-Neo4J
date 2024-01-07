@@ -136,7 +136,7 @@ namespace Databaseaccess.Controllers
                     {
                         var query = @"
                             MATCH (market:Marketplace)<-[:TradedAt]-(n:MarketTrade)-[:TradingPlayer]->(player:Player)
-                                WHERE id(n1)=$player and id(n2)=$marketplace
+                                WHERE id(player)=$player and id(market)=$marketplace
                             RETURN n"
                         ;
                         
