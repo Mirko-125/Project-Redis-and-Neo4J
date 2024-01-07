@@ -5,6 +5,6 @@ public class MarketTradeDto
     public string Date { get; set; }
     public int PlayerID { get; set; }
     public int MarketplaceID { get; set; }
-    public int[] PlayerItemsIDs { get; set; }
-    public int[] MarketItemsIDs { get; set; }
+    public string[] PlayerItemNames { get; set; }
+    public string[] MarketItemNames { get; set; }
 }
