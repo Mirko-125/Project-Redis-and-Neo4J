@@ -28,17 +28,20 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Item) RETURN n";
+                        var query = @"MATCH (n:Item) 
+                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
+                                      RETURN  n, attributes";
                         var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
+                        var resultList = new List<object>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
+                            var item = record["n"].As<INode>();
+                            var connectedNodes = record["attributes"].As<INode>();
+                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
                         });
 
-                        return nodes;
+                        return resultList;
                     });
 
                     return Ok(result);
@@ -46,12 +49,12 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
        
       [HttpGet("GetItemByName")]
-        public async Task<IActionResult> GetItemByName(String name)
+        public async Task<IActionResult> GetItemByName(string name)
         {
             try
             {
@@ -59,18 +62,22 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Item {name: $name}) RETURN n";
+                        var query = @"MATCH (n:Item {name: $name})
+                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
+                                      RETURN  n, attributes";
+                                      
                         var parameters = new { name = name };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
+                        var cursor = await tx.RunAsync(query, parameters);
+                        var resultList = new List<object>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
+                            var item = record["n"].As<INode>();
+                            var connectedNodes = record["attributes"].As<INode>();
+                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
                         });
 
-                        return nodes;
+                        return resultList;
                     });
 
                     return Ok(result);
@@ -78,12 +85,12 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpGet("GetItemByType")]
-        public async Task<IActionResult> GetItemByType(String type)
+        public async Task<IActionResult> GetItemByType(string type)
         {
             try
             {
@@ -91,18 +98,22 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Item {type: $type}) RETURN n";
+                        var query = @"MATCH (n:Item {type: $type}) 
+                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
+                                      RETURN  n, attributes";
                         var parameters = new { type = type };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
+        
+                        var cursor = await tx.RunAsync(query, parameters);
+                        var resultList = new List<object>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
+                            var item = record["n"].As<INode>();
+                            var connectedNodes = record["attributes"].As<INode>();
+                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
                         });
 
-                        return nodes;
+                        return resultList;
                     });
 
                     return Ok(result);
@@ -110,52 +121,20 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
-        //   [HttpPost]
-        //  public async Task<IActionResult> AddItem(Item item)
-        // {
-        //     try
-        //     {
-        //         using (var session = _driver.AsyncSession())
-        //         {
-        //             var query = @"
-        //                 CREATE (n:Item {
-        //                     name: $name,
-        //                     weight: $weight,
-        //                     type: $type,
-        //                     dimensions: $dimensions,
-        //                     value: $value
-        //                 })";
-
-        //             var parameters = new
-        //             {
-        //                 name = item.Name,
-        //                 weight = item.Weight,
-        //                 type = item.Type,
-        //                 dimensions = item.Dimensions,
-        //                 value = item.Value
-        //             };
-        //             await session.RunAsync(query, parameters);
-        //             return Ok();
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return BadRequest(ex.Message);
-        //     }
-        // }
-
         
         [HttpDelete("RemoveItem")]
-        public async Task<IActionResult> RemoveItem(String itemName)
+        public async Task<IActionResult> RemoveItem(string itemName)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Item {name: $name}) DELETE n";
+                    var query = @"MATCH (n:Item {name: $name}) 
+                                  OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
+                                  DETACH DELETE n, attributes";
                     var parameters = new { name = itemName };
                     await session.RunAsync(query, parameters);
                     return Ok();

@@ -18,70 +18,8 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
 
-        [HttpGet("GetAllMarketplaces")]
-        public async Task<IActionResult> GetAllMarketplaces()
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Marketplace) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
 
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpGet("GetMarketplace")]
-        public async Task<IActionResult> GetMarketplace(String zone)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Marketplace {zone: $zone}) RETURN n";
-                        var parameters = new { zone = zone };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpPost("AddMarketplace")]
+         [HttpPost("AddMarketplace")]
         public async Task<IActionResult> AddMarketplace(Marketplace marketplace)
         {
             try
@@ -111,45 +49,6 @@ namespace Databaseaccess.Controllers
             }
         }
         
-
-        [HttpDelete("DeleteMarketplace")]
-        public async Task<IActionResult> DeleteMarketplace(String zone)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Marketplace {zone: $zone}) DELETE n";
-                    var parameters = new { zone = zone };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPut("UpdateMarketplace")]
-        public async Task<IActionResult> UpdateMarketplace(String zone, int itemCount)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Marketplace {zone: $zone}) set n.itemCount=$itemCount return n";
-                    var parameters = new { itemCount = itemCount, zone=zone };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
         [HttpPost("AddMarketplaceItems")]
         public async Task<IActionResult> AddMarketplaceItems(string zoneName, string itemName)
         {
@@ -177,6 +76,62 @@ namespace Databaseaccess.Controllers
             }
         }
         
+        [HttpGet("GetAllMarketplaces")]
+        public async Task<IActionResult> GetAllMarketplaces()
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:Marketplace) RETURN n";
+                        var cursor = await tx.RunAsync(query);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetMarketplace")]
+        public async Task<IActionResult> GetMarketplace(String zone)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:Marketplace {zone: $zone}) RETURN n";
+                        var parameters = new { zone = zone };
+                        var cursor = await tx.RunAsync(query,parameters);
+                        var n=await cursor.SingleAsync();
+                        var node = n["n"].As<INode>();
+                        return node;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpGet("GetMarketplaceItems")]
         public async Task<IActionResult> GetMarketplaceItems(String zone)
@@ -208,11 +163,51 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
    
-   
+         [HttpPut("UpdateMarketplace")]
+        public async Task<IActionResult> UpdateMarketplace(String zone, int itemCount)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:Marketplace {zone: $zone})
+                                    SET n.itemCount=$itemCount return n";
+                    var parameters = new { itemCount = itemCount, zone=zone };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+     
+        [HttpDelete("DeleteMarketplace")]
+        public async Task<IActionResult> DeleteMarketplace(String zone)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:Marketplace {zone: $zone}) DETACH DELETE n";
+                    var parameters = new { zone = zone };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+       
+
    
     }
 }
