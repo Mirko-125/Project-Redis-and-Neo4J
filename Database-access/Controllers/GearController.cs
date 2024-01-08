@@ -20,14 +20,14 @@ namespace Databaseaccess.Controllers
 
 
         [HttpPost("AddGear")]
-        public async Task<IActionResult> AddGear(Gear gear)
+        public async Task<IActionResult> AddGear(GearDto gear)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"
-                        CREATE (gear:Gear:Item {
+                        CREATE (gear:Item:Gear {
                             name: $name,
                             weight: $weight,
                             type: $type,
@@ -44,7 +44,7 @@ namespace Databaseaccess.Controllers
                             stamina: $stamina, 
                             faith: $faith, 
                             experience: $experience, 
-                            levelAttributes: $level
+                            levelAttributes: $levelAttributes
                         })
                         CREATE (gear)-[:HAS]->(attributes)";
 

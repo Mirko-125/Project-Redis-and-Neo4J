@@ -18,38 +18,110 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
 
+
         [HttpPost("AddTrade")]
-        public async Task<IActionResult> AddTrade(Trade trade, int player1ID,int player2ID)
+        public async Task<IActionResult> AddTrade(TradeDto trade)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"
-                        CREATE (n:Trade {
+                    var parameters = new
+                    {
+                        isFinalized=trade.IsFinalized,  
+                        receiverGold=trade.ReceiverGold, 
+                        requesterGold=trade.RequesterGold,
+                        startedAt=trade.StartedAt,
+                        endedAt=trade.EndedAt,
+                        receiverID=trade.ReceiverID,
+                        requesterID=trade.RequesterID,
+                        receiverItemNames=trade.ReceiverItemNames,
+                        requesterItemNames=trade.RequesterItemNames
+                    };
+
+                    if(trade.ReceiverItemNames.Length>0){
+                        var playerReceverQuery=@"
+                            MATCH(playerReceiver:Player)-[:OWNS]->(inventoryReceiver: Inventory)
+                                WHERE ID(playerReceiver)=$receiverID
+                                
+                            MATCH (receiverItem :Item)
+                                WHERE receiverItem.name
+                                IN $receiverItemNames
+                                AND (inventoryReceiver)-[:HAS]->(receiverItem)
+                                
+                            return receiverItem"
+                        ;
+
+                        var playerReceiverItemResult=await session.RunAsync(playerReceverQuery, parameters);
+                        var receiverItems=await playerReceiverItemResult.ToListAsync();
+
+                        Console.WriteLine("Added item");
+
+                        if(receiverItems.Count!=trade.ReceiverItemNames.Length)
+                            throw new Exception("The playerReceiver doesn't own the items");
+                    }
+
+                    if(trade.RequesterItemNames.Length>0){
+                        var playerRequesterQuery=@"
+                            MATCH(playerRequester:Player)-[:OWNS]->(inventoryRequester: Inventory)
+                                WHERE ID(playerRequester)=$requesterID
+                                
+                            MATCH (requesterItem :Item)
+                                WHERE requesterItem.name
+                                IN $requesterItemNames
+                                AND (inventoryRequester)-[:HAS]->(requesterItem)
+                                
+                            return requesterItem"
+                        ;
+
+                        var playerRequesterItemResult=await session.RunAsync(playerRequesterQuery, parameters);
+                        var requesterItems=await playerRequesterItemResult.ToListAsync();
+
+                        Console.WriteLine("Added item");
+
+                        if(requesterItems.Count!=trade.RequesterItemNames.Length)
+                            throw new Exception("The playerRequester doesn't own the items");
+                    }
+                
+                var query=@"
+                    MATCH (playerReceiver_:Player)
+                        WHERE id(playerReceiver_)=$receiverID
+                        
+                    MATCH (receiverItem: Item)
+                        WHERE receiverItem.name IN $receiverItemNames
+                    WITH playerReceiver_, collect(receiverItem) as receiverItemsList
+                    
+                    MATCH (playerRequester_:Player)
+                        WHERE id(playerRequester_)=$requesterID
+                        
+                    MATCH (requesterItem: Item)
+                        WHERE requesterItem.name IN $requesterItemNames
+                    WITH playerReceiver_, receiverItemsList, playerRequester_, collect(requesterItem) as requesterItemsList
+                    
+                     CREATE (n:Trade {
                             isFinalized: $isFinalized,
                             receiverGold: $receiverGold,
                             requesterGold: $requesterGold,
                             startedAt: $startedAt,
                             endedAt: $endedAt
-                        })
-                        WITH n
-                        MATCH (n1:Player) WHERE id(n1)=$playeri1
-                        MATCH (n2:Player) WHERE id(n2)=$playeri2
-                        CREATE (n)-[:RECEIVER]->(n1)
-                        CREATE (n)-[:REQUESTER]->(n2)"
+                    })
+                        
+                    WITH n, playerReceiver_, playerRequester_, receiverItemsList, requesterItemsList
+                        
+                    FOREACH (item IN receiverItemsList |
+                            CREATE (n)-[:RECEIVER_ITEM]->(item)
+                        )
+
+                        FOREACH (item IN requesterItemsList |
+                            CREATE (n)-[:REQUESTER_ITEM]->(item)
+                        )
+                        
+                        CREATE (n)-[:RECEIVER]->(playerReceiver_)
+                        CREATE (n)-[:REQUESTER]->(playerRequester_)
+                        
+                        return n"
                     ;
 
-                    var parameters = new
-                    {
-                        isFinalized=trade.IsFinalized,
-                        receiverGold=trade.ReceiverGold,
-                        requesterGold=trade.RequesterGold,
-                        startedAt=trade.StartedAt,
-                        endedAt=trade.EndedAt,
-                        playeri1=player1ID,
-                        playeri2=player2ID
-                    };
                     var result=await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -59,6 +131,7 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
 
         [HttpGet("GetAllTrades")]
         public async Task<IActionResult> GetAllTrades()
@@ -87,7 +160,7 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -130,7 +203,7 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -143,7 +216,7 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n1:Player)-[:RECEIVER]->(n:Trade)<-[:REQUESTER]-(n2:Player) WHERE id(n1)=$playeri1 and id(n2)=$playeri2 RETURN n";
+                        var query = "MATCH (n1:Player)<-[:RECEIVER]-(n:Trade)-[:REQUESTER]->(n2:Player) WHERE id(n1)=$playeri1 and id(n2)=$playeri2 RETURN n";
                         
                         var parameters = new { playeri1 = player1ID,
                         playeri2=player2ID};
@@ -164,10 +237,36 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
+        [HttpPut("UpdateTrade")]
+        public async Task<IActionResult> UpdateTrade(int tradeid, string endedAt, bool isFinalized)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:Trade) WHERE ID(n)=$tradeID
+                                SET n.endedAt= $endedAt
+                                SET n.isFinalized= $isFinalized
+                                RETURN n";
+                    var parameters = new { tradeID = tradeid,
+                                           endedAt = endedAt,
+                                           isFinalized= isFinalized
+                                         };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+      
+      
         [HttpDelete("DeleteTrade")]
         public async Task<IActionResult> DeleteTrade(int tradeID)
         {
@@ -175,7 +274,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Trade) WHERE id(n)=$tradeid DETACH DELETE n";
+                    var query = "MATCH (n:Trade) WHERE id(n)=$tradeid DETACH DELETE n";
                     var parameters = new { tradeid = tradeID };
                     await session.RunAsync(query, parameters);
                     return Ok();

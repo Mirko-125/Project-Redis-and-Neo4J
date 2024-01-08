@@ -21,7 +21,7 @@ namespace Databaseaccess.Controllers
      
 
         [HttpPost("AddConsumable")]
-        public async Task<IActionResult> AddConsumable(Consumable consumable)
+        public async Task<IActionResult> AddConsumable(ConsumableDto consumable)
         {
             try
             {
