@@ -19,31 +19,12 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPost("AddMonster")]
-        public async Task<IActionResult> AddMonster(Monster monster)
+        public async Task<IActionResult> AddMonster(MonsterCreateDto monster)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"
-                        CREATE (n:Monster {
-                            name: $name,
-                            zone: $zone,
-                            type: $type,
-                            imageUrl: $imageUrl,
-                            status: $status
-                        })
-                        CREATE (m:MonsterAttributes {
-                            strength: $strength,
-                            agility: $agility,
-                            inteligence: $inteligence,
-                            stamina: $stamina,
-                            faith: $faith,
-                            experience: $experience,
-                            level: $level
-                        })
-                        CREATE (n)-[:HAS]->(m)";
-
                     var parameters = new
                     {
                         name = monster.Name,
@@ -57,8 +38,51 @@ namespace Databaseaccess.Controllers
                         stamina=monster.Attributes.Stanima,
                         faith=monster.Attributes.Faith,
                         experience=monster.Attributes.Experience,
-                        level=monster.Attributes.Level
+                        level=monster.Attributes.Level,
+                        possibleLootItems=monster.PossibleLootNames
                     };
+                    if (monster.PossibleLootNames.Length > 0){
+                        var possibleLootQuery =@"
+                            MATCH (possibleLootItem: Item)
+                                WHERE possibleLootItem.name
+                                    IN $possibleLootItems
+
+                            return possibleLootItem"
+                        ;
+                        var possibleLootItemResult = await session.RunAsync(possibleLootQuery, parameters);
+                        var possibleLootItems = await possibleLootItemResult.ToListAsync();
+
+                        if (possibleLootItems.Count != monster.PossibleLootNames.Length)
+                            throw new Exception("Some of the items don't exist");
+                    }
+                    var query = @"
+                        CREATE (monster:Monster {
+                            name: $name,
+                            zone: $zone,
+                            type: $type,
+                            imageUrl: $imageUrl,
+                            status: $status
+                        })
+                        CREATE (monsterAttributes:MonsterAttributes {
+                            strength: $strength,
+                            agility: $agility,
+                            inteligence: $inteligence,
+                            stamina: $stamina,
+                            faith: $faith,
+                            experience: $experience,
+                            level: $level
+                        })
+                        CREATE (monster)-[:HAS]->(monsterAttributes)
+                        WITH monster
+
+                        MATCH (possibleLootItem: Item)
+                                WHERE possibleLootItem.name
+                                    IN $possibleLootItems
+                        WITH monster,collect(possibleLootItem) as possibleLootItemsList            
+                                    
+                        FOREACH (item IN possibleLootItemsList |
+                            CREATE (monster)-[:POSSIBLE_LOOT]->(item)
+                        )";
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -68,6 +92,33 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [HttpPut("UpdateMonster")]
+        public async Task<IActionResult> UpdateMonster(MonsterUpdateDto monster)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:Monster) WHERE ID(n)=$mId
+                                SET n.zone= $zone
+                                SET n.imageUrl= $imageUrl
+                                SET n.status= $status
+                                RETURN n";
+                    var parameters = new { mId = monster.MonsterId,
+                                        zone = monster.Zone,
+                                        imageUrl= monster.ImageURL,
+                                        status=monster.Status };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
         [HttpGet("GetAllMonsters")]
         public async Task<IActionResult> GetAllMonsters()
         {
@@ -95,9 +146,10 @@ namespace Databaseaccess.Controllers
              }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
+        
         [HttpGet("GetMonster")]
         public async Task<IActionResult> GetMonster(int monsterId)
         {
@@ -107,7 +159,8 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Monster) WHERE id(n)=$idn RETURN n";
+                        var query = @"MATCH (n:Monster) WHERE id(n)=$idn   
+                                    RETURN n";
                         var parameters = new { idn = monsterId };
                         var cursor = await tx.RunAsync(query,parameters);
                          var n=await cursor.SingleAsync();
@@ -120,10 +173,10 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
-        //Ne radi kako treba
+        
         [HttpDelete("DeleteMonster")]
         public async Task<IActionResult> RemoveMonster(int monsterId)
         {
@@ -131,53 +184,9 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {  
-                    var query = @"MATCH (n:Monster)-[r]->(otherSide) WHERE id(n)=$idn
-                                DELETE otherSide,r,n";
+                    var query = @"MATCH (n:Monster)-[r]->(m:MonsterAttributes) WHERE id(n)=$idn
+                                DETACH DELETE r,m,n";
                     var parameters = new { idn=monsterId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpPut("UpdateMonster")]
-        public async Task<IActionResult> UpdateMonster(int monsterId, string newZone, string newImageURL, string newStatus)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Monster) WHERE ID(n)=$mId
-                                SET n.zone= $zone
-                                SET n.imageUrl= $imageUrl
-                                SET n.status= $status
-                                RETURN n";
-                    var parameters = new { mId = monsterId,
-                                        zone = newZone,
-                                        imageUrl= newImageURL,
-                                        status=newStatus };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-       
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> Remove(int id)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
-                    var query = @"MATCH (n) WHERE id(n)=$idn DETACH DELETE n";
-                    var parameters = new { idn = id };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -190,32 +199,6 @@ namespace Databaseaccess.Controllers
         
         #region MonsterAttributes
 
-        [HttpGet("GetMonsterAttributes")]
-        public async Task<IActionResult> GetMonsterAttributes(int monsterId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid RETURN n1 as osobine";
-                        var parameters = new { mid = monsterId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var n=await cursor.SingleAsync();
-                        var node = n["osobine"].As<INode>();
-                        return node;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        
         [HttpPut("UpdateMonsterAttributes")]
         public async Task<IActionResult> UpdateMonsterAttributes(int monsterId, double newStrength, double newAgility, double newInteligence, double newStamina, double newFaith, double newExperience, int newLevel)
         {
@@ -250,6 +233,32 @@ namespace Databaseaccess.Controllers
             }
         }
 
+        [HttpGet("GetMonsterAttributes")]
+        public async Task<IActionResult> GetMonsterAttributes(int monsterId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid RETURN n1 as osobine";
+                        var parameters = new { mid = monsterId };
+                        var cursor = await tx.RunAsync(query,parameters);
+                        var n=await cursor.SingleAsync();
+                        var node = n["osobine"].As<INode>();
+                        return node;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
         [HttpDelete("DeleteMonsterAttributes")]
         public async Task<IActionResult> DeleteMonsterAttributes(int monsterId)
         {
@@ -257,47 +266,10 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 { 
-                    var query = "MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid DETACH DELETE n1";
+                    var query = @"MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid 
+                                DETACH DELETE n1";
                     var parameters = new { mid = monsterId };
                     await session.RunAsync(query,parameters);         
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        #endregion MonsterAttributes
-    
-        #region PossibleLoot
-        [HttpPost("AddPossibleLoot")]
-        public async Task<IActionResult> AddPossibleLoot(int monsterId,Item item)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:Item {
-                            name: $name,
-                            weight: $weight,
-                            dimensions: $dimensions,
-                            value: $value
-                        })
-                        WITH n
-                        MATCH (n1:Monster) WHERE id(n1)=$monsteri
-                        CREATE (n1)-[:POSSIBLE_LOOT]->(n)";
-
-                    var parameters = new
-                    {
-                        name = item.Name,
-                        weight = item.Weight,
-                        dimensions = item.Dimensions,
-                        value = item.Value,
-                        monsteri=monsterId
-                    };
-                    await session.RunAsync(query, parameters);
                     return Ok();
                 }
             }
@@ -306,6 +278,10 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        #endregion MonsterAttributes
+    
+        #region PossibleLoot
+
         [HttpGet("GetPossibleLoot")]
         public async Task<IActionResult> GetPossibleLoot(int monsterId)
         {
@@ -334,7 +310,7 @@ namespace Databaseaccess.Controllers
              }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
         

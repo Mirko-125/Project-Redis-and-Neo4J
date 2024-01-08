@@ -18,8 +18,9 @@ namespace Databaseaccess.Controllers
         {
             _driver = driver;
         }
+
         [HttpPost("AddPlayerFight")]
-        public async Task<IActionResult> AddPlayerFight(PlayerFight plf, int player1Id, int player2Id)
+        public async Task<IActionResult> AddPlayerFight(PlayerFightCreateDto playerFight)
         {
             try
             {
@@ -38,11 +39,11 @@ namespace Databaseaccess.Controllers
 
                     var parameters = new
                     {
-                        winner=plf.Winner,
-                        experience=plf.Experience,
-                        honor=plf.Honor,
-                        playeri1=player1Id,
-                        playeri2=player2Id
+                        winner=playerFight.Winner,
+                        experience=playerFight.Experience,
+                        honor=playerFight.Honor,
+                        playeri1=playerFight.Player1Id,
+                        playeri2=playerFight.Player2Id
                     };
                     var result=await session.RunAsync(query, parameters);
                     return Ok();
@@ -53,6 +54,36 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [HttpPut("UpdatePlayerFight")]
+        public async Task<IActionResult> UpdatePlayerFight(PlayerFightUpdateDto playerFight)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:PlayerFight) WHERE ID(n)=$playerFightid
+                                SET n.winner= $winner
+                                SET n.experience= $experience
+                                SET n.honor= $honor
+                                RETURN n";
+                    var parameters = new 
+                    { 
+                        playerFightid = playerFight.PlayerFightId,
+                        winner=playerFight.Winner,
+                        experience= playerFight.Experience,
+                        honor=playerFight.Honor 
+                    };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
         [HttpGet("GetAllPlayerFights")]
         public async Task<IActionResult> GetAllPlayerFights()
         {
@@ -80,11 +111,12 @@ namespace Databaseaccess.Controllers
              }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
+        
         [HttpGet("GetPlayerFight")]
-        public async Task<IActionResult> GetPlayerFight(int plFiId)
+        public async Task<IActionResult> GetPlayerFight(int playerFightId)
         {
             try
             {
@@ -92,8 +124,8 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:PlayerFight) WHERE id(n)=$plF RETURN n";
-                        var parameters = new { plF = plFiId };
+                        var query = "MATCH (n:PlayerFight) WHERE id(n)=$plFId RETURN n";
+                        var parameters = new { plFId = playerFightId };
                         var cursor = await tx.RunAsync(query,parameters);
                         var n=await cursor.SingleAsync();
                         var node = n["n"].As<INode>();
@@ -106,9 +138,10 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
+       
         [HttpGet("GetPlayerFightsBetweenTwoPlayers")]
         public async Task<IActionResult> GetPlayerFightsBetweenTwoPlayers(int player1Id, int player2Id)
         {
@@ -142,34 +175,10 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        [HttpPut("UpdatePlayerFight")]
-        public async Task<IActionResult> UpdatePlayerFight(int playerFightId, string newWinner, string newExperience, string newHonor)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:PlayerFight) WHERE ID(n)=$plfId
-                                SET n.winner= $winner
-                                SET n.experience= $experience
-                                SET n.honor= $honor
-                                RETURN n";
-                    var parameters = new { plfId = playerFightId,
-                                        winner=newWinner,
-                                        experience= newExperience,
-                                        honor=newHonor };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
                 return BadRequest(ex.Message);
             }
         }
+        
         [HttpDelete("DeletePlayerFight")]
         public async Task<IActionResult> RemovePlayerFight(int plFightId)
         {

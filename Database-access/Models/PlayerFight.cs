@@ -9,8 +9,8 @@ namespace Databaseaccess.Models
     public class PlayerFight
     {
         public string Winner { get; set; }
-        public string Experience { get; set; }
-        public string Honor { get; set; }
+        public int Experience { get; set; }
+        public int Honor { get; set; }
         [JsonIgnore]
         public Player Player1 { get; set; }
         [JsonIgnore]

@@ -58,14 +58,17 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                        var query = @"MATCH (n1:NPC) WHERE id(n1)=$npId 
-                                    MATCH (n2:Player) WHERE id(n2)=$plId
-                                    MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
-                                    SET rel.property_key = COALESCE(rel.property_key, 0) + 1
-                                    RETURN rel.property_key AS incrementedProperty;";
-                        
-                        var parameters = new {npId=npcId,
-                                                plId = playerId};
+                        var query = @"
+                            MATCH (n1:NPC) WHERE id(n1)=$npId 
+                            MATCH (n2:Player) WHERE id(n2)=$plId
+                            MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
+                            SET rel.property_key = COALESCE(rel.property_key, 0) + 1
+                            RETURN rel.property_key AS incrementedProperty;"
+                        ;
+                        var parameters = new 
+                        {   npId=npcId,
+                            plId = playerId
+                        };
                         var cursor = await session.RunAsync(query,parameters);
                         var n = await cursor.SingleAsync();
                         var seq = n["incrementedProperty"].As<int>();
@@ -75,10 +78,10 @@ namespace Databaseaccess.Controllers
              }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
-        [HttpGet("GetNPCs")]
+        [HttpGet("GetAllNPCs")]
         public async Task<IActionResult> GetAllNPCs()
         {
             try
@@ -105,7 +108,7 @@ namespace Databaseaccess.Controllers
              }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
         [HttpGet("GetNPC")]
@@ -130,7 +133,7 @@ namespace Databaseaccess.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
         [HttpDelete("DeleteNPC")]
@@ -139,7 +142,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 using (var session = _driver.AsyncSession())
-                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
+                {   
                     var query = @"MATCH (n:NPC) WHERE id(n)=$id DETACH DELETE n";
                     var parameters = new { id = npcId };
                     await session.RunAsync(query, parameters);
