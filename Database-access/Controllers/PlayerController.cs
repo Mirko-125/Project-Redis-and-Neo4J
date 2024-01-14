@@ -19,7 +19,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
 
-        [HttpPost]
+        [HttpPost("AddFullPlayer")]
         public async Task<IActionResult> AddPlayer(Player player)
         {
             try
@@ -60,6 +60,39 @@ namespace Databaseaccess.Controllers
                         // Equipment
                         averageQuality = player.Equipment.AverageQuality,
                         weight = player.Equipment.Weight
+                    };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("AddProperPlayer")]
+        public async Task<IActionResult> AddProperPlayer(PlayerDto player)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
+                                CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
+                                CREATE (o:Attributes { strength: 0, agility: 0, inteligence: 0, stamina: 0, faith: 0, experience: 0, level: 0})
+                                CREATE (p:Equipment { averageQuality: 0, weight: 0})
+                                CREATE (n)-[:OWNS]->(m)
+                                CREATE (n)-[:HAS]->(o)
+                                CREATE (n)-[:WEARS]->(p)";
+
+                    var parameters = new
+                    {
+                        name = player.Name,
+                        email = player.Email,
+                        bio = player.Bio,
+                        createdAt = player.CreatedAt,
+                        password = player.Password
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();

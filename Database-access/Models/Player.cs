@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
+using Neo4j.Driver;
 
 namespace Databaseaccess.Models
 {
@@ -28,5 +29,23 @@ namespace Databaseaccess.Models
         public Class Class { get; set; }
         [JsonIgnore]
         public List<NPC> NPCs { get; set; } // Peđa
+
+        public Player(INode node)
+        {
+            Name = node["Name"].As<string>();
+            Email = node["Email"].As<string>();
+            Bio = node["Bio"].As<string>();
+            AchievementPoints = node["AchievementPoints"].As<int>();
+            CreatedAt = node["CreatedAt"].As<string>();
+            Password = node["Password"].As<string>();
+            Gold = node["Gold"].As<int>();
+            Honor = node["Honor"].As<int>();
+            Attributes = new Attributes(node);
+            Inventory = new Inventory(node);
+            Equipment = new Equipment(node);
+            Achievements = new List<Achievement>();
+            Abilities = new List<Ability>();
+            NPCs = new List<NPC>();
+        }
     }
 }
