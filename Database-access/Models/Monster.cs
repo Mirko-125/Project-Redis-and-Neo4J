@@ -15,7 +15,6 @@ namespace Databaseaccess.Models
         public string Status { get; set; }
         public Attributes Attributes { get; set; }
         public List<Item> PossibleLoot { get; set; }
-    
         public Monster(INode node)
         {
             Name = node["Name"].As<string>();
