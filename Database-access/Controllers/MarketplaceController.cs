@@ -85,14 +85,14 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Marketplace)-[:HAS]->(i:Item) RETURN n, i";
-                        var cursor = await tx.RunAsync(query);
+                        var query = "MATCH (n:Marketplace)-[:HAS]->(i:Item) RETURN n, COLLECT(i) as items";
+                        var cursor = await session.RunAsync(query);
                         var resultList = new List<object>();
 
                         await cursor.ForEachAsync(record =>
                         {
                             var item = record["n"].As<INode>();
-                            var connectedNodes = record["i"].As<INode>();
+                            var connectedNodes = record["items"].As<INode>();
                             resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
                         });
 
