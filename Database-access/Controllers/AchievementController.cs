@@ -50,7 +50,7 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPost("AddAchievement")]
-        public async Task<IActionResult> AddAchievement(Achievement achievement)
+        public async Task<IActionResult> AddAchievement(AchievementDTO achievement)
         {
             try
             {

@@ -5,4 +5,5 @@ public class PlayerDto
     public string Password { get; set; }
     public string CreatedAt { get; set; }
     public string Bio { get; set; }
+    public int ClassId { get; set; }
 }
