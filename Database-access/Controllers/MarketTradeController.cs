@@ -135,25 +135,27 @@ namespace Databaseaccess.Controllers
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
                         var query = @"
-                            MATCH (market:Marketplace)<-[:TradedAt]-(n:MarketTrade)-[:TradingPlayer]->(player:Player)
-                                WHERE id(player)=$player and id(market)=$marketplace
-                            RETURN n"
-                        ;
+                            MATCH (market:Marketplace)<-[:TradedAt]-(trade:MarketTrade)-[:TradingPlayer]->(player:Player)
+                                WHERE id(player) = $player and id(market) = $marketplace
+                            OPTIONAL MATCH (trade)-[rel]-(connectedNode)
+                            RETURN trade, COLLECT(DISTINCT connectedNode) as connectedNodes
+                        ";
                         
                         var parameters = new { 
                             player = playerID,
-                            marketplace=marketplaceID
+                            marketplace = marketplaceID
                         };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
+                        var cursor = await tx.RunAsync(query, parameters);
+                        var resultList = new List<object>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
+                            var trade = record["trade"].As<INode>();
+                            var connectedNodes = record["connectedNodes"].As<List<INode>>();
+                            resultList.Add(new { Trade = trade, ConnectedNodes = connectedNodes });
                         });
 
-                        return nodes;
+                        return resultList;
                     });
 
                     return Ok(result);

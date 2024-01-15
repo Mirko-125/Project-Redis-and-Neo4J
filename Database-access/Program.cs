@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
+using ServiceStack.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+builder.Services.AddSingleton<IRedisClientsManager>(c =>
+   new PooledRedisClientManager("localhost:6379"));
 
 // Configure the IDriver interface
 var driver = GraphDatabase.Driver("neo4j://localhost:7687", AuthTokens.Basic("neo4j", "myLocalPassword125"));
