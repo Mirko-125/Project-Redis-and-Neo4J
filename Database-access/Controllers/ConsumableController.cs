@@ -21,25 +21,21 @@ namespace Databaseaccess.Controllers
      
 
         [HttpPost("AddConsumable")]
-        public async Task<IActionResult> AddConsumable(Consumable consumable)
+        public async Task<IActionResult> AddConsumable(ConsumableDto consumable)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"
-                        CREATE (n:Consumable {
-                            effect: $effect
-                        }) 
-                        CREATE(m:Item {
+                        CREATE (n:Consumable:Item {
                             name: $name,
                             weight: $weight,
                             type: $type,
                             dimensions: $dimensions,
-                            value: $value
-                        })
-                        
-                        CREATE (n)-[:IS_A]->(m)";
+                            value: $value,
+                            effect: $effect
+                        })";
 
                     var parameters = new
                     {
@@ -61,14 +57,23 @@ namespace Databaseaccess.Controllers
         }
            
         [HttpPut("UpdateConsumable")]
-        public async Task<IActionResult> UpdateConsumable(String name, int value, int dimensions, double weight, String effects)
+        public async Task<IActionResult> UpdateConsumable(string name, int value, int dimensions, double weight, string effects)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Item {name: $name}) SET n.value=$value, n.dimensions=$dimensions, n.weight=$weight, n.effects=$effects return n";
-                    var parameters = new { name=name, value=value, dimensions=dimensions, weight=weight, effects=effects};
+                    var query = @"MATCH (n:Consumable {name: $name}) 
+                                    SET n.value=$value 
+                                    SET n.dimensions=$dimensions 
+                                    SET n.weight=$weight 
+                                    SET n.effects=$effects 
+                                    return n";
+                    var parameters = new { name=name, 
+                                           value=value, 
+                                           dimensions=dimensions, 
+                                           weight=weight, 
+                                           effects=effects };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
