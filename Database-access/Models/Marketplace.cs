@@ -21,7 +21,8 @@ public class Marketplace
                 Item item;
                 if (itemNode.Labels.Contains("Gear")) 
                 {
-                    item = new Gear(itemNode);
+                    var attributesNode = itemNode["attributes"].As<INode>();
+                    item = new Gear(itemNode, attributesNode);
                 }
                 else 
                 {

@@ -30,12 +30,12 @@ public class Gear : Item
     public int Level { get; set; }
     public string Quality { get; set; }
     public Attributes Attributes { get; set; } // not sure
-    public Gear(INode node) : base(node)
+    public Gear(INode itemNode, INode attributesNode) : base(itemNode)
     {
-        Slot = node["slot"].As<int>();
-        Level = node["level"].As<int>();
-        Quality = node["quality"].As<string>();
-        Attributes = new Attributes(node);
+        Slot = itemNode["slot"].As<int>();
+        Level = itemNode["level"].As<int>();
+        Quality = itemNode["quality"].As<string>();
+        Attributes = new Attributes(attributesNode);
     }
 }
 public class Consumable : Item

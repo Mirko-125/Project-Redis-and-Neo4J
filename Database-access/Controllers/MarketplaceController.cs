@@ -85,14 +85,20 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Marketplace)-[:HAS]->(i:Item) RETURN n, COLLECT(i) as items";
+                        var query = @"
+                            MATCH (n:Marketplace)-[:HAS]->(i:Item) 
+                                OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
+                            RETURN n, COLLECT({
+                                item: i,
+                                attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                            }) AS items";
                         var cursor = await tx.RunAsync(query);
                         var resultList = new List<Marketplace>();
-
                         await cursor.ForEachAsync(record =>
                         {
                             var marketNode = record["n"].As<INode>();
                             var itemsNodeList = record["items"].As<List<INode>>();
+                            Console.WriteLine("Ovde smo!3");
                             Marketplace market = new(marketNode, itemsNodeList);
                             resultList.Add(market);
                         });
