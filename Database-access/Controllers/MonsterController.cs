@@ -136,7 +136,7 @@ namespace Databaseaccess.Controllers
                         {
                             var monsterNode = record["n"].As<INode>();
                             var attributesNode = record["a"].As<INode>();
-                            Monster monster = new(monsterNode, attributesNode);
+                            Monster monster = new(monsterNode);
                             monsters.Add(monster);
                         });
 
@@ -165,7 +165,7 @@ namespace Databaseaccess.Controllers
                                     RETURN n";
                         var parameters = new { idn = monsterId };
                         var cursor = await tx.RunAsync(query,parameters);
-                         var n=await cursor.SingleAsync();
+                        var n=await cursor.SingleAsync();
                         var node = n["n"].As<INode>();
                         return node;
                     });

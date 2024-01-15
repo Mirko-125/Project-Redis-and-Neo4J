@@ -9,7 +9,6 @@ namespace Databaseaccess.Models
     public class Attributes
     {
         public double Strength { get; set; }
-
         public double Agility { get; set; }
         public double Intelligence { get; set; }
         public double Stamina { get; set; }

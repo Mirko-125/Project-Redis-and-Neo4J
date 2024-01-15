@@ -104,14 +104,11 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Ability) WHERE ID(n)=$aId
-                                SET n.name=$name
-                                SET n.damage=$damage
-                                SET n.cooldown=$cooldown
-                                SET n.range=$range
-                                SET n.special=$special
-                                SET n.heal=$heal
-                                RETURN n";
+                    string setName = "";
+                    if (newName!=null) {
+                        setName = "SET n.name=$name";
+                    }
+
                     var parameters = new { aId = abilityId,
                                         name = newName,
                                         damage = newDamage,
@@ -119,6 +116,17 @@ namespace Databaseaccess.Controllers
                                         range = newRange,
                                         special = newSpecial,
                                         heal = newHeal };
+
+                    var query = @"MATCH (n:Ability) WHERE ID(n)=$aId "
+                                +setName
+                                +@"SET n.damage=$damage
+                                SET n.cooldown=$cooldown
+                                SET n.range=$range
+                                SET n.special=$special
+                                SET n.heal=$heal
+                                RETURN n";
+                    Console.WriteLine(query);
+                    
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

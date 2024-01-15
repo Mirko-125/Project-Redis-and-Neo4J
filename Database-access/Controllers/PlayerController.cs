@@ -18,7 +18,7 @@ namespace Databaseaccess.Controllers
         {
             _driver = driver;
         }
-
+        //dodati route lvlup(player) vuce LevelGainAttrbiutes od klase igraca, i dodaje mu u njegove atribute
         [HttpPost("AddFullPlayer")]
         public async Task<IActionResult> AddPlayer(Player player)
         {
@@ -65,12 +65,13 @@ namespace Databaseaccess.Controllers
                     return Ok();
                 }
             }
+           
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-
+        //Ubaciti i klasu kao parameter u dto, i koristiti baseAttributes od te klase da se generisu atributi playera
         [HttpPost("AddProperPlayer")]
         public async Task<IActionResult> AddProperPlayer(PlayerDto player)
         {
@@ -78,6 +79,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
+
                     var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
                                 CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
                                 CREATE (o:Attributes { strength: 0, agility: 0, intelligence: 0, stamina: 0, faith: 0, experience: 0, level: 0})

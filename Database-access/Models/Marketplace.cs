@@ -7,18 +7,31 @@ using Neo4j.Driver;
 
 public class Marketplace
 {
-    //atributi
     public string Zone { get; set; } 
     public int ItemCount { get; set; } 
-    public int RestockCycle {get; set;} 
-
-    //veze
+    public int RestockCycle { get; set; } 
     public List<Item> Items { get; set; }
-    public Marketplace(INode node)
+    public Marketplace(INode marketNode, List<INode> itemsNodeList)
     {
-        Zone = node["Zone"].As<string>();
-        ItemCount = node["ItemCount"].As<int>();
-        RestockCycle = node["RestockCycle"].As<int>();
-        Items = new List<Item>();
+        Items = [];
+        if (itemsNodeList.Count > 0)
+        {
+            itemsNodeList.ForEach(itemNode => 
+            {
+                Item item;
+                if (itemNode.Labels.Contains("Gear")) 
+                {
+                    item = new Gear(itemNode);
+                }
+                else 
+                {
+                    item = new Consumable(itemNode);
+                }
+                Items.Add(item);
+            });
+        }
+        Zone = marketNode["zone"].As<string>();
+        ItemCount = marketNode["itemCount"].As<int>();
+        RestockCycle = marketNode["restockCycle"].As<int>();
     }
 }

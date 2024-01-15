@@ -16,7 +16,7 @@ namespace Databaseaccess.Models
         Archer,
         Spartan,
         Soldier,
-        Assasin
+        Assassin
     }
     */
     public class Class
