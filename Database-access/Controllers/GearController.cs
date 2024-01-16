@@ -101,7 +101,7 @@ namespace Databaseaccess.Controllers
                                     SET attributes.stamina= $stamina
                                     SET attributes.faith= $faith
                                     SET attributes.experience= $experience
-                                    SET attributes.level= $level
+                                    SET attributes.levelAttributes= $levelAttributes
 
                                     return n";
                     var parameters = new { gearID=gear.GearID,
@@ -120,7 +120,7 @@ namespace Databaseaccess.Controllers
                                            stamina= gear.Attributes.Stamina,
                                            faith= gear.Attributes.Faith,
                                            experience=gear.Attributes.Experience ,
-                                           levelAt = gear.Attributes.Level
+                                           levelAttributes = gear.Attributes.Level
                                           
                                            };
                     await session.RunAsync(query, parameters);
