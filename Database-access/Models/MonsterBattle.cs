@@ -44,7 +44,7 @@ namespace Databaseaccess.Models
             EndedAt = monsterBattle["endedAt"].As<string>();
             IsFinalized = monsterBattle["isFinalized"].As<bool>();
             Monster = new Monster(monster, possibleLootNodeList, monsterAttributes);
-            Player = new Player(player,"a");
+            Player = new Player(player);
         }
     }
 }

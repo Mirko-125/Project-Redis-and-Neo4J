@@ -91,17 +91,20 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (player1:Player)<-[:PARTICIPATING_PLAYERS]-(playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(player2:Player) 
-                                RETURN DISTINCT player1, playerFight, player2";
+                    var query = @"MATCH (playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(p:Player) 
+                                    RETURN playerFight, COLLECT(p) as players";
                     var cursor = await session.RunAsync(query);
                     var resultList = new List<PlayerFight>();
 
                     await cursor.ForEachAsync(record =>
                     {
                         var playerFightNode = record["playerFight"].As<INode>();
-                        var player1Node = record["player1"].As<INode>();
+                        var players = record["players"].As<List<INode>>();
+                        var player1Node = players[0];
+                        var player2Node = players[1];
+                        //var player1Node = record["player1"].As<INode>();
                         //Player player1=new(player1Node,1);
-                        var player2Node = record["player2"].As<INode>();
+                        //var player2Node = record["player2"].As<INode>();
                         //Player player2=new(player2Node,1);
                         PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);
                         resultList.Add(playerFight);

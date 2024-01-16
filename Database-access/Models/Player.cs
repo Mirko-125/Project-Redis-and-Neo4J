@@ -40,7 +40,7 @@ namespace Databaseaccess.Models
             Password = node["password"].As<string>();
             Gold = node["gold"].As<int>();
             Honor = node["honor"].As<int>();
-            if( pr == null)
+            if ( pr != null)
             {
                 Attributes = new Attributes(node);
                 Inventory = new Inventory(node);

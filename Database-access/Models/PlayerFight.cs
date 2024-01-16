@@ -21,8 +21,8 @@ namespace Databaseaccess.Models
             Winner = node["winner"].As<string>();
             Experience = node["experience"].As<int>();
             Honor = node["honor"].As<int>();
-            Player1 = new Player(player1Node,"a");
-            Player2 = new Player(player2Node,"b");
+            Player1 = new Player(player1Node);
+            Player2 = new Player(player2Node);
         }
     }
 }
