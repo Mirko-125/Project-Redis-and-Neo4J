@@ -1,4 +1,4 @@
-using Databaseaccess.Models;
+
 public class MonsterCreateDto
 {
     public string Name { get; set; }
@@ -8,4 +8,12 @@ public class MonsterCreateDto
     public string Status { get; set; }
     public AttributesDto Attributes { get; set; }
     public string[] PossibleLootNames { get; set; }
+}
+
+public class MonsterUpdateDto
+{
+    public int MonsterId { get; set; }
+    public string Zone { get; set; }
+    public string ImageURL { get; set; }
+    public string Status { get; set; }
 }

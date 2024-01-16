@@ -19,7 +19,7 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPost("AddNPC")]
-        public async Task<IActionResult> AddNPC(NPC npc)
+        public async Task<IActionResult> AddNPC(NPCCreateDto npc)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace Databaseaccess.Controllers
                         CREATE (n:NPC {
                             name: $name,
                             affinity: $affinity,
-                            imageUrl: $imageUrl,
+                            imageURL: $imageUrl,
                             zone: $zone,
                             mood: $mood
                         })";
@@ -41,6 +41,38 @@ namespace Databaseaccess.Controllers
                         imageUrl= npc.ImageURL,
                         zone = npc.Zone,                        
                         mood=npc.Mood
+                    };
+                    await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPut("UpdateNPC")]
+        public async Task<IActionResult> UpdateNPC(NPCUpdateDto npc)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (n:NPC) WHERE ID(n)=$npcId
+                                SET n.name= $name
+                                SET n.affinity= $affinity
+                                SET n.imageURL= $imageUrl
+                                SET n.zone= $zone
+                                SET n.mood= $mood
+                                RETURN n";
+                    var parameters = new 
+                    { 
+                        npcId = npc.NPCId,
+                        name=npc.Name,
+                        affinity=npc.Affinity,
+                        imageUrl=npc.ImageURL,
+                        zone=npc.Zone,
+                        mood=npc.Mood    
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -88,22 +120,18 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = "MATCH (n:NPC) RETURN n";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<NPC>();
+
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:NPC) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var npcNode = record["n"].As<INode>();
+                        NPC nps=new(npcNode);
+                        resultList.Add(nps);
                     });
 
-                    return Ok(result);
+                    return Ok(resultList);
                 }
              }
             catch (Exception ex)
@@ -118,17 +146,13 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
-                        var parameters = new { id= npcId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var n = await cursor.SingleAsync();
-                        var node = n["n"].As<INode>();
-                        return node;
-                    });
-
-                    return Ok(result);
+                    var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
+                    var parameters = new { id= npcId };
+                    var cursor = await session.RunAsync(query,parameters);
+                    var n = await cursor.SingleAsync();
+                    var node = n["n"].As<INode>();
+                    NPC npc=new(node);
+                    return Ok(npc);
                 }
             }
             catch (Exception ex)

@@ -91,22 +91,23 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = @"MATCH (player1:Player)<-[:PARTICIPATING_PLAYERS]-(playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(player2:Player) 
+                                RETURN DISTINCT player1, playerFight, player2";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<PlayerFight>();
+
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:PlayerFight) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var playerFightNode = record["playerFight"].As<INode>();
+                        var player1Node = record["player1"].As<INode>();
+                        //Player player1=new(player1Node,1);
+                        var player2Node = record["player2"].As<INode>();
+                        //Player player2=new(player2Node,1);
+                        PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);
+                        resultList.Add(playerFight);
                     });
 
-                    return Ok(result);
+                    return Ok(resultList);
                 }
              }
             catch (Exception ex)
@@ -122,18 +123,20 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:PlayerFight) WHERE id(n)=$plFId RETURN n";
-                        var parameters = new { plFId = playerFightId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var n=await cursor.SingleAsync();
-                        var node = n["n"].As<INode>();
+                    var parameters = new { plFId = playerFightId };
+                    var query = @"MATCH (player1:Player)<-[:PARTICIPATING_PLAYERS]-(playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(player2:Player)
+                                    WHERE id(playerFight)=$plFId 
+                                RETURN DISTINCT player1, playerFight, player2";
+                    var cursor = await session.RunAsync(query,parameters);
+                    var record=await cursor.SingleAsync();
+                    var playerFightNode = record["playerFight"].As<INode>();
+                    var player1Node = record["player1"].As<INode>();
+                    //Player player1=new(player1Node,1);
+                    var player2Node = record["player2"].As<INode>();
+                    //Player player2=new(player2Node,1);
+                    PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);              
 
-                        return node;
-                    });
-
-                    return Ok(result);
+                    return Ok(playerFight);
                 }
             }
             catch (Exception ex)

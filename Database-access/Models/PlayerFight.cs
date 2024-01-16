@@ -12,17 +12,17 @@ namespace Databaseaccess.Models
         public string Winner { get; set; }
         public int Experience { get; set; }
         public int Honor { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public Player Player1 { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public Player Player2 { get; set; }
-        public PlayerFight(INode node)
+        public PlayerFight(INode node, INode player1Node, INode player2Node)
         {
-            Winner = node["Winner"].As<string>();
-            Experience = node["Experience"].As<int>();
-            Honor = node["Honor"].As<int>();
-            Player1 = new Player(node);
-            Player2 = new Player(node);
+            Winner = node["winner"].As<string>();
+            Experience = node["experience"].As<int>();
+            Honor = node["honor"].As<int>();
+            Player1 = new Player(player1Node,"a");
+            Player2 = new Player(player2Node,"b");
         }
     }
 }

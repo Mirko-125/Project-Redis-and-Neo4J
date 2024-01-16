@@ -15,11 +15,11 @@ namespace Databaseaccess.Models
         public string Mood { get; set; }
         public NPC(INode node)
         {
-            Name = node["Name"].As<string>();
-            Affinity = node["Affinity"].As<string>();
-            ImageURL = node["ImageURL"].As<string>();
-            Zone = node["Zone"].As<string>();
-            Mood = node["Mood"].As<string>();
+            Name = node["name"].As<string>();
+            Affinity = node["affinity"].As<string>();
+            ImageURL = node["imageURL"].As<string>();
+            Zone = node["zone"].As<string>();
+            Mood = node["mood"].As<string>();
         }
     }
 }

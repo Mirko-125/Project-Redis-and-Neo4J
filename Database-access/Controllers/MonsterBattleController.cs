@@ -33,12 +33,12 @@ namespace Databaseaccess.Controllers
                         WITH n
                         MATCH (n1:Monster) WHERE id(n1)=$monsteri
                         MATCH (n2:Player) WHERE id(n2)=$playeri
-                        CREATE (n1)<-[:ATTACKED_MONSTER]-(n)-[:ATTACKING_PLAYER]->(n2)";
-
+                        CREATE (n1)<-[:ATTACKED_MONSTER]-(n)-[:ATTACKING_PLAYER]->(n2)"
+                    ;
                     var parameters = new
                     {
-                        startedAt=mb.StartedAt,
-                        endedAt=mb.EndedAt,
+                        startedAt=DateTime.Now,
+                        endedAt="--",
                         isFinalized="false",
                         playeri=mb.PlayerId,
                         monsteri=mb.MonsterId
@@ -53,16 +53,17 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpPut("UpdateMonsterBattle")]
-        public async Task<IActionResult> UpdateMonsterBattle(MonsterBattleUpdateDto monsterBattle)
+        [HttpPut("FinalizeMonsterBattle")]
+        public async Task<IActionResult> FinalizeMonsterBattle(MonsterBattleUpdateDto monsterBattle)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                      var parameters = new 
-                    {   monsterBattleId = monsterBattle.MonsterBattleId,
-                        endedAt = monsterBattle.EndedAt,
+                    {   
+                        monsterBattleId = monsterBattle.MonsterBattleId,
+                        endedAt = DateTime.Now,
                         isFinalized= "true",
                         lootItems=monsterBattle.LootItemsNames
                     };
@@ -104,34 +105,7 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
-        [HttpGet("GetMonsterBattle")]
-        public async Task<IActionResult> GetMonsterBattle(int monsterBattleId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:MonsterBattle) WHERE id(n)=$idn RETURN n";
-                        var parameters = new { idn = monsterBattleId };
-                        var cursor = await tx.RunAsync(query,parameters);
 
-                        var n=await cursor.SingleAsync();
-                        var node = n["n"].As<INode>();
-                        return node;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
         [HttpGet("GetAllMonsterBattles")]
         public async Task<IActionResult> GetAllMonsterBattles()
         {
@@ -139,22 +113,77 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = @"MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(player:Player)
+                                MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
+                                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
+                                    OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
+                                MATCH (n)-[:LOOT]->(i:Item)
+                                    OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
+                                RETURN n, player, monster, monsterAttributes, COLLECT({
+                                    item: i,
+                                    attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                                }) AS loot, COLLECT({
+                                    item: pLoot,
+                                    attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
+                                }) AS possibleLoot ";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<MonsterBattle>();
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:MonsterBattle) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var monsterBattleNode = record["n"].As<INode>();
+                        var monsterNode = record["monster"].As<INode>();
+                        //Monster monster=new(monsterNode);
+                        var monsterAttributesNode = record["monsterAttributes"].As<INode>();
+                        var playerNode = record["player"].As<INode>();
+                        //Player player=new(playerNode,1);
+                        var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
+                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                        MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
+                        resultList.Add(monsterBattle);
                     });
 
-                    return Ok(result);
+                    return Ok(resultList);
+                }
+             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        //nezavrsene
+        [HttpGet("GetMonsterBattles")]
+        public async Task<IActionResult> GetMonsterBattles()
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle {endedAt:$endedAt})-[:ATTACKING_PLAYER]->(player:Player)
+                                MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
+                                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
+                                    OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
+                                RETURN n, player, monster, monsterAttributes, COLLECT({
+                                    item: pLoot,
+                                    attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
+                                }) AS possibleLoot ";
+                    var parameters = new { endedAt="--" };
+                    var cursor = await session.RunAsync(query, parameters);
+                    var resultList = new List<MonsterBattle>();
+                    await cursor.ForEachAsync(record =>
+                    {
+                        var monsterBattleNode = record["n"].As<INode>();
+                        var monsterNode = record["monster"].As<INode>();
+                        //Monster monster=new(monsterNode);
+                        var monsterAttributesNode = record["monsterAttributes"].As<INode>();
+                        var playerNode = record["player"].As<INode>();
+                        //Player player=new(playerNode,1);
+                        
+                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                        MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList);
+                        resultList.Add(monsterBattle);
+                    });
+
+                    return Ok(resultList);
                 }
              }
             catch (Exception ex)
@@ -163,30 +192,45 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetMonsterBattlesOfPlayer")]
-        public async Task<IActionResult> GetMonsterBattlesOfPlayer(int playerId)
+        [HttpGet("GetMonsterBattle")]
+        public async Task<IActionResult> GetMonsterBattle(int monsterBattleId)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    
+                    var query =@"MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(player:Player)
+                                    WHERE ID(n)=$idn
+                                MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
+                                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
+                                    OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
+                                MATCH (n)-[:LOOT]->(i:Item)
+                                    OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
+                                RETURN n, player, monster, monsterAttributes, COLLECT({
+                                    item: i,
+                                    attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                                }) AS loot, COLLECT({
+                                    item: pLoot,
+                                    attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
+                                }) AS possibleLoot ";
+                    var parameters = new { idn = monsterBattleId };
+                    var cursor = await session.RunAsync(query,parameters);
+                    var resultList = new List<MonsterBattle>();
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:MonsterBattle)-[:ATTACKING_PLAYER]->(n1:Player) WHERE id(n1)=$playeri RETURN n";
-                        var parameters = new { playeri = playerId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var monsterBattleNode = record["n"].As<INode>();
+                        var monsterNode = record["monster"].As<INode>();
+                        //Monster monster=new(monsterNode);
+                        var monsterAttributesNode = record["monsterAttributes"].As<INode>();
+                        var playerNode = record["player"].As<INode>();
+                        //Player player=new(playerNode,1);
+                        var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
+                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                        MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
+                        resultList.Add(monsterBattle);
                     });
-
-                    return Ok(result);
+                    return Ok(resultList);
                 }
             }
             catch (Exception ex)

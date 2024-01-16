@@ -6,3 +6,10 @@ public class PlayerFightCreateDto
     public int Player1Id { get; set; }
     public int Player2Id { get; set; }
 }
+public class PlayerFightUpdateDto
+{
+    public int PlayerFightId { get; set; }
+    public string Winner { get; set; }
+    public int Experience { get; set; }
+    public int Honor { get; set; }
+}

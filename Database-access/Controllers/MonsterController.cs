@@ -126,24 +126,26 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                   var query = @"MATCH (n:Monster)-[:HAS]->(m:Attributes) 
+                                MATCH (n)-[:POSSIBLE_LOOT]->(i:Item)
+                                    OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
+                                RETURN n, m, COLLECT({
+                                    item: i,
+                                    attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                                }) AS possibleLoot";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<Monster>();
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:Monster)-[:HAS]->(a:Attributes) RETURN n, a";
-                        var cursor = await tx.RunAsync(query);
-                        var monsters = new List<Monster>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var monsterNode = record["n"].As<INode>();
-                            var attributesNode = record["a"].As<INode>();
-                            Monster monster = new(monsterNode);
-                            monsters.Add(monster);
-                        });
-
-                        return monsters;
+                        var monsterNode = record["n"].As<INode>();
+                        var monsterAttributesNode = record["m"].As<INode>();
+                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                        Monster monster= new(monsterNode, possibleLootNodeList, monsterAttributesNode);
+                        //Attributes monsterAttributes= new(monsterAttributesNode);
+                        resultList.Add(monster);
                     });
 
-                    return Ok(result);
+                    return Ok(resultList);
                 }
              }
             catch (Exception ex)
@@ -159,18 +161,22 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = @"MATCH (n:Monster) WHERE id(n)=$idn   
-                                    RETURN n";
-                        var parameters = new { idn = monsterId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var n=await cursor.SingleAsync();
-                        var node = n["n"].As<INode>();
-                        return node;
-                    });
-
-                    return Ok(result);
+                   var parameters = new { idn = monsterId };
+                    var query = @"MATCH (n:Monster) WHERE id(n)=$idn
+                                MATCH (n)-[:HAS]->(m:Attributes) 
+                                MATCH (n)-[:POSSIBLE_LOOT]->(i:Item)
+                                    OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
+                                RETURN n, m, COLLECT({
+                                    item: i,
+                                    attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                                }) AS possibleLoot ";
+                    var cursor = await session.RunAsync(query, parameters);
+                    var result=await cursor.SingleAsync();
+                    var monsterNode = result["n"].As<INode>();
+                    var monsterAttributesNode = result["m"].As<INode>();
+                    var possibleLootNodeList = result["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                    Monster monster=new(monsterNode, possibleLootNodeList , monsterAttributesNode);
+                    return Ok(monster);
                 }
             }
             catch (Exception ex)
@@ -186,7 +192,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {  
-                    var query = @"MATCH (n:Monster)-[r]->(m:MonsterAttributes) WHERE id(n)=$idn
+                    var query = @"MATCH (n:Monster)-[r]->(m:Attributes) WHERE id(n)=$idn
                                 DETACH DELETE r,m,n";
                     var parameters = new { idn=monsterId };
                     await session.RunAsync(query, parameters);
@@ -208,7 +214,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Monster)-[:HAS]->(ma:MonsterAttributes) WHERE ID(n)=$mId
+                    var query = @"MATCH (n:Monster)-[:HAS]->(ma:Attributes) WHERE ID(n)=$mId
                                 SET ma.strength= $strength
                                 SET ma.agility= $agility
                                 SET ma.intelligence= $intelligence
@@ -217,14 +223,16 @@ namespace Databaseaccess.Controllers
                                 SET ma.experience= $experience
                                 SET ma.level= $level
                                 RETURN ma";
-                    var parameters = new { mId = monsterId,
-                                        strength = newStrength,
-                                        agility=newAgility ,
-                                        intelligence=newIntelligence,
-                                        stamina= newStamina,
-                                        faith= newFaith,
-                                        experience=newExperience ,
-                                        level=newLevel };
+                    var parameters = new { 
+                        mId = monsterId,
+                        strength = newStrength,
+                        agility=newAgility ,
+                        intelligence=newIntelligence,
+                        stamina= newStamina,
+                        faith= newFaith,
+                        experience=newExperience ,
+                        level=newLevel 
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -244,7 +252,7 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid RETURN n1 as osobine";
+                        var query = "MATCH (n:Monster)-[:HAS]->(n1:Attributes) WHERE id(n)=$mid RETURN n1 as osobine";
                         var parameters = new { mid = monsterId };
                         var cursor = await tx.RunAsync(query,parameters);
                         var n=await cursor.SingleAsync();
@@ -268,7 +276,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 { 
-                    var query = @"MATCH (n:Monster)-[:HAS]->(n1:MonsterAttributes) WHERE id(n)=$mid 
+                    var query = @"MATCH (n:Monster)-[:HAS]->(n1:Attributes) WHERE id(n)=$mid 
                                 DETACH DELETE n1";
                     var parameters = new { mid = monsterId };
                     await session.RunAsync(query,parameters);         
