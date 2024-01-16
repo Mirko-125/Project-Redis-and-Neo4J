@@ -97,8 +97,8 @@ namespace Databaseaccess.Controllers
 
                                     SET attributes.strength= $strength
                                     SET attributes.agility= $agility
-                                    SET attributes.inteligence= $inteligence
-                                    SET attributes.stanima= $stanima
+                                    SET attributes.intelligence= $intelligence
+                                    SET attributes.stamina= $stamina
                                     SET attributes.faith= $faith
                                     SET attributes.experience= $experience
                                     SET attributes.level= $level
@@ -116,8 +116,8 @@ namespace Databaseaccess.Controllers
 
                                            strength = gear.Attributes.Strength,
                                            agility=gear.Attributes.Agility ,
-                                           inteligence=gear.Attributes.Intelligence,
-                                           stanima= gear.Attributes.Stamina,
+                                           intelligence=gear.Attributes.Intelligence,
+                                           stamina= gear.Attributes.Stamina,
                                            faith= gear.Attributes.Faith,
                                            experience=gear.Attributes.Experience ,
                                            levelAt = gear.Attributes.Level
