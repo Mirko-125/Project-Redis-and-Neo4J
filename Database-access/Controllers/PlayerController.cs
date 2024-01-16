@@ -19,6 +19,39 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         //dodati route lvlup(player) vuce LevelGainAttrbiutes od klase igraca, i dodaje mu u njegove atribute
+        [HttpPut("LevelUp")]
+        public async Task<ActionResult> LevelUp(int playerId)
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"MATCH (player:Player) WHERE ID(player)=$id
+                                  MATCH (player)-[IS]->(class)
+                                  MATCH (class)-[LEVEL_GAINS_ATTRIBUTES]->(x)
+                                  MATCH (player)-[HAS]->(attributes)
+                                    SET attributes.strength = attributes.strength + x.strength,
+                                        attributes.agility = attributes.agility + x.agility,
+                                        attributes.intelligence = attributes.intelligence + x.intelligence,
+                                        attributes.stamina = attributes.stamina + x.stamina,
+                                        attributes.faith = attributes.faith + x.faith,
+                                        attributes.experience = attributes.experience + 25,
+                                        attributes.level = attributes.level + 1";
+                    var parameters = new 
+                    { 
+                        id = playerId
+                    };
+    
+                    var result = await session.RunAsync(query, parameters);
+                    return Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         //Ubaciti i klasu kao parameter u dto, i koristiti baseAttributes od te klase da se generisu atributi playera
         [HttpPost("AddProperPlayer")]
         public async Task<IActionResult> AddProperPlayer(PlayerDto player)
@@ -40,7 +73,6 @@ namespace Databaseaccess.Controllers
                                     CREATE (n)-[:OWNS]->(m)
                                     CREATE (n)-[:HAS]->(o)
                                     CREATE (n)-[:WEARS]->(p)";
-
                     var parameters = new
                     {
                         name = player.Name,
