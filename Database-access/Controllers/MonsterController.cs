@@ -289,42 +289,6 @@ namespace Databaseaccess.Controllers
             }
         }
         #endregion MonsterAttributes
-    
-        #region PossibleLoot
-
-        [HttpGet("GetPossibleLoot")]
-        public async Task<IActionResult> GetPossibleLoot(int monsterId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Monster)-[:POSSIBLE_LOOT]->(n1:Item) WHERE id(n)=$id RETURN n1";
-                        var parameters = new{id=monsterId};
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n1"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
-        #endregion PossibleLoot
     }
 
 }

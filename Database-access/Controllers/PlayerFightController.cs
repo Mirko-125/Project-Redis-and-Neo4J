@@ -102,10 +102,6 @@ namespace Databaseaccess.Controllers
                         var players = record["players"].As<List<INode>>();
                         var player1Node = players[0];
                         var player2Node = players[1];
-                        //var player1Node = record["player1"].As<INode>();
-                        //Player player1=new(player1Node,1);
-                        //var player2Node = record["player2"].As<INode>();
-                        //Player player2=new(player2Node,1);
                         PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);
                         resultList.Add(playerFight);
                     });
@@ -127,16 +123,15 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
                     var parameters = new { plFId = playerFightId };
-                    var query = @"MATCH (player1:Player)<-[:PARTICIPATING_PLAYERS]-(playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(player2:Player)
-                                    WHERE id(playerFight)=$plFId 
-                                RETURN DISTINCT player1, playerFight, player2";
+                    var query = @"MATCH (playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(p:Player)
+                                    WHERE id(playerFight)= $plFId
+                                RETURN playerFight, COLLECT(p) as players";
                     var cursor = await session.RunAsync(query,parameters);
                     var record=await cursor.SingleAsync();
                     var playerFightNode = record["playerFight"].As<INode>();
-                    var player1Node = record["player1"].As<INode>();
-                    //Player player1=new(player1Node,1);
-                    var player2Node = record["player2"].As<INode>();
-                    //Player player2=new(player2Node,1);
+                    var players = record["players"].As<List<INode>>();
+                    var player1Node = players[0];
+                    var player2Node = players[1];
                     PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);              
 
                     return Ok(playerFight);
@@ -147,51 +142,14 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-       
-        [HttpGet("GetPlayerFightsBetweenTwoPlayers")]
-        public async Task<IActionResult> GetPlayerFightsBetweenTwoPlayers(int player1Id, int player2Id)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = @"
-                            MATCH (n1:Player)<-[:PARTICIPATING_PLAYERS]-(n)-[:PARTICIPATING_PLAYERS]->(n2:Player)   
-                                WHERE id(n1)=$playeri1 AND id(n2)=$playeri2 RETURN n";
-                        var parameters = new { 
-                            playeri1 = player1Id,
-                            playeri2 = player2Id 
-                        };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
+              
         [HttpDelete("DeletePlayerFight")]
         public async Task<IActionResult> RemovePlayerFight(int plFightId)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
-                {   //nema error i ako cvor koji zelimo da obrisemo ne postoji
+                {   
                     var query = @"MATCH (n:PlayerFight) WHERE id(n)=$pfId DETACH DELETE n";
                     var parameters = new { pfId = plFightId };
                     await session.RunAsync(query, parameters);

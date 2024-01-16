@@ -115,27 +115,25 @@ namespace Databaseaccess.Controllers
                 {
                     var query = @"MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(player:Player)
                                 MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
-                                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
+                                OPTIONAL MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
                                     OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
-                                MATCH (n)-[:LOOT]->(i:Item)
+                                OPTIONAL MATCH (n)-[:LOOT]->(i:Item)
                                     OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
-                                RETURN n, player, monster, monsterAttributes, COLLECT({
+                                RETURN n, player, monster, monsterAttributes, COLLECT(DISTINCT{
                                     item: i,
                                     attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                                }) AS loot, COLLECT({
+                                }) AS loot, COLLECT(DISTINCT{
                                     item: pLoot,
                                     attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
-                                }) AS possibleLoot ";
+                                }) AS possibleLoot";
                     var cursor = await session.RunAsync(query);
                     var resultList = new List<MonsterBattle>();
                     await cursor.ForEachAsync(record =>
                     {
                         var monsterBattleNode = record["n"].As<INode>();
                         var monsterNode = record["monster"].As<INode>();
-                        //Monster monster=new(monsterNode);
                         var monsterAttributesNode = record["monsterAttributes"].As<INode>();
                         var playerNode = record["player"].As<INode>();
-                        //Player player=new(playerNode,1);
                         var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
                         var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
                         MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
@@ -149,49 +147,7 @@ namespace Databaseaccess.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }
-        //nezavrsene
-        [HttpGet("GetMonsterBattles")]
-        public async Task<IActionResult> GetMonsterBattles()
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle {endedAt:$endedAt})-[:ATTACKING_PLAYER]->(player:Player)
-                                MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
-                                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
-                                    OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
-                                RETURN n, player, monster, monsterAttributes, COLLECT({
-                                    item: pLoot,
-                                    attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
-                                }) AS possibleLoot ";
-                    var parameters = new { endedAt="--" };
-                    var cursor = await session.RunAsync(query, parameters);
-                    var resultList = new List<MonsterBattle>();
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var monsterBattleNode = record["n"].As<INode>();
-                        var monsterNode = record["monster"].As<INode>();
-                        //Monster monster=new(monsterNode);
-                        var monsterAttributesNode = record["monsterAttributes"].As<INode>();
-                        var playerNode = record["player"].As<INode>();
-                        //Player player=new(playerNode,1);
-                        
-                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
-                        MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList);
-                        resultList.Add(monsterBattle);
-                    });
-
-                    return Ok(resultList);
-                }
-             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
+        }       
         [HttpGet("GetMonsterBattle")]
         public async Task<IActionResult> GetMonsterBattle(int monsterBattleId)
         {
@@ -205,15 +161,15 @@ namespace Databaseaccess.Controllers
                                 MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
                                 MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
                                     OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)
-                                MATCH (n)-[:LOOT]->(i:Item)
+                                OPTIONAL MATCH (n)-[:LOOT]->(i:Item)
                                     OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
-                                RETURN n, player, monster, monsterAttributes, COLLECT({
+                                RETURN n, player, monster, monsterAttributes, COLLECT(DISTINCT{
                                     item: i,
                                     attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                                }) AS loot, COLLECT({
+                                }) AS loot, COLLECT(DISTINCT{
                                     item: pLoot,
                                     attributes: CASE WHEN pLoot:Gear THEN att ELSE NULL END
-                                }) AS possibleLoot ";
+                                }) AS possibleLoot";
                     var parameters = new { idn = monsterBattleId };
                     var cursor = await session.RunAsync(query,parameters);
                     var resultList = new List<MonsterBattle>();
@@ -221,10 +177,8 @@ namespace Databaseaccess.Controllers
                     {
                         var monsterBattleNode = record["n"].As<INode>();
                         var monsterNode = record["monster"].As<INode>();
-                        //Monster monster=new(monsterNode);
                         var monsterAttributesNode = record["monsterAttributes"].As<INode>();
                         var playerNode = record["player"].As<INode>();
-                        //Player player=new(playerNode,1);
                         var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
                         var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
                         MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
@@ -258,40 +212,6 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        #region Loot
 
-        [HttpGet("GetLoot")]
-        public async Task<IActionResult> GetLoot(int monsterBattleId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:MonsterBattle)-[:LOOT]->(n1:Item) WHERE id(n)=$id RETURN n1";
-                        var parameters = new{id=monsterBattleId};
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n1"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
-        #endregion Loot
     }
 }

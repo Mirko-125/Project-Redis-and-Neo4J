@@ -20,12 +20,13 @@ namespace Databaseaccess.Models
         public MonsterBattle(INode monsterBattle, INode monster, INode monsterAttributes, INode player, List<Dictionary<string, INode>> possibleLootNodeList, List<Dictionary<string, INode>> lootNodeList=null)
         {
             Loot = [];
-            if(lootNodeList != null){
-                if (lootNodeList.Count > 0)
+            if (lootNodeList.Count > 0)
+            {
+                lootNodeList.ForEach(itemAndAttributes => 
                 {
-                    lootNodeList.ForEach(itemAndAttributes => 
+                    INode itemNode = itemAndAttributes["item"];
+                    if(itemNode!=null)
                     {
-                        INode itemNode = itemAndAttributes["item"];
                         Item item;
                         if (itemNode.Labels.Contains("Gear")) 
                         {  
@@ -37,8 +38,9 @@ namespace Databaseaccess.Models
                             item = new Consumable(itemNode);
                         }
                         Loot.Add(item);
-                    });
-                }
+                    }
+                    
+                });
             }
             StartedAt = monsterBattle["startedAt"].As<string>();
             EndedAt = monsterBattle["endedAt"].As<string>();
