@@ -27,9 +27,9 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"MATCH (player:Player) WHERE ID(player)=$id
-                                  MATCH (player)-[IS]->(class)
-                                  MATCH (class)-[LEVEL_GAINS_ATTRIBUTES]->(x)
-                                  MATCH (player)-[HAS]->(attributes)
+                                  MATCH (player)-[:IS]->(class)
+                                  MATCH (class)-[:LEVEL_GAINS_ATTRIBUTES]->(x)
+                                  MATCH (player)-[:HAS]->(attributes)
                                     SET attributes.strength = attributes.strength + x.strength,
                                         attributes.agility = attributes.agility + x.agility,
                                         attributes.intelligence = attributes.intelligence + x.intelligence,
