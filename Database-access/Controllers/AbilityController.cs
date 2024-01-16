@@ -18,7 +18,7 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         [HttpPost("CreateAbility")]
-        public async Task<IActionResult> CreateAbility(Ability ability)
+        public async Task<IActionResult> CreateAbility(AbilityDTO ability)
         {
             try
             {

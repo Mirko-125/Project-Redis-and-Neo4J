@@ -18,42 +18,33 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         [HttpPost("CreateClass")]
-        public async Task<IActionResult> CreateClass(Class classEntity)
+        public async Task<IActionResult> CreateClass(ClassDto classEntity)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"CREATE (n:Class { name: $nameValue})";
+                    var query = @"CREATE (class:Class { name: $nameValue})
+                                  CREATE (base:Attributes { strength: $strengthValue, agility: $agilityValue, intelligence: $intelligenceValue, stamina: $staminaValue, faith: $faithValue, experience: -1, level: -1})
+                                  CREATE (level:Attributes { strength: $strength, agility: $agility, intelligence: $intelligence, stamina: $stamina, faith: $faith, experience: -1, level: -1})
+                                  CREATE (class)-[:HAS_BASE_ATTRIBUTES]->(base)
+                                  CREATE (class)-[:LEVEL_GAINS_ATTRIBUTES]->(level)";
 
                     var parameters = new
                     {
-                        nameValue = classEntity.Name
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpPost("AssignClass")]
-        public async Task<IActionResult> AssignClass(int classId, int playerId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Class) WHERE ID(n)=$cId
-                                MATCH (m:Player) WHERE ID(m)=$pId
-                                CREATE (m)-[:IS]->(n)";
-
-                    var parameters = new
-                    {
-                        cId = classId,
-                        pId = playerId
+                        // Value is for the base attributes
+                        // Just a name is for the level gains attributes
+                        nameValue = classEntity.Name,
+                        strengthValue = classEntity.BaseAttributes.Strength,
+                        agilityValue = classEntity.BaseAttributes.Agility,
+                        intelligenceValue = classEntity.BaseAttributes.Intelligence,
+                        staminaValue = classEntity.BaseAttributes.Stamina,
+                        faithValue = classEntity.BaseAttributes.Faith,
+                        strength = classEntity.LevelGainAttributes.Strength,
+                        agility = classEntity.LevelGainAttributes.Agility,
+                        intelligence = classEntity.LevelGainAttributes.Intelligence,
+                        stamina = classEntity.LevelGainAttributes.Stamina,
+                        faith = classEntity.LevelGainAttributes.Faith
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();

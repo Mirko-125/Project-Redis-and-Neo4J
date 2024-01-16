@@ -19,58 +19,39 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
         //dodati route lvlup(player) vuce LevelGainAttrbiutes od klase igraca, i dodaje mu u njegove atribute
-        [HttpPost("AddFullPlayer")]
-        public async Task<IActionResult> AddPlayer(Player player)
+        [HttpPut("LevelUp")]
+        public async Task<ActionResult> LevelUp(int playerId)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: $achievementPoints, createdAt: $createdAt, password: $password, gold: $gold, honor: $honor})
-                                CREATE (m:Inventory {weightLimit : $weightLimit, dimensions: $dimensions, freeSpots: $freeSpots, usedSpots: $usedSpots})
-                                CREATE (o:Attributes { strength: $strength, agility: $agility, intelligence: $intelligence, stamina: $stamina, faith: $faith, experience: $experience, level: $level})
-                                CREATE (p:Equipment { averageQuality: $averageQuality, weight: $weight})
-                                CREATE (n)-[:OWNS]->(m)
-                                CREATE (n)-[:HAS]->(o)
-                                CREATE (n)-[:WEARS]->(p)";
-
-                    var parameters = new
-                    {
-                        name = player.Name,
-                        email = player.Email,
-                        bio = player.Bio,
-                        achievementPoints = player.AchievementPoints,
-                        createdAt = player.CreatedAt,
-                        password = player.Password,
-                        gold = player.Gold,
-                        honor = player.Honor,
-                        // Inventory
-                        weightLimit = player.Inventory.WeightLimit,
-                        dimensions = player.Inventory.Dimensions,
-                        freeSpots = player.Inventory.FreeSpots,
-                        usedSpots = player.Inventory.UsedSpots,
-                        // Attributes
-                        strength = player.Attributes.Strength,
-                        agility = player.Attributes.Agility,
-                        intelligence = player.Attributes.Intelligence,
-                        stamina = player.Attributes.Stamina,
-                        faith = player.Attributes.Faith,
-                        experience = player.Attributes.Experience,
-                        level = player.Attributes.Level,
-                        // Equipment
-                        averageQuality = player.Equipment.AverageQuality,
-                        weight = player.Equipment.Weight
+                    var query = @"MATCH (player:Player) WHERE ID(player)=$id
+                                  MATCH (player)-[IS]->(class)
+                                  MATCH (class)-[LEVEL_GAINS_ATTRIBUTES]->(x)
+                                  MATCH (player)-[HAS]->(attributes)
+                                    SET attributes.strength = attributes.strength + x.strength,
+                                        attributes.agility = attributes.agility + x.agility,
+                                        attributes.intelligence = attributes.intelligence + x.intelligence,
+                                        attributes.stamina = attributes.stamina + x.stamina,
+                                        attributes.faith = attributes.faith + x.faith,
+                                        attributes.experience = attributes.experience + 25,
+                                        attributes.level = attributes.level + 1";
+                    var parameters = new 
+                    { 
+                        id = playerId
                     };
-                    await session.RunAsync(query, parameters);
+    
+                    var result = await session.RunAsync(query, parameters);
                     return Ok();
                 }
             }
-           
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
         //Ubaciti i klasu kao parameter u dto, i koristiti baseAttributes od te klase da se generisu atributi playera
         [HttpPost("AddProperPlayer")]
         public async Task<IActionResult> AddProperPlayer(PlayerDto player)
@@ -81,20 +62,25 @@ namespace Databaseaccess.Controllers
                 {
 
                     var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
-                                CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
-                                CREATE (o:Attributes { strength: 0, agility: 0, intelligence: 0, stamina: 0, faith: 0, experience: 0, level: 0})
-                                CREATE (p:Equipment { averageQuality: 0, weight: 0})
-                                CREATE (n)-[:OWNS]->(m)
-                                CREATE (n)-[:HAS]->(o)
-                                CREATE (n)-[:WEARS]->(p)";
-
+                                    WITH n
+                                    MATCH (class:Class) WHERE ID(class)=$classId
+                                    CREATE (n)-[:IS]->(class)
+                                    WITH n, class
+                                    MATCH (class)-[:HAS_BASE_ATTRIBUTES]->(x)
+                                    CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
+                                    CREATE (o:Attributes { strength: x.strength, agility: x.agility, intelligence: x.intelligence, stamina: x.stamina, faith: x.faith, experience: 0, level: 0})
+                                    CREATE (p:Equipment { averageQuality: 0, weight: 0})
+                                    CREATE (n)-[:OWNS]->(m)
+                                    CREATE (n)-[:HAS]->(o)
+                                    CREATE (n)-[:WEARS]->(p)";
                     var parameters = new
                     {
                         name = player.Name,
                         email = player.Email,
                         bio = player.Bio,
                         createdAt = player.CreatedAt,
-                        password = player.Password
+                        password = player.Password,
+                        classId = player.ClassId
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
