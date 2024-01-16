@@ -11,17 +11,18 @@ public class Marketplace
     public int ItemCount { get; set; } 
     public int RestockCycle { get; set; } 
     public List<Item> Items { get; set; }
-    public Marketplace(INode marketNode, List<INode> itemsNodeList)
+    public Marketplace(INode marketNode, List<Dictionary<string, INode>> itemsNodeList)
     {
         Items = [];
         if (itemsNodeList.Count > 0)
         {
-            itemsNodeList.ForEach(itemNode => 
+            itemsNodeList.ForEach(itemAndAttributes => 
             {
+                INode itemNode = itemAndAttributes["item"];
                 Item item;
                 if (itemNode.Labels.Contains("Gear")) 
-                {
-                    var attributesNode = itemNode["attributes"].As<INode>();
+                {  
+                    INode attributesNode = itemAndAttributes["attributes"];
                     item = new Gear(itemNode, attributesNode);
                 }
                 else 

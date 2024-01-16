@@ -97,8 +97,7 @@ namespace Databaseaccess.Controllers
                         await cursor.ForEachAsync(record =>
                         {
                             var marketNode = record["n"].As<INode>();
-                            var itemsNodeList = record["items"].As<List<INode>>();
-                            Console.WriteLine("Ovde smo!3");
+                            var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
                             Marketplace market = new(marketNode, itemsNodeList);
                             resultList.Add(market);
                         });

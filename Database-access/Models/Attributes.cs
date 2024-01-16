@@ -24,7 +24,9 @@ namespace Databaseaccess.Models
             Stamina = node["stamina"].As<double>();
             Faith = node["faith"].As<double>();
             Experience = node["experience"].As<double>();
-            Level = node["level"].As<int>();
+            if (node.Properties.ContainsKey("level")){
+                Level = node["level"].As<int>();
+            }
         }
     }
 }
