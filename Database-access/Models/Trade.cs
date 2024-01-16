@@ -16,16 +16,57 @@ public class Trade
     public Player Requester { get; set; }
     public List<Item> ReceiverItems { get; set; }
     public List<Item> RequesterItems { get; set; }
-    public Trade(INode node)
+
+    public Trade(INode tradeNode, INode playerRec, INode playerReq, List<Dictionary<string, INode>> itemsRecNodeList, List<Dictionary<string, INode>> itemsReqNodeList)
     {
-        IsFinalized = node["IsFinalized"].As<bool>();
-        ReceiverGold = node["ReceiverGold"].As<int>();
-        RequesterGold = node["RequesterGold"].As<int>();
-        StartedAt = node["StartedAt"].As<string>();
-        EndedAt = node["EndedAt"].As<string>();
-        Receiver = new Player(node);
-        Requester = new Player(node);
-        ReceiverItems = new List<Item>();
-        RequesterItems = new List<Item>();
+
+        ReceiverItems = [];
+        if (itemsRecNodeList.Count > 0)
+        {
+            itemsRecNodeList.ForEach(itemAndAttributes => 
+            {
+                INode itemNode = itemAndAttributes["item"];
+                Item item;
+                if (itemNode.Labels.Contains("Gear")) 
+                {  
+                    INode attributesNode = itemAndAttributes["attributes"];
+                    item = new Gear(itemNode, attributesNode);
+                }
+                else 
+                {
+                    item = new Consumable(itemNode);
+                }
+                ReceiverItems.Add(item);
+            });
+        }
+
+        RequesterItems = [];
+        if (itemsReqNodeList.Count > 0)
+        {
+            itemsReqNodeList.ForEach(itemAndAttributes => 
+            {
+                INode itemNode = itemAndAttributes["item"];
+                Item item;
+                if (itemNode.Labels.Contains("Gear")) 
+                {  
+                    INode attributesNode = itemAndAttributes["attributes"];
+                    item = new Gear(itemNode, attributesNode);
+                }
+                else 
+                {
+                    item = new Consumable(itemNode);
+                }
+                RequesterItems.Add(item);
+            });
+        }
+        IsFinalized = tradeNode["isFinalized"].As<bool>();
+        ReceiverGold = tradeNode["receiverGold"].As<int>();
+        RequesterGold = tradeNode["requesterGold"].As<int>();
+        StartedAt = tradeNode["startedAt"].As<string>();
+        EndedAt = tradeNode["endedAt"].As<string>();
+        Receiver = new Player(playerRec);
+        Requester = new Player(playerReq);
+
+
     }
 }

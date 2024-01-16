@@ -142,17 +142,36 @@ namespace Databaseaccess.Controllers
                 {
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var query = "MATCH (n:Trade) RETURN n";
+                        var query = @"MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
+                                            (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
+                                      OPTIONAL MATCH (recItem)-[r:HAS]->(a:Attributes)
+                                      OPTIONAL MATCH (reqItem)-[r:HAS]->(a:Attributes)
+                                      RETURN 
+                                      trade as tradeInfo, 
+                                      requester, 
+                                      receiver, 
+                                      COLLECT({ item: recItem,
+                                                attributes: CASE WHEN recItem:Gear THEN a ELSE NULL END
+                                             }) AS itemsRec,
+
+                                      COLLECT({ item: reqItem,
+                                                attributes: CASE WHEN reqItem:Gear THEN a ELSE NULL END
+                                             }) AS itemsReq";
                         var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
+                        var resultList = new List<Trade>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
+                            var tradeNode = record["tradeInfo"].As<INode>();
+                            var playerRec = record["receiver"].As<INode>();
+                            var playerReq = record["requester"].As<INode>();
+                            var recItem = record["itemsRec"].As<List<Dictionary<string, INode>>>();
+                            var reqItem = record["itemsReq"].As<List<Dictionary<string, INode>>>();
+                            Trade trade = new(tradeNode, playerRec, playerReq, recItem, reqItem);
+                            resultList.Add(trade);
                         });
 
-                        return nodes;
+                        return resultList;
                     });
 
                     return Ok(result);
