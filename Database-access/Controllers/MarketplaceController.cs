@@ -20,7 +20,7 @@ namespace Databaseaccess.Controllers
 
 
         [HttpPost("AddMarketplace")]
-        public async Task<IActionResult> AddMarketplace(MarketplaceDto marketplace)
+        public async Task<IActionResult> AddMarketplace(MarketplaceCreateDto marketplace)
         {
             try
             {
@@ -148,19 +148,23 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPut("UpdateMarketplace")]
-        public async Task<IActionResult> UpdateMarketplace(string zone, int itemCount, int restockCycle)
+        public async Task<IActionResult> UpdateMarketplace(MarketplaceUpdateDto marketplace)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Marketplace {zone: $zone})
-                                  SET n.itemCount=$itemCount
-                                  SET n.restockCycle=$restockCycle
-                                  return n";
-                    var parameters = new { itemCount = itemCount, 
-                                           zone=zone,
-                                           restockCycle=restockCycle };
+                    var query = @"MATCH (n:Marketplace) WHERE ID(n)=$marketplaceID
+                                SET n.zone = $zone
+                                SET n.restockCycle = $restockCycle
+                                RETURN n";
+                    var parameters = new 
+                    { 
+                        marketplaceID = marketplace.MarketplaceID,
+                        zone = marketplace.Zone,
+                        restockCycle= marketplace.RestockCycle
+                         
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

@@ -20,7 +20,7 @@ namespace Databaseaccess.Controllers
 
 
         [HttpPost("AddGear")]
-        public async Task<IActionResult> AddGear(GearDto gear)
+        public async Task<IActionResult> AddGear(GearCreateDto gear)
         {
             try
             {
@@ -79,61 +79,50 @@ namespace Databaseaccess.Controllers
         }
            
         [HttpPut("UpdateGear")]
-        public async Task<IActionResult> UpdateGear(string name, int value, int dimensions, double weight, int slot, int level, string quality)
+        public async Task<IActionResult> UpdateGear(GearUpdateDto gear)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Gear {name: $name}) 
+                    var query = @"MATCH (n:Gear)-[:HAS]->(attributes:Attributes) WHERE ID(n)=$gearID
+                                    SET n.name=$name
+                                    SET n.type=$type
                                     SET n.value=$value 
                                     SET n.dimensions=$dimensions 
                                     SET n.weight=$weight 
                                     SET n.slot=$slot
                                     SET n.level=$level
-                                    SET n.quality=$quality 
+                                    SET n.quality=$quality
+
+                                    SET attributes.strength= $strength
+                                    SET attributes.agility= $agility
+                                    SET attributes.inteligence= $inteligence
+                                    SET attributes.stanima= $stanima
+                                    SET attributes.faith= $faith
+                                    SET attributes.experience= $experience
+                                    SET attributes.level= $level
+
                                     return n";
-                    var parameters = new { name=name, 
-                                           value=value, 
-                                           dimensions=dimensions, 
-                                           weight=weight, 
-                                           slot=slot,
-                                           level=level,
-                                           quality=quality };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-    
-        [HttpPut("UpdateGearAttributes")]
-        public async Task<IActionResult> UpdateGearAttributes(string name, double strength, double agility, double intelligence, double stamina, double faith, double experience, int level)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (gear:Gear {name: $name})-[:HAS]->(attributes:Attributes)
-                                SET attributes.strength= $strength
-                                SET attributes.agility= $agility
-                                SET attributes.intelligence= $intelligence
-                                SET attributes.stamina= $stamina
-                                SET attributes.faith= $faith
-                                SET attributes.experience= $experience
-                                SET attributes.level= $level
-                                RETURN attributes";
-                    var parameters = new { name=name,
-                                        strength = strength,
-                                        agility=agility ,
-                                        intelligence=intelligence,
-                                        stamina= stamina,
-                                        faith= faith,
-                                        experience=experience ,
-                                        level=level };
+                    var parameters = new { gearID=gear.GearID,
+                                           name=gear.Name,
+                                           type=gear.Type, 
+                                           value=gear.Value, 
+                                           dimensions=gear.Dimensions, 
+                                           weight=gear.Weight, 
+                                           slot=gear.Slot,
+                                           level=gear.Level,
+                                           quality=gear.Quality,
+
+                                           strength = gear.Attributes.Strength,
+                                           agility=gear.Attributes.Agility ,
+                                           inteligence=gear.Attributes.Intelligence,
+                                           stanima= gear.Attributes.Stamina,
+                                           faith= gear.Attributes.Faith,
+                                           experience=gear.Attributes.Experience ,
+                                           levelAt = gear.Attributes.Level
+                                          
+                                           };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

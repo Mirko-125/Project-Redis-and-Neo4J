@@ -21,7 +21,7 @@ namespace Databaseaccess.Controllers
      
 
         [HttpPost("AddConsumable")]
-        public async Task<IActionResult> AddConsumable(ConsumableDto consumable)
+        public async Task<IActionResult> AddConsumable(ConsumableCreateDto consumable)
         {
             try
             {
@@ -57,23 +57,28 @@ namespace Databaseaccess.Controllers
         }
            
         [HttpPut("UpdateConsumable")]
-        public async Task<IActionResult> UpdateConsumable(string name, int value, int dimensions, double weight, string effects)
+        public async Task<IActionResult> UpdateConsumable(ConsumableUpdateDto consumable)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Consumable {name: $name}) 
+                    var query = @"MATCH (n:Consumable) WHERE ID(n)=$consumableID
+                                    SET n.name=$name
+                                    SET n.type=$type
                                     SET n.value=$value 
                                     SET n.dimensions=$dimensions 
                                     SET n.weight=$weight 
-                                    SET n.effects=$effects 
+                                    SET n.effect=$effect 
                                     return n";
-                    var parameters = new { name=name, 
-                                           value=value, 
-                                           dimensions=dimensions, 
-                                           weight=weight, 
-                                           effects=effects };
+                    var parameters = new { consumableID=consumable.ConsumableID,
+                                           name=consumable.Name, 
+                                           type=consumable.Type,
+                                           value=consumable.Value, 
+                                           dimensions=consumable.Dimensions, 
+                                           weight=consumable.Weight, 
+                                           effect=consumable.Effect
+                                        };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -83,6 +88,7 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+    
     
    
         

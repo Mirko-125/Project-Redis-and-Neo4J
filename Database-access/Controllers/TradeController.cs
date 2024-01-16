@@ -20,7 +20,7 @@ namespace Databaseaccess.Controllers
 
 
         [HttpPost("AddTrade")]
-        public async Task<IActionResult> AddTrade(TradeDto trade)
+        public async Task<IActionResult> AddTrade(TradeCreateDto trade)
         {
             try
             {
@@ -261,20 +261,26 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPut("UpdateTrade")]
-        public async Task<IActionResult> UpdateTrade(int tradeid, string endedAt, bool isFinalized)
+        public async Task<IActionResult> UpdateTrade(TradeUpdateDto trade)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"MATCH (n:Trade) WHERE ID(n)=$tradeID
-                                SET n.endedAt= $endedAt
-                                SET n.isFinalized= $isFinalized
+                                SET n.receiverGold = $receiverGold
+                                SET n.requesterGold = $requesterGold
+                                SET n.isFinalized = $isFinalized
                                 RETURN n";
-                    var parameters = new { tradeID = tradeid,
-                                           endedAt = endedAt,
-                                           isFinalized= isFinalized
-                                         };
+
+                    var parameters = new 
+                    { 
+                        tradeID = trade.TradeID,
+                        receiverGold = trade.ReceiverGold,
+                        requesterGold= trade.RequesterGold,
+                        isFinalized=trade.IsFinalized
+                         
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
