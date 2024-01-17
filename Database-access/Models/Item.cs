@@ -5,6 +5,10 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Databaseaccess.Models;
 using Neo4j.Driver;
+
+[JsonPolymorphic]
+[JsonDerivedType(typeof(Gear), "Gear")]
+[JsonDerivedType(typeof(Consumable), "Consumable")]
 public abstract class Item
 {
     public string Name { get; set; } 
@@ -24,6 +28,7 @@ public abstract class Item
         Value = node["value"].As<int>();
     }
 }
+[Serializable]
 public class Gear : Item
 {
     public int Slot { get; set; }
@@ -38,6 +43,7 @@ public class Gear : Item
         Attributes = new Attributes(attributesNode);
     }
 }
+[Serializable]
 public class Consumable : Item
 {
     public string Effect { get; set; }

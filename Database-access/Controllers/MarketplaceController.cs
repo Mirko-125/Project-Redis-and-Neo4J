@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
+using ServiceStack.Redis;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using ServiceStack.Text;
 
 namespace Databaseaccess.Controllers
 {
@@ -12,10 +14,12 @@ namespace Databaseaccess.Controllers
     public class MarketplaceController : ControllerBase
     {
         private readonly IDriver _driver;
+        private readonly IRedisClientsManager _redisClientsManager;
 
-        public MarketplaceController(IDriver driver)
+        public MarketplaceController(IDriver driver, IRedisClientsManager redisClientManager)
         {
             _driver = driver;
+            _redisClientsManager = redisClientManager;
         }
 
 
@@ -83,29 +87,33 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var redisClient = await _redisClientsManager.GetClientAsync();
+                    var keyExists = await redisClient.ContainsKeyAsync("marketplaces");
+                    if (keyExists)
                     {
-                        var query = @"
-                            MATCH (n:Marketplace)-[:HAS]->(i:Item) 
-                                OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
-                            RETURN n, COLLECT({
-                                item: i,
-                                attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                            }) AS items";
-                        var cursor = await tx.RunAsync(query);
-                        var resultList = new List<Marketplace>();
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var marketNode = record["n"].As<INode>();
-                            var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
-                            Marketplace market = new(marketNode, itemsNodeList);
-                            resultList.Add(market);
-                        });
+                        var json = await redisClient.GetAsync<string>("marketplaces");
+                        return Ok(JsonSerializer.DeserializeFromString<List<Marketplace>>(json));
+                    }
+                    var query = @"
+                        MATCH (n:Marketplace)-[:HAS]->(i:Item) 
+                            OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
+                        RETURN n, COLLECT({
+                            item: i,
+                            attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                        }) AS items";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<Marketplace>();
 
-                        return resultList;
+                    await cursor.ForEachAsync(record =>
+                    {
+                        var marketNode = record["n"].As<INode>();
+                        var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
+                        Marketplace market = new(marketNode, itemsNodeList);
+                        resultList.Add(market);
                     });
-
-                    return Ok(result);
+                    var marketJson = JsonSerializer.SerializeToString(resultList);
+                    await redisClient.SetAsync("marketplaces", marketJson);
+                    return Ok(resultList);
                 }
             }
             catch (Exception ex)
