@@ -14,10 +14,10 @@ namespace Databaseaccess.Models
         public string Conditions { get; set; }
         public Achievement(INode node)
         {
-            Name = node["Name"].As<string>();
-            Type = node["Type"].As<string>();
-            Points = node["Points"].As<int>();
-            Conditions = node["Conditions"].As<string>();
+            Name = node["name"].As<string>();
+            Type = node["type"].As<string>();
+            Points = node["points"].As<int>();
+            Conditions = node["conditions"].As<string>();
         }
     }
 }
