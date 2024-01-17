@@ -130,9 +130,9 @@ namespace Databaseaccess.Controllers
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var item = record["n"].As<INode>();
-                            var connectedNodes = record["i"].As<INode>();
-                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
+                            var marketplace = record["n"].As<INode>();
+                            var itemNodes = record["i"].As<INode>();
+                            resultList.Add(new { Marketplace = marketplace, ItemNodes = itemNodes });
                         });
 
                         return resultList;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using System.Data;
 
 namespace Databaseaccess.Controllers
 {
@@ -28,16 +29,45 @@ namespace Databaseaccess.Controllers
                 {
                     var parameters = new
                     {
-                        isFinalized=trade.IsFinalized,  
+                        isFinalized="false",  
                         receiverGold=trade.ReceiverGold, 
                         requesterGold=trade.RequesterGold,
-                        startedAt=trade.StartedAt,
-                        endedAt=trade.EndedAt,
+                        startedAt=DateTime.Now,
+                        endedAt="--",
                         receiverID=trade.ReceiverID,
                         requesterID=trade.RequesterID,
                         receiverItemNames=trade.ReceiverItemNames,
                         requesterItemNames=trade.RequesterItemNames
                     };
+
+                    if(trade.ReceiverGold>0){
+                        var goldCheckQuery = @"MATCH (playerReceiver:Player) WHERE ID(playerReceiver)=$receiverID
+                                                RETURN playerReceiver.gold
+                                              ";
+
+                        var goldCheckRecResult = await session.RunAsync(goldCheckQuery, parameters);
+                        var goldRecCheckList = await goldCheckRecResult.ToListAsync();
+
+                        if(goldRecCheckList.Count==0)
+                        {
+                            throw new Exception("The playerReceiver doesn't own enought gold!");
+                        }
+
+                    }
+
+                    if(trade.RequesterGold>0 ){
+                        var goldCheckQuery = @"MATCH (playerRequester:Player) WHERE ID(playerRequester)=$requesterID
+                                                RETURN playerRequester.gold 
+                                              ";
+
+                        var goldCheckReqResult = await session.RunAsync(goldCheckQuery, parameters);
+                        var goldReqCheckList = await goldCheckReqResult.ToListAsync();
+
+                        if(goldReqCheckList.Count==0)
+                        {
+                            throw new Exception("The playerRequester doesn't own enought gold!");
+                        }   
+                    }
 
                     if(trade.ReceiverItemNames.Length>0){
                         var playerReceverQuery=@"
@@ -54,8 +84,6 @@ namespace Databaseaccess.Controllers
 
                         var playerReceiverItemResult=await session.RunAsync(playerReceverQuery, parameters);
                         var receiverItems=await playerReceiverItemResult.ToListAsync();
-
-                        Console.WriteLine("Added item");
 
                         if(receiverItems.Count!=trade.ReceiverItemNames.Length)
                             throw new Exception("The playerReceiver doesn't own the items");
@@ -76,8 +104,6 @@ namespace Databaseaccess.Controllers
 
                         var playerRequesterItemResult=await session.RunAsync(playerRequesterQuery, parameters);
                         var requesterItems=await playerRequesterItemResult.ToListAsync();
-
-                        Console.WriteLine("Added item");
 
                         if(requesterItems.Count!=trade.RequesterItemNames.Length)
                             throw new Exception("The playerRequester doesn't own the items");
@@ -123,6 +149,26 @@ namespace Databaseaccess.Controllers
                     ;
 
                     var result=await session.RunAsync(query, parameters);
+
+                    var updateGoldQuery = @"MATCH (playerReceiver:Player) WHERE ID(playerReceiver) = $receiverID
+                                                SET playerReceiver.gold = playerReceiver.gold + $receiverGold
+                                            WITH playerReceiver
+
+                                            MATCH (playerRequester:Player) WHERE ID (playerRequester) = $requesterID
+                                                SET playerRequester.gold = playerRequester.gold - $requesterGold
+                                            WITH playerRequester
+
+                                            RETURN true AS goldUpdated
+                                            ";
+
+                    var updateGoldResult = await session.RunAsync(updateGoldQuery, parameters);
+                    var goldUpdateCheck = await updateGoldResult.SingleAsync();
+
+                    if (!(bool)goldUpdateCheck["goldUpdated"])
+                    {
+                        throw new Exception("Failed to update players gold.");
+                    }
+
                     return Ok();
                 }
             }
@@ -271,6 +317,7 @@ namespace Databaseaccess.Controllers
                                 SET n.receiverGold = $receiverGold
                                 SET n.requesterGold = $requesterGold
                                 SET n.isFinalized = $isFinalized
+                                SET n.endedAt=$endedAt
                                 RETURN n";
 
                     var parameters = new 
@@ -278,7 +325,8 @@ namespace Databaseaccess.Controllers
                         tradeID = trade.TradeID,
                         receiverGold = trade.ReceiverGold,
                         requesterGold= trade.RequesterGold,
-                        isFinalized=trade.IsFinalized
+                        isFinalized="true",
+                        endedAt=DateTime.Now
                          
                     };
                     await session.RunAsync(query, parameters);
