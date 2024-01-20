@@ -10,6 +10,38 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options => 
+            {
+                options.AddPolicy("CORSAll", policy => 
+                {
+                        policy.WithOrigins(new string[]
+                        {
+                            "https://localhost:3000",
+                            "http://localhost:3000",
+                            "http://127.0.0.1:3000",
+                            "https://127.0.0.1:3000",
+                            "http://localhost:5500",
+                            "https://localhost:5500",
+                            "http://127.0.0.1:5500",
+                            "https://127.0.0.1:5500",
+                            "http://localhost:5041",
+                            "https://localhost:5041",
+                            "http://127.0.0.1:5041",
+                            "https://127.0.0.1:5041",
+                            "https://localhost:5236",
+                            "http://localhost:5236",
+                            "http://127.0.0.1:5236",
+                            "https://127.0.0.1:5236"
+                        }).AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+
+                options.AddPolicy("CORSUser", policy =>
+                {
+                    policy.AllowAnyHeader().AllowAnyOrigin().WithMethods("POST", "PUT", "GET");
+                });
+            });
+
 // Configure the IDriver interface
 var driver = GraphDatabase.Driver("neo4j://localhost:7687", AuthTokens.Basic("neo4j", "myLocalPassword125"));
 
@@ -28,6 +60,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.UseCors("CORSAll");
 
 app.UseEndpoints(endpoints =>
 {

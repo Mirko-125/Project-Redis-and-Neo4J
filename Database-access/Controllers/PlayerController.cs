@@ -18,6 +18,37 @@ namespace Databaseaccess.Controllers
         {
             _driver = driver;
         }
+        [HttpGet("AllPlayers")]
+        public async Task<IActionResult> AllPlayers()
+        {
+            try
+            {
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.ExecuteReadAsync(async tx =>
+                    {
+                        var query = "MATCH (n:Player) RETURN n";
+                        var cursor = await tx.RunAsync(query);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
+                    });
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         //dodati route lvlup(player) vuce LevelGainAttrbiutes od klase igraca, i dodaje mu u njegove atribute
         [HttpPut("LevelUp")]
         public async Task<ActionResult> LevelUp(int playerId)
@@ -131,8 +162,7 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
                     var query = @"MATCH (p:Player) WHERE ID(p)=$id
-                                OPTIONAL MATCH (p)-[r]->(otherSide)
-                                DELETE r,p,otherSide"; 
+                                DETACH DELETE p"; 
                     var parameters = new { id = playerId };
                     await session.RunAsync(query, parameters);
                     return Ok();

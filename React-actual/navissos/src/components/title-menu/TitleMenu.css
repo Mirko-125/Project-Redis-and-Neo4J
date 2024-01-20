@@ -1,0 +1,27 @@
+.menu-title
+{
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.title-frame
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.select-button
+{
+    padding: 0.5rem 1rem;
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    cursor: pointer;
+    height: 5%;
+    width: 20%;
+    margin-bottom: 0.5rem;
+}

@@ -1,0 +1,50 @@
+.create-frame
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.create-input
+{
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    width: 300px;
+    max-width: 100%;
+}
+
+.create-btn
+{
+    padding: 0.5rem 1rem;
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    cursor: pointer;
+}
+
+.create-title
+{
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+create-subtitle
+{
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.all-class-data {
+    margin: 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 25vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    text-align: center;
+}

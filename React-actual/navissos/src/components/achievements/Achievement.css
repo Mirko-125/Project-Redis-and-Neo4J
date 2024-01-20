@@ -1,0 +1,12 @@
+.i-a
+{
+    margin: 2rem;
+}
+
+.quests
+{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-gap: 2rem;
+}

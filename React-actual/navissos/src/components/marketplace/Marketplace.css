@@ -1,0 +1,10 @@
+.i-mp
+{
+    margin: 2rem;
+}
+
+.markets
+{
+    display: flex;
+    flex-wrap: wrap;
+}
