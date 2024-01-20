@@ -94,6 +94,13 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
+                    string key = singularKey + npcId;
+                    var keyExists = await cache.CheckKeyAsync(key);
+                    if (keyExists)
+                    {
+                        var nesto = await cache.GetDataAsync<NPC>(key);
+                        return Ok(nesto);          
+                    }
                     var query = @"
                         MATCH (n1:NPC) WHERE id(n1)=$npId 
                         MATCH (n2:Player) WHERE id(n2)=$plId
@@ -111,8 +118,8 @@ namespace Databaseaccess.Controllers
                     var node = n["n1"].As<INode>();
 
                     NPC novi=new(node);
-                    string key= singularKey + npcId.ToString();
-                    await cache.SetDataAsync(key, novi, 25);
+                    
+                    await cache.SetDataAsync(singularKey + npcId, novi, 25);
                     return Ok(novi);
                 }
              }
@@ -154,6 +161,13 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
+                    string key = singularKey + npcId;
+                    var keyExists = await cache.CheckKeyAsync(key);
+                    if (keyExists)
+                    {
+                        var nesto = await cache.GetDataAsync<NPC>(key);
+                        return Ok(nesto);          
+                    }
                     var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
                     var parameters = new { id= npcId };
                     var cursor = await session.RunAsync(query,parameters);

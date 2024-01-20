@@ -25,7 +25,7 @@ namespace Databaseaccess.Controllers
             cache = redisCache;
         }
 
-        [HttpPost("AddTrade")] // radi kesiranje
+        [HttpPost("AddTrade")] 
         public async Task<IActionResult> AddTrade(TradeCreateDto trade)
         {
             try
@@ -151,9 +151,7 @@ namespace Databaseaccess.Controllers
                         string key = singularKey + tradeID;
                         await cache.SetDataAsync(key, createTrade, 1000);
                         return Ok(createTrade);
-
-                        // SET playerReceiver_.gold = playerReceiver_.gold + $receiverGold           
-                        // SET playerRequester_.gold = playerRequester_.gold - $requesterGold     
+    
                 }
             }
             catch (Exception ex)
