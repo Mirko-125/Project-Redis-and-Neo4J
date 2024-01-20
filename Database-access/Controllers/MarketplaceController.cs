@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
 using ServiceStack.Redis;
+using Cache;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,10 +17,13 @@ namespace Databaseaccess.Controllers
         private readonly IDriver _driver;
         private readonly IRedisClientsManager _redisClientsManager;
 
+        private readonly RedisCache cache;
+
         public MarketplaceController(IDriver driver, IRedisClientsManager redisClientManager)
         {
             _driver = driver;
             _redisClientsManager = redisClientManager;
+            cache = new RedisCache(_redisClientsManager);
         }
 
 
@@ -87,12 +91,12 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var redisClient = await _redisClientsManager.GetClientAsync();
-                    var keyExists = await redisClient.ContainsKeyAsync("marketplaces");
+                    string key = "marketplaces";
+                    var keyExists = await cache.CheckKeyAsync(key);
                     if (keyExists)
                     {
-                        var json = await redisClient.GetAsync<string>("marketplaces");
-                        return Ok(JsonSerializer.DeserializeFromString<List<Marketplace>>(json));
+                        var nesto = await cache.GetDataAsync<List<Marketplace>>(key);
+                        return Ok(nesto);          
                     }
                     var query = @"
                         MATCH (n:Marketplace)-[:HAS]->(i:Item) 
@@ -111,8 +115,7 @@ namespace Databaseaccess.Controllers
                         Marketplace market = new(marketNode, itemsNodeList);
                         resultList.Add(market);
                     });
-                    var marketJson = JsonSerializer.SerializeToString(resultList);
-                    await redisClient.SetAsync("marketplaces", marketJson);
+                    await cache.SetDataAsync(key, resultList);
                     return Ok(resultList);
                 }
             }
