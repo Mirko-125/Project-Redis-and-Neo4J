@@ -1,3 +1,4 @@
+using Cache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
@@ -13,6 +14,12 @@ builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IRedisClientsManager>(c => 
     new PooledRedisClientManager("localhost:6379"));
+
+builder.Services.AddSingleton<RedisCache>(serviceProvider =>
+{
+    var redisClientsManager = serviceProvider.GetRequiredService<IRedisClientsManager>();
+    return RedisCache.Initialize(redisClientsManager);
+});
 
 // Configure the IDriver interface
 var driver = GraphDatabase.Driver("neo4j://localhost:7687", AuthTokens.Basic("neo4j", "myLocalPassword125"));
