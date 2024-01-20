@@ -31,7 +31,7 @@ public class Gear : Item
     public int Slot { get; set; }
     public int Level { get; set; }
     public string Quality { get; set; }
-    public Attributes Attributes { get; set; } // not sure
+    public Attributes Attributes { get; set; }
     public Gear(INode itemNode, INode attributesNode) : base(itemNode)
     {
         Slot = itemNode["slot"].As<int>();

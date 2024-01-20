@@ -18,7 +18,6 @@ namespace Databaseaccess.Controllers
             _driver = driver;
         }
 
-
         [HttpGet("GetAllItems")]
         public async Task<IActionResult> GetAllItems()
         {
@@ -30,7 +29,7 @@ namespace Databaseaccess.Controllers
                     {
                         var query = @"MATCH (n:Item) 
                                       OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                      RETURN  n, attributes";
+                                    RETURN  n, attributes";
                         var cursor = await tx.RunAsync(query);
                         var resultList = new List<object>();
 
@@ -64,7 +63,7 @@ namespace Databaseaccess.Controllers
                     {
                         var query = @"MATCH (n:Item {name: $name})
                                       OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                      RETURN  n, attributes";
+                                    RETURN  n, attributes";
                                       
                         var parameters = new { name = name };
                         var cursor = await tx.RunAsync(query, parameters);
@@ -100,7 +99,7 @@ namespace Databaseaccess.Controllers
                     {
                         var query = @"MATCH (n:Item {type: $type}) 
                                       OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                      RETURN  n, attributes";
+                                    RETURN  n, attributes";
                         var parameters = new { type = type };
         
                         var cursor = await tx.RunAsync(query, parameters);
@@ -134,7 +133,7 @@ namespace Databaseaccess.Controllers
                 {
                     var query = @"MATCH (n:Item {name: $name}) 
                                   OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                  DETACH DELETE n, attributes";
+                                DETACH DELETE n, attributes";
                     var parameters = new { name = itemName };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -145,7 +144,6 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-    
-        
+           
     }
 }
