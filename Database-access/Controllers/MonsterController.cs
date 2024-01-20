@@ -100,15 +100,31 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Monster) WHERE ID(n)=$mId
+                    var query = @"MATCH (n:Monster)-[:HAS]->(ma:Attributes) WHERE ID(n)=$mId
                                 SET n.zone= $zone
                                 SET n.imageURL= $imageURL
                                 SET n.status= $status
+                                SET ma.strength= $strength
+                                SET ma.agility= $agility
+                                SET ma.intelligence= $intelligence
+                                SET ma.stamina= $stamina
+                                SET ma.faith= $faith
+                                SET ma.experience= $experience
+                                SET ma.level= $level
                                 RETURN n";
-                    var parameters = new { mId = monster.MonsterId,
-                                        zone = monster.Zone,
-                                        imageURL= monster.ImageURL,
-                                        status=monster.Status };
+                    var parameters = new { 
+                        mId = monster.MonsterId,
+                        zone = monster.Zone,
+                        imageURL= monster.ImageURL,
+                        status = monster.Status,
+                        strength = monster.Attributes.Strength,
+                        agility = monster.Attributes.Agility ,
+                        intelligence = monster.Attributes.Intelligence,
+                        stamina = monster.Attributes.Stamina,
+                        faith = monster.Attributes.Faith,
+                        experience = monster.Attributes.Experience ,
+                        level = monster.Attributes.Level 
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -141,7 +157,6 @@ namespace Databaseaccess.Controllers
                         var monsterAttributesNode = record["m"].As<INode>();
                         var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
                         Monster monster= new(monsterNode, possibleLootNodeList, monsterAttributesNode);
-                        //Attributes monsterAttributes= new(monsterAttributesNode);
                         resultList.Add(monster);
                     });
 
@@ -192,8 +207,9 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {  
-                    var query = @"MATCH (n:Monster)-[r]->(m:Attributes) WHERE id(n)=$idn
-                                DETACH DELETE r,m,n";
+                    var query = @"MATCH (n:Monster)-[r:HAS]->(m:Attributes) WHERE Id(n)=$idn
+                                OPTIONAL MATCH (n)<-[a:ATTACKED_MONSTER]-(mb:MonsterBattle)
+                                DETACH DELETE m,mb,n";
                     var parameters = new { idn=monsterId };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -205,90 +221,6 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        #region MonsterAttributes
-
-        [HttpPut("UpdateMonsterAttributes")]
-        public async Task<IActionResult> UpdateMonsterAttributes(int monsterId, double newStrength, double newAgility, double newIntelligence, double newStamina, double newFaith, double newExperience, int newLevel)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Monster)-[:HAS]->(ma:Attributes) WHERE ID(n)=$mId
-                                SET ma.strength= $strength
-                                SET ma.agility= $agility
-                                SET ma.intelligence= $intelligence
-                                SET ma.stamina= $stamina
-                                SET ma.faith= $faith
-                                SET ma.experience= $experience
-                                SET ma.level= $level
-                                RETURN ma";
-                    var parameters = new { 
-                        mId = monsterId,
-                        strength = newStrength,
-                        agility=newAgility ,
-                        intelligence=newIntelligence,
-                        stamina= newStamina,
-                        faith= newFaith,
-                        experience=newExperience ,
-                        level=newLevel 
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("GetMonsterAttributes")]
-        public async Task<IActionResult> GetMonsterAttributes(int monsterId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Monster)-[:HAS]->(n1:Attributes) WHERE id(n)=$mid RETURN n1 as osobine";
-                        var parameters = new { mid = monsterId };
-                        var cursor = await tx.RunAsync(query,parameters);
-                        var n=await cursor.SingleAsync();
-                        var node = n["osobine"].As<INode>();
-                        return node;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
-        [HttpDelete("DeleteMonsterAttributes")]
-        public async Task<IActionResult> DeleteMonsterAttributes(int monsterId)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                { 
-                    var query = @"MATCH (n:Monster)-[:HAS]->(n1:Attributes) WHERE id(n)=$mid 
-                                DETACH DELETE n1";
-                    var parameters = new { mid = monsterId };
-                    await session.RunAsync(query,parameters);         
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        #endregion MonsterAttributes
     }
 
 }

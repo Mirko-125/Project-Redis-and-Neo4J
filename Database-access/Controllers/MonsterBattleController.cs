@@ -154,7 +154,7 @@ namespace Databaseaccess.Controllers
                     MonsterBattle monsterBattle = new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
                     
                     string key=singularKey + monsterBattleDto.MonsterBattleId;
-                    await cache.SetDataAsync(key, monsterBattle, 10);
+                    await cache.SetDataAsync(key, monsterBattle, 100);
                     return Ok(monsterBattle);
                 }
             }
@@ -243,19 +243,18 @@ namespace Databaseaccess.Controllers
                         }) AS possibleLoot";
                     var parameters = new { idn = monsterBattleId };
                     var cursor = await session.RunAsync(query,parameters);
-                    var resultList = new List<MonsterBattle>();
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var monsterBattleNode = record["n"].As<INode>();
-                        var monsterNode = record["monster"].As<INode>();
-                        var monsterAttributesNode = record["monsterAttributes"].As<INode>();
-                        var playerNode = record["player"].As<INode>();
-                        var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
-                        var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
-                        MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
-                        resultList.Add(monsterBattle);
-                    });
-                    return Ok(resultList);
+                    var record=await cursor.SingleAsync();
+                  
+                    var monsterBattleNode = record["n"].As<INode>();
+                    var monsterNode = record["monster"].As<INode>();
+                    var monsterAttributesNode = record["monsterAttributes"].As<INode>();
+                    var playerNode = record["player"].As<INode>();
+                    var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
+                    var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
+                    MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode, possibleLootNodeList, lootNodeList);
+                    
+                    await cache.SetDataAsync(singularKey + monsterBattleId, monsterBattle, 1000);
+                    return Ok(monsterBattle);
                 }
             }
             catch (Exception ex)

@@ -62,7 +62,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:PlayerFight) WHERE ID(n)=$playerFightid
+                    var query = @"MATCH (n:PlayerFight) WHERE Id(n)=$playerFightid
                                 SET n.winner= $winner
                                 SET n.experience= $experience
                                 SET n.honor= $honor
