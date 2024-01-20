@@ -70,7 +70,7 @@ namespace Databaseaccess.Controllers
                                     SET n.dimensions=$dimensions 
                                     SET n.weight=$weight 
                                     SET n.effect=$effect 
-                                    return n";
+                                return n";
                     var parameters = new { consumableID=consumable.ConsumableID,
                                            name=consumable.Name, 
                                            type=consumable.Type,
@@ -89,8 +89,6 @@ namespace Databaseaccess.Controllers
             }
         }
     
-    
-   
-        
+  
     }
 }

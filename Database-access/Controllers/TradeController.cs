@@ -215,7 +215,6 @@ namespace Databaseaccess.Controllers
             }
         }
 
-
         [HttpGet("GetPlayerTrades")]
         public async Task<IActionResult> GetPlayerTrades(int playerID)
         {
@@ -302,7 +301,6 @@ namespace Databaseaccess.Controllers
             }
         }
 
-      
         [HttpDelete("DeleteTrade")]
         public async Task<IActionResult> DeleteTrade(int tradeID)
         {

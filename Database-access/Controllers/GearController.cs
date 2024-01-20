@@ -102,8 +102,7 @@ namespace Databaseaccess.Controllers
                                     SET attributes.faith= $faith
                                     SET attributes.experience= $experience
                                     SET attributes.levelAttributes= $levelAttributes
-
-                                    return n";
+                                return n";
                     var parameters = new { gearID=gear.GearID,
                                            name=gear.Name,
                                            type=gear.Type, 

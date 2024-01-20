@@ -4,7 +4,6 @@ public class MarketplaceCreateDto
     public int ItemCount {get; set;}
     public int RestockCycle{get; set;}
 
-   
 }
 
 

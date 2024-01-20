@@ -17,6 +17,7 @@ public abstract class ItemUpdateDto
     public int Value { get; set; }
 
 }
+
 public class GearCreateDto : ItemCreateDto
 {
     public int Slot { get; set; }
@@ -36,11 +37,9 @@ public class GearUpdateDto : ItemUpdateDto
 
 public class ConsumableCreateDto : ItemCreateDto
 {
-    
     public string Effect { get; set; }
 
 }
-
 
 public class ConsumableUpdateDto : ItemUpdateDto
 {
