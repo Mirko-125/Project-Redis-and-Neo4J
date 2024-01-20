@@ -67,6 +67,5 @@ public class Trade
         Receiver = new Player(playerRec);
         Requester = new Player(playerReq);
 
-
     }
 }

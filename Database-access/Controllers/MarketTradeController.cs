@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using Cache;
 
 namespace Databaseaccess.Controllers
 {
@@ -12,10 +13,12 @@ namespace Databaseaccess.Controllers
     public class MarketTradeController : ControllerBase
     {
         private readonly IDriver _driver;
+        private readonly RedisCache cache;
 
-        public MarketTradeController(IDriver driver)
+        public MarketTradeController(IDriver driver, RedisCache redisCache)
         {
             _driver = driver;
+            cache = redisCache;
         }
 
         [HttpPost]
@@ -101,22 +104,31 @@ namespace Databaseaccess.Controllers
                         WITH n, player_, market_, playerItemsList, marketItemsList
 
                         FOREACH (item IN playerItemsList |
-                            CREATE (n)-[:PlayerItem]->(item)
+                            MERGE (n)-[:PlayerItem]->(item)
                         )
 
                         FOREACH (item IN marketItemsList |
-                            CREATE (n)-[:MarketItem]->(item)
+                            MERGE (n)-[:MarketItem]->(item)
                         )
                         
-                        CREATE (n)-[:TradingPlayer]->(player_)
-                        CREATE (n)-[:TradedAt]->(market_)
+                        MERGE (n)-[:TradingPlayer]->(player_)
+                        MERGE (n)-[:TradedAt]->(market_)
                         
-                        return n"
-                    ;
+                        WITH market_ as market 
+                            MATCH (market)-[:HAS]->(i:Item) 
+                                OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
+                            RETURN market as n, COLLECT({
+                                item: i,
+                                attributes: CASE WHEN i:Gear THEN a ELSE NULL END
+                            }) AS items";
 
-                    
-                    var result = await session.RunAsync(query, parameters);
-                    return Ok(result.ToString());
+                    var cursor = await session.RunAsync(query, parameters);
+                    var record = await cursor.SingleAsync();
+                    var marketNode = record["n"].As<INode>();
+                    var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
+                    Marketplace market = new(marketNode, itemsNodeList);
+                    await cache.SetDataAsync("marketplace" + market.Zone, market, 60);
+                    return Ok();
                 }
             }
             catch (Exception ex)
@@ -137,8 +149,7 @@ namespace Databaseaccess.Controllers
                         var query = @"
                             MATCH (market:Marketplace)<-[:TradedAt]-(n:MarketTrade)-[:TradingPlayer]->(player:Player)
                                 WHERE id(player)=$player and id(market)=$marketplace
-                            RETURN n"
-                        ;
+                            RETURN n";
                         
                         var parameters = new { 
                             player = playerID,

@@ -24,11 +24,12 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"CREATE (class:Class { name: $nameValue})
-                                  CREATE (base:Attributes { strength: $strengthValue, agility: $agilityValue, intelligence: $intelligenceValue, stamina: $staminaValue, faith: $faithValue, experience: -1, level: -1})
-                                  CREATE (level:Attributes { strength: $strength, agility: $agility, intelligence: $intelligence, stamina: $stamina, faith: $faith, experience: -1, level: -1})
-                                  CREATE (class)-[:HAS_BASE_ATTRIBUTES]->(base)
-                                  CREATE (class)-[:LEVEL_GAINS_ATTRIBUTES]->(level)";
+                    var query = @"
+                        CREATE (class:Class { name: $nameValue})
+                        CREATE (base:Attributes { strength: $strengthValue, agility: $agilityValue, intelligence: $intelligenceValue, stamina: $staminaValue, faith: $faithValue, experience: -1, level: -1})
+                        CREATE (level:Attributes { strength: $strength, agility: $agility, intelligence: $intelligence, stamina: $stamina, faith: $faith, experience: -1, level: -1})
+                        CREATE (class)-[:HAS_BASE_ATTRIBUTES]->(base)
+                        CREATE (class)-[:LEVEL_GAINS_ATTRIBUTES]->(level)";
 
                     var parameters = new
                     {
@@ -63,9 +64,10 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Class) WHERE ID(n)=$cId
-                                MATCH (m:Ability) WHERE ID(m)=$aId
-                                CREATE (n)-[:PERMITS]->(m)";
+                    var query = @"
+                        MATCH (n:Class) WHERE ID(n)=$cId
+                        MATCH (m:Ability) WHERE ID(m)=$aId
+                        CREATE (n)-[:PERMITS]->(m)";
 
                     var parameters = new
                     {
@@ -89,9 +91,11 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (c:Class) where ID(c)=$cId
-                                OPTIONAL MATCH (c)-[r]-()
-                                DELETE r,c";
+                    var query = @"
+                        MATCH (c:Class) where ID(c)=$cId
+                            OPTIONAL MATCH (c)-[r]-()
+                        DELETE r,c";
+
                     var parameters = new { cId = classId };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -110,11 +114,15 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Class) WHERE ID(n)=$cId
-                                SET n.name=$name
-                                RETURN n";
-                    var parameters = new { cId = classId,
-                                        name = newName };
+                    var query = @"
+                        MATCH (n:Class) WHERE ID(n)=$cId
+                            SET n.name=$name
+                        RETURN n";
+
+                    var parameters = new { 
+                        cId = classId,
+                        name = newName 
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -132,22 +140,18 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = "MATCH (n:Class) RETURN n";
+                    var cursor = await session.RunAsync(query);
+                    var classList = new List<Class>();
+
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:Class) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var node = record["n"].As<INode>();
+                        Class cls = new Class(node);
+                        classList.Add(cls);
                     });
-
-                    return Ok(result);
+                    
+                    return Ok(classList);
                 }
             }
             catch (Exception ex)

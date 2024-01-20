@@ -24,13 +24,14 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"CREATE (n:Ability { name: $name, 
-                                                    damage: $damage,
-                                                    cooldown: $cooldown,
-                                                    range: $range,
-                                                    special: $special,
-                                                    heal: $heal
-                                        })";
+                    var query = @"
+                        CREATE (n:Ability { name: $name, 
+                            damage: $damage,
+                            cooldown: $cooldown,
+                            range: $range,
+                            special: $special,
+                            heal: $heal
+                        })";
 
                     var parameters = new
                     {
@@ -57,9 +58,12 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Ability) WHERE ID(n)=$aId
-                                MATCH (m:Player) WHERE ID(m)=$pId
-                                CREATE (m)-[:KNOWS]->(n)";
+                    var query = @"
+                        MATCH (n:Ability)
+                            WHERE ID(n)=$aId
+                        MATCH (m:Player) WHERE ID(m)=$pId
+
+                        CREATE (m)-[:KNOWS]->(n)";
 
                     var parameters = new
                     {
@@ -83,9 +87,12 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (c:Ability) where ID(c)=$aId
-                                OPTIONAL MATCH (c)-[r]-()
-                                DELETE r,c";
+                    var query = @"
+                        MATCH (c:Ability) where ID(c)=$aId
+                            OPTIONAL MATCH (c)-[r]-()
+
+                        DELETE r,c";
+
                     var parameters = new { aId = abilityId };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -98,33 +105,38 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPut("UpdateAbility")]
-        public async Task<IActionResult> UpdateAbility(int abilityId, string newName ,int newDamage, int newCooldown, double newRange, string newSpecial, int newHeal)
+        public async Task<IActionResult> UpdateAbility(UpdateAbilityDto abilityDTO)
         {
             try
             {
                 using (var session = _driver.AsyncSession())
                 {
                     string setName = "";
-                    if (newName!=null) {
+
+                    if (abilityDTO.Name != null) {
                         setName = "SET n.name=$name";
                     }
 
-                    var parameters = new { aId = abilityId,
-                                        name = newName,
-                                        damage = newDamage,
-                                        cooldown = newCooldown,
-                                        range = newRange,
-                                        special = newSpecial,
-                                        heal = newHeal };
+                    var parameters = new { 
+                        aId = abilityDTO.Id,
+                        name = abilityDTO.Name,
+                        damage = abilityDTO.Damage,
+                        cooldown = abilityDTO.Cooldown,
+                        range = abilityDTO.Range,
+                        special = abilityDTO.Special,
+                        heal = abilityDTO.Heal 
+                    };
 
-                    var query = @"MATCH (n:Ability) WHERE ID(n)=$aId "
-                                +setName
-                                +@"SET n.damage=$damage
-                                SET n.cooldown=$cooldown
-                                SET n.range=$range
-                                SET n.special=$special
-                                SET n.heal=$heal
-                                RETURN n";
+                    var query = @"
+                        MATCH (n:Ability) WHERE ID(n)=$aId "
+                        +setName
+                        +@" SET n.damage=$damage
+                        SET n.cooldown=$cooldown
+                        SET n.range=$range
+                        SET n.special=$special
+                        SET n.heal=$heal
+                        RETURN n";
+                  
                     Console.WriteLine(query);
                     
                     await session.RunAsync(query, parameters);
@@ -143,24 +155,20 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = "MATCH (n:Ability) RETURN n";
+                    var cursor = await session.RunAsync(query);
+                    var nodes = new List<INode>();
+
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:Ability) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var node = record["n"].As<INode>();
+                        nodes.Add(node);
                     });
 
-                    return Ok(result);
-                }
+                    return Ok(nodes);
+                }; 
             }
+        
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);

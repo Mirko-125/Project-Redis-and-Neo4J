@@ -32,7 +32,7 @@ namespace Databaseaccess.Models
         public Ability Ability { get; set; }
         public Class(INode node)
         {
-            Name = node["Name"].As<string>();
+            Name = node["name"].As<string>();
             Gear = new List<Gear>();
             BaseAttributes = new Attributes(node);
             LevelGainAttributes = new Attributes(node);

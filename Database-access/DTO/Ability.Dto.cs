@@ -7,3 +7,7 @@ public class AbilityDTO
         public string Special { get; set; } 
         public int Heal { get; set; }
 }
+
+public class UpdateAbilityDto : AbilityDTO{
+        public int Id { get; set; }
+}

@@ -17,10 +17,10 @@ namespace Databaseaccess.Models
         public List<Item> Items { get; set; }
         public Inventory(INode node)
         {
-            WeightLimit = node["WeightLimit"].As<int>();
-            Dimensions = node["Dimensions"].As<int>();
-            FreeSpots = node["FreeSpots"].As<int>();
-            UsedSpots = node["UsedSpots"].As<int>();
+            WeightLimit = node["weightLimit"].As<int>();
+            Dimensions = node["dimensions"].As<int>();
+            FreeSpots = node["freeSpots"].As<int>();
+            UsedSpots = node["usedSpots"].As<int>();
             Items = new List<Item>();
         }
     }

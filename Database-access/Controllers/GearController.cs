@@ -50,14 +50,14 @@ namespace Databaseaccess.Controllers
 
                     var parameters = new
                     {
-                        name=gear.Name,
-                        weight=gear.Weight,
-                        type=gear.Type,
-                        dimensions=gear.Dimensions,
-                        value=gear.Value,
-                        slot=gear.Slot,   
-                        level=gear.Level,
-                        quality=gear.Quality,
+                        name = gear.Name,
+                        weight = gear.Weight,
+                        type = gear.Type,
+                        dimensions = gear.Dimensions,
+                        value = gear.Value,
+                        slot = gear.Slot,   
+                        level = gear.Level,
+                        quality = gear.Quality,
 
                         //attributes
                         strength = gear.Attributes.Strength,
@@ -104,25 +104,26 @@ namespace Databaseaccess.Controllers
                                     SET attributes.levelAttributes= $levelAttributes
 
                                     return n";
-                    var parameters = new { gearID=gear.GearID,
-                                           name=gear.Name,
-                                           type=gear.Type, 
-                                           value=gear.Value, 
-                                           dimensions=gear.Dimensions, 
-                                           weight=gear.Weight, 
-                                           slot=gear.Slot,
-                                           level=gear.Level,
-                                           quality=gear.Quality,
+                    var parameters = new 
+                    { 
+                        gearID = gear.GearID,
+                        name = gear.Name,
+                        type = gear.Type, 
+                        value = gear.Value, 
+                        dimensions = gear.Dimensions, 
+                        weight = gear.Weight, 
+                        slot = gear.Slot,
+                        level = gear.Level,
+                        quality = gear.Quality,
 
-                                           strength = gear.Attributes.Strength,
-                                           agility=gear.Attributes.Agility ,
-                                           intelligence=gear.Attributes.Intelligence,
-                                           stamina= gear.Attributes.Stamina,
-                                           faith= gear.Attributes.Faith,
-                                           experience=gear.Attributes.Experience ,
-                                           levelAttributes = gear.Attributes.Level
-                                          
-                                           };
+                        strength = gear.Attributes.Strength,
+                        agility = gear.Attributes.Agility ,
+                        intelligence = gear.Attributes.Intelligence,
+                        stamina = gear.Attributes.Stamina,
+                        faith = gear.Attributes.Faith,
+                        experience = gear.Attributes.Experience ,
+                        levelAttributes = gear.Attributes.Level                
+                    };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

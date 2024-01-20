@@ -7,14 +7,20 @@ using Neo4j.Driver;
 
 public class Marketplace
 {
+    public string Id { get; set; }
     public string Zone { get; set; } 
     public int ItemCount { get; set; } 
     public int RestockCycle { get; set; } 
     public List<Item> Items { get; set; }
-    public Marketplace(INode marketNode, List<Dictionary<string, INode>> itemsNodeList)
+    public Marketplace(INode marketNode, List<Dictionary<string, INode>> itemsNodeList = null)
     {
+        Id = marketNode.ElementId;
+        Zone = marketNode["zone"].As<string>();
+        ItemCount = marketNode["itemCount"].As<int>();
+        RestockCycle = marketNode["restockCycle"].As<int>();
         Items = [];
-        if (itemsNodeList.Count > 0)
+
+        if (itemsNodeList != null && itemsNodeList.Count > 0)
         {
             itemsNodeList.ForEach(itemAndAttributes => 
             {
@@ -32,8 +38,6 @@ public class Marketplace
                 Items.Add(item);
             });
         }
-        Zone = marketNode["zone"].As<string>();
-        ItemCount = marketNode["itemCount"].As<int>();
-        RestockCycle = marketNode["restockCycle"].As<int>();
+       
     }
 }

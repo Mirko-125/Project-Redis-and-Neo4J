@@ -16,12 +16,12 @@ namespace Databaseaccess.Models
         public int Heal { get; set; }
         public Ability(INode node)
         {
-            Name = node["Name"].As<string>();
-            Damage = node["Damage"].As<int>();
-            Cooldown = node["Cooldown"].As<int>();
-            Range = node["Range"].As<double>();
-            Special = node["Special"].As<string>();
-            Heal = node["Heal"].As<int>();
+            Name = node["name"].As<string>();
+            Damage = node["damage"].As<int>();
+            Cooldown = node["cooldown"].As<int>();
+            Range = node["range"].As<double>();
+            Special = node["special"].As<string>();
+            Heal = node["heal"].As<int>();
         }
     }
 }

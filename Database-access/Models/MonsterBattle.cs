@@ -9,6 +9,7 @@ namespace Databaseaccess.Models
 {
     public class MonsterBattle
     {
+        public int Id { get; set; }
         //vreme
         public string StartedAt { get; set; }
         //vreme
@@ -42,6 +43,7 @@ namespace Databaseaccess.Models
                     
                 });
             }
+            Id = (int)monsterBattle.Id;
             StartedAt = monsterBattle["startedAt"].As<string>();
             EndedAt = monsterBattle["endedAt"].As<string>();
             IsFinalized = monsterBattle["isFinalized"].As<bool>();

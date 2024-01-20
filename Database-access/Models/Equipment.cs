@@ -13,8 +13,8 @@ namespace Databaseaccess.Models
         public List<Gear> EquippedGear { get; set; }
         public Equipment(INode node)
         {
-            AverageQuality = node["AverageQuality"].As<double>();
-            Weight = node["Weight"].As<double>();
+            AverageQuality = node["averageQuality"].As<double>();
+            Weight = node["weight"].As<double>();
             EquippedGear = new List<Gear>();
         }
     }
