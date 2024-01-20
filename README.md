@@ -20,7 +20,7 @@ Mirko Bojanic 18087, Stefana Miladinovic 18251, Jelena Mladenovic 18295, Milos M
 
 github repo:
 https://github.com/Mirko-125/Project-Redis-and-Neo4J
-konacan i stabilan repozitorijum je na grani main i nad commitom graph databases
+konacan i stabilan repozitorijum je na grani main
 
 baze podataka:
 Neo4J - pokrenut preko dokera, pristup podacima bazi preko neo4j browser-a: http://localhost:7474/browser/
