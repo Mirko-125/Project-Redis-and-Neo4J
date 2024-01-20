@@ -394,5 +394,5 @@ dodatne tehnologije:
 c# dotnet, pokrenuti Database-Acces u terminalu i pokrenuti backend komandom dotnet watch run
 react, preko npm-a pokrenuti React-actual/navissos u terminalu i pokrenuti front komandom npm start
 
-napomena:
-posto nismo stigli da zavrsimo front-end, molimo ako nije problem da se stvari koje nisu realizovane da se istestiraju u swaggeru.
+# napomena:
+# posto nismo stigli da zavrsimo front-end, molimo ako nije problem da se stvari koje nisu realizovane da se istestiraju u swaggeru.
