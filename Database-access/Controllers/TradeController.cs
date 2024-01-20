@@ -17,7 +17,7 @@ namespace Databaseaccess.Controllers
         private readonly IDriver _driver;
         private readonly RedisCache cache;
         private readonly string singularKey = "trade";
-        private readonly string pluralKey = "trades";
+        //private readonly string pluralKey = "trades";
 
         public TradeController(IDriver driver, RedisCache redisCache)
         {

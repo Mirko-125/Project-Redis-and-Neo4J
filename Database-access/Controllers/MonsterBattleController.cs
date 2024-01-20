@@ -29,7 +29,7 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {   
-                     var parameters = new
+                    var parameters = new
                     {
                         startedAt=DateTime.Now,
                         endedAt="--",
@@ -74,7 +74,7 @@ namespace Databaseaccess.Controllers
                     MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
                     
                     string key=singularKey + monsterBattleId;
-                    await cache.SetDataAsync(key, monsterBattle,1000);
+                    await cache.SetDataAsync(key, monsterBattle, 1000);
                     return Ok(monsterBattle);
                 }
             }
@@ -151,11 +151,11 @@ namespace Databaseaccess.Controllers
                     var playerNode = record["player"].As<INode>();
                     var lootNodeList = record["loot"].As<List<Dictionary<string, INode>>>();
                     var possibleLootNodeList = record["possibleLoot"].As<List<Dictionary<string, INode>>>();
-                    MonsterBattle monsterBattlee= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
+                    MonsterBattle monsterBattle = new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
                     
                     string key=singularKey + monsterBattleDto.MonsterBattleId;
-                    await cache.SetDataAsync(key, monsterBattlee, 10);
-                    return Ok(monsterBattlee);
+                    await cache.SetDataAsync(key, monsterBattle, 10);
+                    return Ok(monsterBattle);
                 }
             }
             catch (Exception ex)
@@ -171,12 +171,6 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var keyExists = await cache.CheckKeyAsync(pluralKey);
-                    if (keyExists)
-                    {
-                        var nesto = await cache.GetDataAsync<List<MonsterBattle>>(pluralKey);
-                        return Ok(nesto);          
-                    }
                     var query = @"
                         MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(player:Player)
                         MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
@@ -193,12 +187,10 @@ namespace Databaseaccess.Controllers
                         }) AS possibleLoot";
                     var cursor = await session.RunAsync(query);
                     var resultList = new List<MonsterBattle>();
-                    var ids=new List<string>();
                     await cursor.ForEachAsync(record =>
                     {
                         var monsterBattleNode = record["n"].As<INode>();
-                        var monsterBattleId = record["monsterBattleId"].As<string>();
-                        ids.Add(monsterBattleId);                        
+                        var monsterBattleId = record["monsterBattleId"].As<string>();                    
                         var monsterNode = record["monster"].As<INode>();
                         var monsterAttributesNode = record["monsterAttributes"].As<INode>();
                         var playerNode = record["player"].As<INode>();
@@ -207,13 +199,11 @@ namespace Databaseaccess.Controllers
                         MonsterBattle monsterBattle= new(monsterBattleNode, monsterNode, monsterAttributesNode, playerNode,possibleLootNodeList,lootNodeList);
                         resultList.Add(monsterBattle);
                     });
-                    int i=0;
                     foreach (var monsterBattleVar in resultList)
                     {   
-                        await cache.SetDataAsync(singularKey + ids[i], monsterBattleVar, 250);
-                        i++;
+                        if (!monsterBattleVar.IsFinalized)
+                            await cache.SetDataAsync(singularKey + monsterBattleVar.Id, monsterBattleVar, 250);
                     }
-                    await cache.SetDataAsync(pluralKey, resultList, 100);
                     return Ok(resultList);
                 }
              }
@@ -229,7 +219,13 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    
+                    string key = singularKey + monsterBattleId;
+                    var keyExists = await cache.CheckKeyAsync(key);
+                    if (keyExists)
+                    {
+                        var nesto = await cache.GetDataAsync<MonsterBattle>(key);
+                        return Ok(nesto);          
+                    }
                     var query =@"
                         MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(player:Player)
                             WHERE ID(n)=$idn
