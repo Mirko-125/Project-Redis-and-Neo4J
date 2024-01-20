@@ -226,33 +226,42 @@ namespace Databaseaccess.Controllers
                     var result = await session.ExecuteReadAsync(async tx =>
                     {
                         var query = @"
-                            MATCH (n:Trade)-[:REQUESTER]->(player:Player)
-                                WHERE ID(player) = $playerid
-                            RETURN n AS trade, 'REQUESTER' AS role
-
-                            UNION
-
-                            MATCH (n:Trade)-[:RECEIVER]->(player:Player)
-                                WHERE ID(player) = $playerid
-                            RETURN n AS trade, 'RECEIVER' AS role"
-                        ;
+                          MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
+                                (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
+                            WHERE ID(receiver) = $playerid OR ID(requester) = $playerid
+                            OPTIONAL MATCH (recItem)-[r:HAS]->(recAttr:Attributes)
+                            WHERE recItem:Gear
+                            OPTIONAL MATCH (reqItem)-[r:HAS]->(reqAttr:Attributes)
+                            WHERE reqItem:Gear
+                            RETURN 
+                                trade as tradeInfo, 
+                                requester, 
+                                receiver, 
+                                COLLECT(DISTINCT { item: recItem, attributes: recAttr }) AS itemsRec,
+                                COLLECT(DISTINCT { item: reqItem, attributes: reqAttr }) AS itemsReq";
                                                   
                         var parameters = new { playerid = playerID };
                         var cursor = await tx.RunAsync(query,parameters);
-                        var nodes = new List<INode>();
+                        var resultList = new List<Trade>();
 
                         await cursor.ForEachAsync(record =>
                         {
-                            var node = record["trade"].As<INode>();
-                            nodes.Add(node);
+                            var tradeNode = record["tradeInfo"].As<INode>();
+                            var playerRec = record["receiver"].As<INode>();
+                            var playerReq = record["requester"].As<INode>();
+                            var recItem = record["itemsRec"].As<List<Dictionary<string, INode>>>();
+                            var reqItem = record["itemsReq"].As<List<Dictionary<string, INode>>>();
+                            Trade trade = new(tradeNode, playerRec, playerReq, recItem, reqItem);
+                            resultList.Add(trade);
                         });
-
-                        return nodes;
+                    
+                        return Ok(resultList);
                     });
-
+                    
                     return Ok(result);
-                }
+                
             }
+        }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
