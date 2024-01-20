@@ -25,22 +25,18 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.ExecuteReadAsync(async tx =>
+                    var query = "MATCH (n:Achievement) RETURN n";
+                    var cursor = await session.RunAsync(query);
+                    var resultList = new List<Achievement>();
+
+                    await cursor.ForEachAsync(record =>
                     {
-                        var query = "MATCH (n:Achievement) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
+                        var node = record["n"].As<INode>();
+                        Achievement achi = new Achievement(node);
+                        resultList.Add(achi);
                     });
 
-                    return Ok(result);
+                    return Ok(resultList);           
                 }
             }
             catch (Exception ex)
@@ -88,15 +84,19 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (p:Player) where ID(p)=$pId
-                                MATCH (a:Achievement) where ID(a)=$aId
-                                CREATE (p)-[:ACHIEVED]->(a)";
+                    var query = @"
+                        MATCH (p:Player)
+                            WHERE ID(p)=$pId
+                        MATCH (a:Achievement) where ID(a)=$aId
+
+                        CREATE (p)-[:ACHIEVED]->(a)";
 
                     var parameters = new
                     {
                         pId = playerId,
                         aId = achievementId
                     };
+
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -114,9 +114,12 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (a:Achievement) where ID(a)=$aId
-                                OPTIONAL MATCH (a)-[r]-()
-                                DELETE r,a";
+                    var query = @"
+                        MATCH (a:Achievement) where ID(a)=$aId
+                            OPTIONAL MATCH (a)-[r]-()
+
+                        DELETE r,a";
+
                     var parameters = new { aId = achievementId };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -135,17 +138,23 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Achievement) WHERE ID(n)=$aId
+                    var query = @"
+                        MATCH (n:Achievement) 
+                            WHERE ID(n)=$aId
                                 SET n.name=$name
                                 SET n.type=$type
                                 SET n.points=$points
                                 SET n.conditions=$conditions
-                                RETURN n";
-                    var parameters = new { aId = achievementId,
-                                        name = newName,
-                                        type = newType,
-                                        points = newPoints,
-                                        conditions = newConditions };
+                        RETURN n";
+
+                    var parameters = new { 
+                        aId = achievementId,
+                        name = newName,
+                        type = newType,
+                        points = newPoints,
+                        conditions = newConditions 
+                    };
+                    
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

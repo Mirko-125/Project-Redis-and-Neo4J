@@ -10,14 +10,12 @@ namespace Cache
     public class RedisCache {
         private static RedisCache _instance;
         private readonly IRedisClientsManager _redisClientManager;
-
-        // Private constructor ensures controlled instantiation
+        
         private RedisCache(IRedisClientsManager redisClientManager)
         {
             _redisClientManager = redisClientManager;
         }
 
-        // Method to initialize the singleton instance
         public static RedisCache Initialize(IRedisClientsManager redisClientManager)
         {
             if (_instance == null)

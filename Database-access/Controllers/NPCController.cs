@@ -13,7 +13,7 @@ namespace Databaseaccess.Controllers
         private readonly IDriver _driver;
 
         private readonly RedisCache cache;
-       // private string pluralKey = "NPCs";
+        private string pluralKey = "NPCs";
         private string singularKey = "NPC";
 
         public NPCController(IDriver driver, RedisCache redisCache)

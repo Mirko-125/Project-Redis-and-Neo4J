@@ -39,13 +39,14 @@ namespace Databaseaccess.Controllers
 
                     var parameters = new
                     {
-                        name=consumable.Name,
-                        weight=consumable.Weight,
-                        type=consumable.Type,
-                        dimensions=consumable.Dimensions,
-                        value=consumable.Value,
-                        effect=consumable.Effect
+                        name = consumable.Name,
+                        weight = consumable.Weight,
+                        type = consumable.Type,
+                        dimensions = consumable.Dimensions,
+                        value = consumable.Value,
+                        effect = consumable.Effect
                     };
+
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }
@@ -63,22 +64,26 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Consumable) WHERE ID(n)=$consumableID
-                                    SET n.name=$name
-                                    SET n.type=$type
-                                    SET n.value=$value 
-                                    SET n.dimensions=$dimensions 
-                                    SET n.weight=$weight 
-                                    SET n.effect=$effect 
-                                    return n";
-                    var parameters = new { consumableID=consumable.ConsumableID,
-                                           name=consumable.Name, 
-                                           type=consumable.Type,
-                                           value=consumable.Value, 
-                                           dimensions=consumable.Dimensions, 
-                                           weight=consumable.Weight, 
-                                           effect=consumable.Effect
-                                        };
+                    var query = @"
+                        MATCH (n:Consumable) WHERE ID(n)=$consumableID
+                            SET n.name=$name
+                            SET n.type=$type
+                            SET n.value=$value 
+                            SET n.dimensions=$dimensions 
+                            SET n.weight=$weight 
+                            SET n.effect=$effect 
+                        return n";
+                    var parameters = new 
+                    { 
+                        consumableID = consumable.ConsumableID,
+                        name = consumable.Name, 
+                        type = consumable.Type,
+                        value = consumable.Value, 
+                        dimensions = consumable.Dimensions, 
+                        weight = consumable.Weight, 
+                        effect = consumable.Effect
+                    };
+
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

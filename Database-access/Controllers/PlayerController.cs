@@ -61,18 +61,22 @@ namespace Databaseaccess.Controllers
                 using (var session = _driver.AsyncSession())
                 {
 
-                    var query = @"CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
-                                    WITH n
-                                    MATCH (class:Class) WHERE ID(class)=$classId
-                                    CREATE (n)-[:IS]->(class)
-                                    WITH n, class
-                                    MATCH (class)-[:HAS_BASE_ATTRIBUTES]->(x)
-                                    CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
-                                    CREATE (o:Attributes { strength: x.strength, agility: x.agility, intelligence: x.intelligence, stamina: x.stamina, faith: x.faith, experience: 0, level: 0})
-                                    CREATE (p:Equipment { averageQuality: 0, weight: 0})
-                                    CREATE (n)-[:OWNS]->(m)
-                                    CREATE (n)-[:HAS]->(o)
-                                    CREATE (n)-[:WEARS]->(p)";
+                    var query = @"
+                        CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
+
+                        WITH n
+                            MATCH (class:Class) WHERE ID(class)=$classId
+                            CREATE (n)-[:IS]->(class)
+
+                        WITH n, class
+                            MATCH (class)-[:HAS_BASE_ATTRIBUTES]->(x)
+                            CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
+                            CREATE (o:Attributes { strength: x.strength, agility: x.agility, intelligence: x.intelligence, stamina: x.stamina, faith: x.faith, experience: 0, level: 0})
+                            CREATE (p:Equipment { averageQuality: 0, weight: 0})
+                            CREATE (n)-[:OWNS]->(m)
+                            CREATE (n)-[:HAS]->(o)
+                            CREATE (n)-[:WEARS]->(p)";
+
                     var parameters = new
                     {
                         name = player.Name,
@@ -130,9 +134,11 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (p:Player) WHERE ID(p)=$id
-                                OPTIONAL MATCH (p)-[r]->(otherSide)
-                                DELETE r,p,otherSide"; 
+                    var query = @"
+                        MATCH (p:Player) WHERE ID(p)=$id
+                            OPTIONAL MATCH (p)-[r]->(otherSide)
+                        DELETE r,p,otherSide"; 
+                        
                     var parameters = new { id = playerId };
                     await session.RunAsync(query, parameters);
                     return Ok();

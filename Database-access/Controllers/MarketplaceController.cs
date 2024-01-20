@@ -79,14 +79,15 @@ namespace Databaseaccess.Controllers
                                 item: i,
                                 attributes: CASE WHEN i:Gear THEN a ELSE NULL END
                             }) AS items";
-                    var parameters = new {  
+
+                    var parameters = new 
+                    {  
                         item = itemName,
                         zone = zoneName
-                        };
+                    };
 
                     var cursor = await session.RunAsync(query, parameters);
                     var record = await cursor.SingleAsync();
-                    await session.RunAsync(query, parameters);
                     var marketNode = record["n"].As<INode>();
                     var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
                     Marketplace market = new(marketNode, itemsNodeList);
@@ -132,9 +133,9 @@ namespace Databaseaccess.Controllers
                     });
                     foreach (var market in resultList)
                     {
-                        await cache.SetDataAsync(singularKey + market.Zone, market, 25);
+                        await cache.SetDataAsync(singularKey + market.Zone, market, 100);
                     }
-                    await cache.SetDataAsync(plularKey, resultList, 10);
+                    await cache.SetDataAsync(plularKey, resultList, 100);
                     return Ok(resultList);
                 }
             }
@@ -151,10 +152,11 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var keyExists = await cache.CheckKeyAsync(singularKey + zone);
+                    string key = singularKey + zone;
+                    var keyExists = await cache.CheckKeyAsync(key);
                     if (keyExists)
                     {
-                        var nesto = await cache.GetDataAsync<List<Marketplace>>(singularKey + zone);
+                        var nesto = await cache.GetDataAsync<List<Marketplace>>(key);
                         return Ok(nesto);          
                     }
 
@@ -166,6 +168,7 @@ namespace Databaseaccess.Controllers
                             item: i,
                             attributes: CASE WHEN i:Gear THEN a ELSE NULL END
                         }) AS items";
+                        
                     var parameters = new { zone = zone };
                     var cursor = await session.RunAsync(query, parameters);
                     var record = await cursor.SingleAsync();
@@ -173,7 +176,7 @@ namespace Databaseaccess.Controllers
                     var marketNode = record["n"].As<INode>();
                     var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
                     Marketplace market = new(marketNode, itemsNodeList);
-                    await cache.SetDataAsync(singularKey + market.Zone, market, 60);
+                    await cache.SetDataAsync(key, market, 60);
 
                     return Ok(market);
                 }
@@ -191,16 +194,17 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = @"MATCH (n:Marketplace) WHERE ID(n)=$marketplaceID
-                                SET n.zone = $zone
-                                SET n.restockCycle = $restockCycle
-                                RETURN n";
+                    var query = @"
+                        MATCH (n:Marketplace) WHERE ID(n)=$marketplaceID
+                            SET n.zone = $zone
+                            SET n.restockCycle = $restockCycle
+                        RETURN n";
+
                     var parameters = new 
                     { 
                         marketplaceID = marketplace.MarketplaceID,
                         zone = marketplace.Zone,
-                        restockCycle= marketplace.RestockCycle
-                         
+                        restockCycle = marketplace.RestockCycle
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
