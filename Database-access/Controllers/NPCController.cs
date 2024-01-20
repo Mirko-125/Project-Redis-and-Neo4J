@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Databaseaccess.Models;
+using Cache;
+using ServiceStack.Redis;
 
 namespace Databaseaccess.Controllers
 {
@@ -13,9 +12,14 @@ namespace Databaseaccess.Controllers
     {
         private readonly IDriver _driver;
 
-        public NPCController(IDriver driver)
+        private readonly RedisCache cache;
+        private string pluralKey = "NPCs";
+        private string singularKey = "NPC";
+
+        public NPCController(IDriver driver, RedisCache redisCache)
         {
             _driver = driver;
+            cache = redisCache;
         }
 
         [HttpPost("AddNPC")]
@@ -90,22 +94,26 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                        var query = @"
-                            MATCH (n1:NPC) WHERE id(n1)=$npId 
-                            MATCH (n2:Player) WHERE id(n2)=$plId
-                            MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
-                            SET rel.property_key = COALESCE(rel.property_key, 0) + 1
-                            RETURN rel.property_key AS incrementedProperty;"
-                        ;
-                        var parameters = new 
-                        {   npId=npcId,
-                            plId = playerId
-                        };
-                        var cursor = await session.RunAsync(query,parameters);
-                        var n = await cursor.SingleAsync();
-                        var seq = n["incrementedProperty"].As<int>();
-                    
-                   return Ok(seq);
+                    var query = @"
+                        MATCH (n1:NPC) WHERE id(n1)=$npId 
+                        MATCH (n2:Player) WHERE id(n2)=$plId
+                        MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
+                        SET rel.property_key = COALESCE(rel.property_key, 0) + 1
+                        RETURN rel.property_key AS incrementedProperty,n1"
+                    ;
+                    var parameters = new 
+                    {   npId=npcId,
+                        plId = playerId
+                    };
+                    var cursor = await session.RunAsync(query,parameters);
+                    var n = await cursor.SingleAsync();
+                    var seq = n["incrementedProperty"].As<int>();
+                    var node = n["n1"].As<INode>();
+
+                    NPC novi=new(node);
+                    string key= singularKey + npcId.ToString();
+                    await cache.SetDataAsync(key, novi, 25);
+                    return Ok(novi);
                 }
              }
             catch (Exception ex)
