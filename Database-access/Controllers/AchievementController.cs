@@ -25,18 +25,22 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = "MATCH (n:Achievement) RETURN n";
-                    var cursor = await session.RunAsync(query);
-                    var resultList = new List<Achievement>();
-
-                    await cursor.ForEachAsync(record =>
+                    var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var node = record["n"].As<INode>();
-                        Achievement achi = new Achievement(node);
-                        resultList.Add(achi);
+                        var query = "MATCH (n:Achievement) RETURN n";
+                        var cursor = await tx.RunAsync(query);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
                     });
 
-                    return Ok(resultList);           
+                    return Ok(result);
                 }
             }
             catch (Exception ex)

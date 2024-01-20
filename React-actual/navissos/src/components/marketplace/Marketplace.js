@@ -19,8 +19,8 @@ function Marketplace() {
                         <button key={marketplace.id} 
                         style={{
                             backgroundSize: 'cover',
-                            width: '200px', // adjust to the size of your image
-                            height: '100px', // adjust to the size of your image
+                            width: '200px', 
+                            height: '100px', 
                             border: 'none',
                             cursor: 'pointer',
                             margin: '3rem'

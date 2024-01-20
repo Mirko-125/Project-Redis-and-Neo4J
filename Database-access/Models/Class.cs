@@ -30,13 +30,16 @@ namespace Databaseaccess.Models
         public Attributes LevelGainAttributes { get; set; }
         [JsonIgnore]
         public Ability Ability { get; set; }
-        public Class(INode node)
+        public Class(INode node, bool isPopulated = false)
         {
             Name = node["name"].As<string>();
-            Gear = new List<Gear>();
-            BaseAttributes = new Attributes(node);
-            LevelGainAttributes = new Attributes(node);
-            Ability = new Ability(node);
+            if (isPopulated) 
+            {
+                Gear = new List<Gear>();
+                BaseAttributes = new Attributes(node);
+                LevelGainAttributes = new Attributes(node);
+                Ability = new Ability(node);
+            }
         }
     }
 }

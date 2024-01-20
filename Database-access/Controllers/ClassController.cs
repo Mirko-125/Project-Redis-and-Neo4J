@@ -140,18 +140,22 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {
-                    var query = "MATCH (n:Class) RETURN n";
-                    var cursor = await session.RunAsync(query);
-                    var classList = new List<Class>();
-
-                    await cursor.ForEachAsync(record =>
+                    var result = await session.ExecuteReadAsync(async tx =>
                     {
-                        var node = record["n"].As<INode>();
-                        Class cls = new Class(node);
-                        classList.Add(cls);
+                        var query = "MATCH (n:Class) RETURN n";
+                        var cursor = await tx.RunAsync(query);
+                        var nodes = new List<INode>();
+
+                        await cursor.ForEachAsync(record =>
+                        {
+                            var node = record["n"].As<INode>();
+                            nodes.Add(node);
+                        });
+
+                        return nodes;
                     });
-                    
-                    return Ok(classList);
+
+                    return Ok(result);
                 }
             }
             catch (Exception ex)
