@@ -40,21 +40,6 @@ namespace Databaseaccess.Controllers
                         requesterItemNames=trade.RequesterItemNames
                     };
 
-                    if(trade.ReceiverGold>0){
-                        var goldCheckQuery = @"MATCH (playerReceiver:Player) WHERE ID(playerReceiver)=$receiverID
-                                                RETURN playerReceiver.gold
-                                              ";
-
-                        var goldCheckRecResult = await session.RunAsync(goldCheckQuery, parameters);
-                        var goldRecCheckList = await goldCheckRecResult.ToListAsync();
-
-                        if(goldRecCheckList.Count==0)
-                        {
-                            throw new Exception("The playerReceiver doesn't own enought gold!");
-                        }
-
-                    }
-
                     if(trade.RequesterGold>0 ){
                         var goldCheckQuery = @"MATCH (playerRequester:Player) WHERE ID(playerRequester)=$requesterID
                                                 RETURN playerRequester.gold 
@@ -67,26 +52,6 @@ namespace Databaseaccess.Controllers
                         {
                             throw new Exception("The playerRequester doesn't own enought gold!");
                         }   
-                    }
-
-                    if(trade.ReceiverItemNames.Length>0){
-                        var playerReceverQuery=@"
-                            MATCH(playerReceiver:Player)-[:OWNS]->(inventoryReceiver: Inventory)
-                                WHERE ID(playerReceiver)=$receiverID
-                                
-                            MATCH (receiverItem :Item)
-                                WHERE receiverItem.name
-                                IN $receiverItemNames
-                                AND (inventoryReceiver)-[:HAS]->(receiverItem)
-                                
-                            return receiverItem"
-                        ;
-
-                        var playerReceiverItemResult=await session.RunAsync(playerReceverQuery, parameters);
-                        var receiverItems=await playerReceiverItemResult.ToListAsync();
-
-                        if(receiverItems.Count!=trade.ReceiverItemNames.Length)
-                            throw new Exception("The playerReceiver doesn't own the items");
                     }
 
                     if(trade.RequesterItemNames.Length>0){
@@ -109,67 +74,51 @@ namespace Databaseaccess.Controllers
                             throw new Exception("The playerRequester doesn't own the items");
                     }
                 
-                var query=@"
-                    MATCH (playerReceiver_:Player)
-                        WHERE id(playerReceiver_)=$receiverID
+                    var query=@"
+                        MATCH (playerReceiver_:Player)
+                            WHERE id(playerReceiver_)=$receiverID
+                            
+                        MATCH (receiverItem: Item)
+                            WHERE receiverItem.name IN $receiverItemNames
+                        WITH playerReceiver_, collect(receiverItem) as receiverItemsList
                         
-                    MATCH (receiverItem: Item)
-                        WHERE receiverItem.name IN $receiverItemNames
-                    WITH playerReceiver_, collect(receiverItem) as receiverItemsList
-                    
-                    MATCH (playerRequester_:Player)
-                        WHERE id(playerRequester_)=$requesterID
+                        MATCH (playerRequester_:Player)
+                            WHERE id(playerRequester_)=$requesterID
+                            
+                        MATCH (requesterItem: Item)
+                            WHERE requesterItem.name IN $requesterItemNames
+                        WITH playerReceiver_, receiverItemsList, playerRequester_, collect(requesterItem) as requesterItemsList
                         
-                    MATCH (requesterItem: Item)
-                        WHERE requesterItem.name IN $requesterItemNames
-                    WITH playerReceiver_, receiverItemsList, playerRequester_, collect(requesterItem) as requesterItemsList
-                    
-                     CREATE (n:Trade {
-                            isFinalized: $isFinalized,
-                            receiverGold: $receiverGold,
-                            requesterGold: $requesterGold,
-                            startedAt: $startedAt,
-                            endedAt: $endedAt
-                    })
-                        
-                    WITH n, playerReceiver_, playerRequester_, receiverItemsList, requesterItemsList
-                        
-                    FOREACH (item IN receiverItemsList |
-                            CREATE (n)-[:RECEIVER_ITEM]->(item)
-                        )
+                        CREATE (n:Trade {
+                                isFinalized: $isFinalized,
+                                receiverGold: $receiverGold,
+                                requesterGold: $requesterGold,
+                                startedAt: $startedAt,
+                                endedAt: $endedAt
+                        })
+                            
+                        WITH n, playerReceiver_, playerRequester_, receiverItemsList, requesterItemsList
+                            
+                        SET playerReceiver_.gold = playerReceiver_.gold + $receiverGold           
+                        SET playerRequester_.gold = playerRequester_.gold - $requesterGold          
 
-                        FOREACH (item IN requesterItemsList |
-                            CREATE (n)-[:REQUESTER_ITEM]->(item)
-                        )
-                        
-                        CREATE (n)-[:RECEIVER]->(playerReceiver_)
-                        CREATE (n)-[:REQUESTER]->(playerRequester_)
-                        
+                        FOREACH (item IN receiverItemsList |
+                                CREATE (n)-[:RECEIVER_ITEM]->(item)
+                            )
+
+                            FOREACH (item IN requesterItemsList |
+                                CREATE (n)-[:REQUESTER_ITEM]->(item)
+                            )
+                            
+                            CREATE (n)-[:RECEIVER]->(playerReceiver_)
+                            CREATE (n)-[:REQUESTER]->(playerRequester_)
+                            
                         return n"
-                    ;
+                        ;
 
-                    var result=await session.RunAsync(query, parameters);
+                        var result=await session.RunAsync(query, parameters);
 
-                    var updateGoldQuery = @"MATCH (playerReceiver:Player) WHERE ID(playerReceiver) = $receiverID
-                                                SET playerReceiver.gold = playerReceiver.gold + $receiverGold
-                                            WITH playerReceiver
-
-                                            MATCH (playerRequester:Player) WHERE ID (playerRequester) = $requesterID
-                                                SET playerRequester.gold = playerRequester.gold - $requesterGold
-                                            WITH playerRequester
-
-                                            RETURN true AS goldUpdated
-                                            ";
-
-                    var updateGoldResult = await session.RunAsync(updateGoldQuery, parameters);
-                    var goldUpdateCheck = await updateGoldResult.SingleAsync();
-
-                    if (!(bool)goldUpdateCheck["goldUpdated"])
-                    {
-                        throw new Exception("Failed to update players gold.");
-                    }
-
-                    return Ok();
+                        return Ok();
                 }
             }
             catch (Exception ex)
