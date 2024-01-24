@@ -207,10 +207,11 @@ namespace Databaseaccess.Controllers
             {
                 using (var session = _driver.AsyncSession())
                 {  
-                    var query = @"MATCH (n:Monster)-[r:HAS]->(m:Attributes) WHERE Id(n)=$idn
+                    var query = @"MATCH (n:Monster)-[r:HAS]->(m:Attributes) 
+                                    WHERE Id(n)=$nId
                                 OPTIONAL MATCH (n)<-[a:ATTACKED_MONSTER]-(mb:MonsterBattle)
                                 DETACH DELETE m,mb,n";
-                    var parameters = new { idn=monsterId };
+                    var parameters = new { nId = monsterId };
                     await session.RunAsync(query, parameters);
                     return Ok();
                 }

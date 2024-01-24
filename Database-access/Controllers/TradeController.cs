@@ -45,20 +45,6 @@ namespace Databaseaccess.Controllers
                         requesterItemNames=trade.RequesterItemNames
                     };
 
-                    if(trade.RequesterGold>0 ){
-                        var goldCheckQuery = @"MATCH (playerRequester:Player) WHERE ID(playerRequester)=$requesterID
-                                                RETURN playerRequester.gold 
-                                              ";
-
-                        var goldCheckReqResult = await session.RunAsync(goldCheckQuery, parameters);
-                        var goldReqCheckList = await goldCheckReqResult.ToListAsync();
-
-                        if(goldReqCheckList.Count==0)
-                        {
-                            throw new Exception("The playerRequester doesn't own enought gold!");
-                        }   
-                    }
-
                     if(trade.RequesterItemNames.Length>0){
                         var playerRequesterQuery=@"
                             MATCH(playerRequester:Player)-[:OWNS]->(inventoryRequester: Inventory)
@@ -115,9 +101,7 @@ namespace Databaseaccess.Controllers
                             MERGE (n)-[:REQUESTER_ITEM]->(item)
                         )
 
-                        return Id(n) as tradeID
-                        "
-                        ; 
+                        return Id(n) as tradeID";
 
                         var returnQuery = @"MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player)
                                         ,(recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
