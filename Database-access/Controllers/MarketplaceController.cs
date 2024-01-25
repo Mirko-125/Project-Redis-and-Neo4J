@@ -17,12 +17,10 @@ namespace Databaseaccess.Controllers
     public class MarketplaceController : ControllerBase
     {
         private readonly MarketplaceService _marketplaceService;
-        private readonly RedisCache cache;
 
         public MarketplaceController(MarketplaceService marketplaceService, RedisCache redisCache)
         {
             _marketplaceService = marketplaceService;
-            cache = redisCache;
         }
 
 
@@ -45,8 +43,7 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                Marketplace market = await _marketplaceService.AddItem(zoneName, itemName);
-                await cache.SetDataAsync(_marketplaceService._key + zoneName, market, 60);
+                await _marketplaceService.AddItem(zoneName, itemName);
                 return Ok();          
             }
             catch (Exception ex)
@@ -56,24 +53,12 @@ namespace Databaseaccess.Controllers
         }
         
         [HttpGet("GetAllMarketplaces")]
-        public async Task<IActionResult> GetAllMarketplaces()
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var keyExists = await cache.CheckKeyAsync(_marketplaceService._pluralKey);
-                if (keyExists)
-                {
-                    var nesto = await cache.GetDataAsync<List<Marketplace>>(_marketplaceService._key);
-                    return Ok(nesto);          
-                }
-                var marketplaces = await _marketplaceService.GetMarketplacesAsync();
-                foreach (var market in marketplaces)
-                {
-                    await cache.SetDataAsync(_marketplaceService._key + market.Zone, market, 100);
-                }
-                await cache.SetDataAsync(_marketplaceService._pluralKey, marketplaces, 100);
+                var marketplaces = await _marketplaceService.GetAllAsync();
                 return Ok(marketplaces);
-
             }
             catch (Exception ex)
             {
@@ -82,20 +67,11 @@ namespace Databaseaccess.Controllers
         }
    
         [HttpGet("GetMarketplace")]
-        public async Task<IActionResult> GetMarketplace(string zone)
+        public async Task<IActionResult> GetOne(string zone)
         {
             try
-            {
-                string key = _marketplaceService._key + zone;
-                var keyExists = await cache.CheckKeyAsync(key);
-                if (keyExists)
-                {
-                    var cachedMarket = await cache.GetDataAsync<List<Marketplace>>(key);
-                    return Ok(cachedMarket);          
-                }
-                    
-                var market = _marketplaceService.GetMarketplaceAsync(zone);
-                await cache.SetDataAsync(key, market, 60);
+            {    
+                var market = await _marketplaceService.GetOneAsync(zone);
                 return Ok(market);
             }
             catch (Exception ex)
@@ -122,8 +98,9 @@ namespace Databaseaccess.Controllers
         public async Task<IActionResult> DeleteMarketplace(string zone)
         {
             try
-            {     
-                return Ok(await cache.DeleteAsync(_marketplaceService._key + zone));
+            {    
+                var result = await _marketplaceService.DeleteMarketplace(zone);
+                return Ok(result);
             }
             catch (Exception ex)
             {

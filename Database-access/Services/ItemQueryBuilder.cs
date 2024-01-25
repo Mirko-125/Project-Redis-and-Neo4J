@@ -10,12 +10,16 @@ namespace Services
                         WHERE {identifier}.name = $item";
             return query;
         }
-        public static string ReturnObjectWithItems(string type, string identifier, bool with = false)
+        public static string ReturnSpecificObjectWithItems(string type, string identifier)
         {
             string query = "";
-            if (with)
-                query += "WITH " + identifier + "\n";
-
+            query += "WITH " + identifier + "\n";
+            query += ReturnObjectWithItems(type, identifier);
+            return query;
+        }
+        public static string ReturnObjectWithItems(string type, string identifier)
+        {
+            string query = "";
             query += $@"
                 MATCH ({identifier}:{type})-[:HAS]->(i:Item) 
                     OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
@@ -23,7 +27,7 @@ namespace Services
                     item: i,
                     attributes: CASE WHEN i:Gear THEN a ELSE NULL END
                 }}) AS items";
-
+            
             return query;
         }
     }     

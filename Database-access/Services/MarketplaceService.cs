@@ -66,18 +66,25 @@ namespace Services
                 WITH {item}
                     MATCH ({_key}:{type} {{zone: $zone}})
                     MERGE ({_key})-[:HAS]->({item}) ";
-            string returnQuery = ItemQueryBuilder.ReturnObjectWithItems(type, _key, true);
+            string returnQuery = ItemQueryBuilder.ReturnSpecificObjectWithItems(type, _key);
             string query = itemQuery + addItemQuery + returnQuery;
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, parameters);
             var record = await cursor.SingleAsync();
             Marketplace market = BuildMarketplace(record);
+            await _cache.SetDataAsync(_key + zoneName, market, 60);
             return market;
         }
 
-        public async Task<List<Marketplace>> GetMarketplacesAsync()
+        public async Task<List<Marketplace>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
+            var keyExists = await _cache.CheckKeyAsync(_pluralKey);
+            if (keyExists)
+            {
+                var cachedMarketplaces = await _cache.GetDataAsync<List<Marketplace>>(_pluralKey);
+                return cachedMarketplaces;          
+            }
 
             string query = $@"
                 MATCH ({_key}:{type})-[:HAS]->(i:Item) 
@@ -92,12 +99,24 @@ namespace Services
                 marketplaces.Add(BuildMarketplace(record));
             });
 
+            foreach (Marketplace market in marketplaces)
+            {
+                await _cache.SetDataAsync(_key + market.Zone, market, 100);
+            }
+            await _cache.SetDataAsync(_pluralKey, marketplaces, 100);
             return marketplaces;
         }
 
-        public async Task<Marketplace> GetMarketplaceAsync(string zone)
+        public async Task<Marketplace> GetOneAsync(string zone)
         {
             var session = _driver.AsyncSession();
+            string key = _key + zone;
+            var keyExists = await _cache.CheckKeyAsync(key);
+            if (keyExists)
+            {
+                var cachedMarket = await _cache.GetDataAsync<Marketplace>(key);
+                return cachedMarket;          
+            }
 
             string query = $@"
                 MATCH (n:{type})-[:HAS]->(i:Item) 
@@ -106,7 +125,9 @@ namespace Services
             query += ItemQueryBuilder.ReturnObjectWithItems(type, _key);
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, new {zone = zone});
-            return BuildMarketplace(await cursor.SingleAsync());
+            Marketplace market = BuildMarketplace(await cursor.SingleAsync());
+            await _cache.SetDataAsync(key, market, 100);
+            return market;
         }
 
         public async Task<IResultCursor> UpdateMarketplaceAsync(MarketplaceUpdateDto dto)
@@ -132,6 +153,7 @@ namespace Services
         public async Task<IResultCursor> DeleteMarketplace(string zone)
         {
             var session = _driver.AsyncSession();
+            await _cache.DeleteAsync(_key + zone);
             var query = @$"MATCH (n:{type} {{zone: $zone}}) DETACH DELETE n";
             var parameters = new {zone = zone};
             return await session.RunAsync(query, parameters);
