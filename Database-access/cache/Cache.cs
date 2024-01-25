@@ -39,8 +39,8 @@ namespace Cache
             var keyExists = await redisClient.ContainsKeyAsync(key);
             if (keyExists)
             {
-                var json = await redisClient.GetAsync<string>(key);
-                return JsonSerializer.DeserializeFromString<T>(json);
+                var res = await redisClient.GetAsync<string>(key);
+                return JsonSerializer.DeserializeFromString<T>(res);
             }
             return default;
         }

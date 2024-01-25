@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Databaseaccess.Models;
 using ServiceStack.Text;
 using System.Runtime.InteropServices;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -15,14 +16,12 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class MarketplaceController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly MarketplaceService _marketplaceService;
         private readonly RedisCache cache;
-        private string plularKey = "marketplaces";
-        private string singularKey = "marketplace";
 
-        public MarketplaceController(IDriver driver, RedisCache redisCache)
+        public MarketplaceController(MarketplaceService marketplaceService, RedisCache redisCache)
         {
-            _driver = driver;
+            _marketplaceService = marketplaceService;
             cache = redisCache;
         }
 
@@ -32,24 +31,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:Marketplace {
-                            zone: $zone,
-                            itemCount: $itemCount,
-                            restockCycle: $restockCycle
-                        })";
-
-                    var parameters = new
-                    {
-                        zone = marketplace.Zone,
-                        itemCount = marketplace.ItemCount,
-                        restockCycle = marketplace.RestockCycle
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _marketplaceService.AddAsync(marketplace);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -62,38 +45,9 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                     var query = @"
-                        MATCH (n:Item)
-                            WHERE n.name = $item 
-
-                        WITH n
-                            MATCH (market:Marketplace {zone: $zone})
-                            MERGE (market)-[:HAS]->(n)
-
-                        WITH market
-                            MATCH (market)-[:HAS]->(i:Item) 
-                                OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
-                            RETURN market as n, COLLECT({
-                                item: i,
-                                attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                            }) AS items";
-
-                    var parameters = new 
-                    {  
-                        item = itemName,
-                        zone = zoneName
-                    };
-
-                    var cursor = await session.RunAsync(query, parameters);
-                    var record = await cursor.SingleAsync();
-                    var marketNode = record["n"].As<INode>();
-                    var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
-                    Marketplace market = new(marketNode, itemsNodeList);
-                    await cache.SetDataAsync(singularKey + zoneName, market, 60);
-                    return Ok();
-                }
+                Marketplace market = await _marketplaceService.AddItem(zoneName, itemName);
+                await cache.SetDataAsync(_marketplaceService._key + zoneName, market, 60);
+                return Ok();          
             }
             catch (Exception ex)
             {
@@ -106,38 +60,20 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
+                var keyExists = await cache.CheckKeyAsync(_marketplaceService._pluralKey);
+                if (keyExists)
                 {
-                    var keyExists = await cache.CheckKeyAsync(plularKey);
-                    if (keyExists)
-                    {
-                        var nesto = await cache.GetDataAsync<List<Marketplace>>(plularKey);
-                        return Ok(nesto);          
-                    }
-                    var query = @"
-                        MATCH (n:Marketplace)-[:HAS]->(i:Item) 
-                            OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
-                        RETURN n, COLLECT({
-                            item: i,
-                            attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                        }) AS items";
-                    var cursor = await session.RunAsync(query);
-                    var resultList = new List<Marketplace>();
-                    
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var marketNode = record["n"].As<INode>();
-                        var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
-                        Marketplace market = new(marketNode, itemsNodeList);
-                        resultList.Add(market);
-                    });
-                    foreach (var market in resultList)
-                    {
-                        await cache.SetDataAsync(singularKey + market.Zone, market, 100);
-                    }
-                    await cache.SetDataAsync(plularKey, resultList, 100);
-                    return Ok(resultList);
+                    var nesto = await cache.GetDataAsync<List<Marketplace>>(_marketplaceService._key);
+                    return Ok(nesto);          
                 }
+                var marketplaces = await _marketplaceService.GetMarketplacesAsync();
+                foreach (var market in marketplaces)
+                {
+                    await cache.SetDataAsync(_marketplaceService._key + market.Zone, market, 100);
+                }
+                await cache.SetDataAsync(_marketplaceService._pluralKey, marketplaces, 100);
+                return Ok(marketplaces);
+
             }
             catch (Exception ex)
             {
@@ -150,36 +86,17 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
+                string key = _marketplaceService._key + zone;
+                var keyExists = await cache.CheckKeyAsync(key);
+                if (keyExists)
                 {
-                    string key = singularKey + zone;
-                    var keyExists = await cache.CheckKeyAsync(key);
-                    if (keyExists)
-                    {
-                        var nesto = await cache.GetDataAsync<List<Marketplace>>(key);
-                        return Ok(nesto);          
-                    }
-
-                    var query = @"
-                        MATCH (n:Marketplace)-[:HAS]->(i:Item) 
-                            WHERE n.zone = $zone
-                            OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
-                        RETURN n, COLLECT({
-                            item: i,
-                            attributes: CASE WHEN i:Gear THEN a ELSE NULL END
-                        }) AS items";
-                        
-                    var parameters = new { zone = zone };
-                    var cursor = await session.RunAsync(query, parameters);
-                    var record = await cursor.SingleAsync();
-                    await session.RunAsync(query, parameters);
-                    var marketNode = record["n"].As<INode>();
-                    var itemsNodeList = record["items"].As<List<Dictionary<string, INode>>>();
-                    Marketplace market = new(marketNode, itemsNodeList);
-                    await cache.SetDataAsync(key, market, 60);
-
-                    return Ok(market);
+                    var cachedMarket = await cache.GetDataAsync<List<Marketplace>>(key);
+                    return Ok(cachedMarket);          
                 }
+                    
+                var market = _marketplaceService.GetMarketplaceAsync(zone);
+                await cache.SetDataAsync(key, market, 60);
+                return Ok(market);
             }
             catch (Exception ex)
             {
@@ -192,23 +109,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (n:Marketplace) WHERE ID(n)=$marketplaceID
-                            SET n.zone = $zone
-                            SET n.restockCycle = $restockCycle
-                        RETURN n";
-
-                    var parameters = new 
-                    { 
-                        marketplaceID = marketplace.MarketplaceID,
-                        zone = marketplace.Zone,
-                        restockCycle = marketplace.RestockCycle
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _marketplaceService.UpdateMarketplaceAsync(marketplace);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -220,15 +122,8 @@ namespace Databaseaccess.Controllers
         public async Task<IActionResult> DeleteMarketplace(string zone)
         {
             try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Marketplace {zone: $zone}) DETACH DELETE n";
-                    var parameters = new { zone = zone };
-                    var cursor = await session.RunAsync(query, parameters);
-                    await cache.DeleteAsync(singularKey + zone);
-                    return Ok();
-                }
+            {     
+                return Ok(await cache.DeleteAsync(_marketplaceService._key + zone));
             }
             catch (Exception ex)
             {

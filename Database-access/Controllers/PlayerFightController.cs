@@ -39,13 +39,13 @@ namespace Databaseaccess.Controllers
 
                     var parameters = new
                     {
-                        winner=playerFight.Winner,
-                        experience=playerFight.Experience,
-                        honor=playerFight.Honor,
-                        playeri1=playerFight.Player1Id,
-                        playeri2=playerFight.Player2Id
+                        winner = playerFight.Winner,
+                        experience = playerFight.Experience,
+                        honor = playerFight.Honor,
+                        playeri1 = playerFight.Player1Id,
+                        playeri2 = playerFight.Player2Id
                     };
-                    var result=await session.RunAsync(query, parameters);
+                    var result = await session.RunAsync(query, parameters);
                     return Ok();
                 }
             }
@@ -70,9 +70,9 @@ namespace Databaseaccess.Controllers
                     var parameters = new 
                     { 
                         playerFightid = playerFight.PlayerFightId,
-                        winner=playerFight.Winner,
-                        experience= playerFight.Experience,
-                        honor=playerFight.Honor 
+                        winner = playerFight.Winner,
+                        experience = playerFight.Experience,
+                        honor = playerFight.Honor 
                     };
                     await session.RunAsync(query, parameters);
                     return Ok();
@@ -102,7 +102,7 @@ namespace Databaseaccess.Controllers
                         var players = record["players"].As<List<INode>>();
                         var player1Node = players[0];
                         var player2Node = players[1];
-                        PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);
+                        PlayerFight playerFight = new(playerFightNode, player1Node, player2Node);
                         resultList.Add(playerFight);
                     });
 
@@ -127,12 +127,12 @@ namespace Databaseaccess.Controllers
                                     WHERE id(playerFight)= $plFId
                                 RETURN playerFight, COLLECT(p) as players";
                     var cursor = await session.RunAsync(query,parameters);
-                    var record=await cursor.SingleAsync();
+                    var record = await cursor.SingleAsync();
                     var playerFightNode = record["playerFight"].As<INode>();
                     var players = record["players"].As<List<INode>>();
                     var player1Node = players[0];
                     var player2Node = players[1];
-                    PlayerFight playerFight= new(playerFightNode, player1Node, player2Node);              
+                    PlayerFight playerFight = new(playerFightNode, player1Node, player2Node);              
 
                     return Ok(playerFight);
                 }

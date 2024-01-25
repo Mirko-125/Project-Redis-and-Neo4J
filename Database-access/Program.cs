@@ -2,6 +2,7 @@ using Cache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
+using Services;
 using ServiceStack.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,7 @@ builder.Services.AddCors(options =>
                     policy.AllowAnyHeader().AllowAnyOrigin().WithMethods("POST", "PUT", "GET");
                 });
             });
+builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddSingleton<IRedisClientsManager>(c => 
     new PooledRedisClientManager("localhost:6379"));
 
