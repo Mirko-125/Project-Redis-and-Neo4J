@@ -9,13 +9,6 @@
     flex-wrap: wrap;
 }
 
-
-.monster-horde
-{
-    display: flex;
-    flex-wrap: wrap;
-}
-
 .delete-npc 
 {
     display: flex;
@@ -33,6 +26,62 @@
 
 .delete-npc button {
     background-color: rgb(153, 4, 4);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.create-npc 
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.create-npc input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-npc button {
+    background-color: rgb(37, 255, 102);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+
+.update-npc 
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.update-npc input[type="text"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.update-npc input[type="number"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.update-npc button 
+{
+    background-color: rgb(255, 161, 37);
     color: white;
     padding: 0.5rem 1rem;
     border: none;
