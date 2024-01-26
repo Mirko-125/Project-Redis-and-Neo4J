@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
 using Databaseaccess.Models;
 using Cache;
-using ServiceStack.Redis;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -10,16 +10,11 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class NPCController : ControllerBase
     {
-        private readonly IDriver _driver;
-
-        private readonly RedisCache cache;
-        private string pluralKey = "NPCs";
-        private string singularKey = "NPC";
-
-        public NPCController(IDriver driver, RedisCache redisCache)
+        private readonly NPCService _npcService;
+        
+        public NPCController( NPCService npcService)
         {
-            _driver = driver;
-            cache = redisCache;
+            _npcService = npcService;       
         }
 
         [HttpPost("AddNPC")]
@@ -27,28 +22,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:NPC {
-                            name: $name,
-                            affinity: $affinity,
-                            imageURL: $imageUrl,
-                            zone: $zone,
-                            mood: $mood
-                        })";
-
-                    var parameters = new
-                    {
-                        name = npc.Name,
-                        affinity = npc.Affinity,
-                        imageUrl= npc.ImageURL,
-                        zone = npc.Zone,                        
-                        mood=npc.Mood
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _npcService.AddAsync(npc);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -60,27 +35,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:NPC) WHERE ID(n)=$npcId
-                                SET n.name= $name
-                                SET n.affinity= $affinity
-                                SET n.imageURL= $imageUrl
-                                SET n.zone= $zone
-                                SET n.mood= $mood
-                                RETURN n";
-                    var parameters = new 
-                    { 
-                        npcId = npc.NPCId,
-                        name=npc.Name,
-                        affinity=npc.Affinity,
-                        imageUrl=npc.ImageURL,
-                        zone=npc.Zone,
-                        mood=npc.Mood    
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _npcService.UpdateNPCAsync(npc);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -92,37 +48,9 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    string key = singularKey + npcId;
-                    var keyExists = await cache.CheckKeyAsync(key);
-                    if (keyExists)
-                    {
-                        var nesto = await cache.GetDataAsync<NPC>(key);
-                        return Ok(nesto);          
-                    }
-                    var query = @"
-                        MATCH (n1:NPC) WHERE id(n1)=$npId 
-                        MATCH (n2:Player) WHERE id(n2)=$plId
-                        MERGE (n2)-[rel:INTERACTS_WITH]->(n1)
-                        SET rel.property_key = COALESCE(rel.property_key, 0) + 1
-                        RETURN rel.property_key AS incrementedProperty,n1"
-                    ;
-                    var parameters = new 
-                    {   npId=npcId,
-                        plId = playerId
-                    };
-                    var cursor = await session.RunAsync(query,parameters);
-                    var n = await cursor.SingleAsync();
-                    var seq = n["incrementedProperty"].As<int>();
-                    var node = n["n1"].As<INode>();
-
-                    NPC novi=new(node);
-                    
-                    await cache.SetDataAsync(singularKey + npcId, novi, 25);
-                    return Ok(novi);
-                }
-             }
+                var npc = await _npcService.Interaction(playerId,npcId);
+                return Ok(npc);
+            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -133,22 +61,9 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = "MATCH (n:NPC) RETURN n";
-                    var cursor = await session.RunAsync(query);
-                    var resultList = new List<NPC>();
-
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var npcNode = record["n"].As<INode>();
-                        NPC nps=new(npcNode);
-                        resultList.Add(nps);
-                    });
-
-                    return Ok(resultList);
-                }
-             }
+                var npcs = await _npcService.GetNPCsAsync();
+                return Ok(npcs);
+            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -159,23 +74,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    string key = singularKey + npcId;
-                    var keyExists = await cache.CheckKeyAsync(key);
-                    if (keyExists)
-                    {
-                        var nesto = await cache.GetDataAsync<NPC>(key);
-                        return Ok(nesto);          
-                    }
-                    var query = "MATCH (n:NPC) WHERE id(n)=$id RETURN n";
-                    var parameters = new { id= npcId };
-                    var cursor = await session.RunAsync(query,parameters);
-                    var n = await cursor.SingleAsync();
-                    var node = n["n"].As<INode>();
-                    NPC npc=new(node);
-                    return Ok(npc);
-                }
+                var npc = await _npcService.GetNPCAsync(npcId);
+                return Ok(npc);     
             }
             catch (Exception ex)
             {
@@ -187,13 +87,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {   
-                    var query = @"MATCH (n:NPC) WHERE id(n)=$id DETACH DELETE n";
-                    var parameters = new { id = npcId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _npcService.DeleteNPC(npcId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
