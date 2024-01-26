@@ -26,7 +26,7 @@ namespace Services{
                         experience: {experience}, 
                         level: {level}
                         }})
-                WITH n, attributes";
+                ";
 
             return query;
         }

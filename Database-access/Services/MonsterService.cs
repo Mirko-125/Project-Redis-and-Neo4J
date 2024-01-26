@@ -52,20 +52,21 @@ namespace Services{
                     throw new Exception("Some of the items don't exist");
             }
             string query = $@"
-                CREATE (n:{type} {{
+                CREATE ({_key}:{type} {{
                     name: $name,
                     zone: $zone,
                     type: $type,
                     imageURL: $imageURL,
                     status: $status
                 }})
-                WITH n";
+                WITH {_key}";
             query+=AttributesService.CreateAttributes(monsterDto.Attributes);
             query+=$@"
-                CREATE (n)-[:HAS]->(attributes)
-                WITH n
+                WITH {_key}, attributes
+                CREATE ({_key})-[:HAS]->(attributes)
+                WITH {_key}
                 ";
-            query+=ConnectWithItemsFromList(monsterDto.PossibleLootNames, "POSSIBLE_LOOT");
+            query+=ItemQueryBuilder.ConnectWithItemsFromList(monsterDto.PossibleLootNames, _key, "POSSIBLE_LOOT");
             var result = await session.RunAsync(query,parameters);
             return result;
 
@@ -137,22 +138,6 @@ namespace Services{
             return await session.RunAsync(query, parameters);
         }
 
-        public static string ConnectWithItemsFromList( string[] listOfItemsNames, string relationName)
-        {
-           
-            string itemsNames = string.Join(", ", listOfItemsNames.Select(name => $"\"{name}\""));
-            string query = $@"
-                MATCH (possibleLootItem: Item)
-                        WHERE possibleLootItem.name
-                            IN [{itemsNames}]
-                WITH n,collect(possibleLootItem) as possibleLootItemsList            
-                   
-                FOREACH (item IN possibleLootItemsList |
-                    CREATE (n)-[:{relationName}]->(item)
-                )";
-
-            return query;
-        }
         public static string ReturnMonsterWithItems(string type, string identifier, string relationName)
         {
             string query = ItemQueryBuilder.ReturnObjectWithItems(type, identifier, relationName);
