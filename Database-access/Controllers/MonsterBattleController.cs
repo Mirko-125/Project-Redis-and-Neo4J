@@ -53,8 +53,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var result= await _monsterBattleService.GetMonsterBattlesAsync();
-                return Ok(result);
+                var monsterBattle= await _monsterBattleService.GetMonsterBattlesAsync();
+                return Ok(monsterBattle);
             }
             catch (Exception ex)
             {
@@ -66,8 +66,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var result = await _monsterBattleService.GetMonsterBattleAsync(monsterBattleId);
-                return Ok(result);
+                var monsterBattles = await _monsterBattleService.GetMonsterBattleAsync(monsterBattleId);
+                return Ok(monsterBattles);
             }
             catch (Exception ex)
             {

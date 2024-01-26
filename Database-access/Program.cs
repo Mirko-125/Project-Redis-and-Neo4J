@@ -47,6 +47,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<MonsterService>();
 builder.Services.AddScoped<MonsterBattleService>();
+builder.Services.AddScoped<PlayerFightService>();
 builder.Services.AddSingleton<IRedisClientsManager>(c => 
     new PooledRedisClientManager("localhost:6379"));
 

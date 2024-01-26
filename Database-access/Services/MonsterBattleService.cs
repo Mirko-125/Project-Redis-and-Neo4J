@@ -161,10 +161,10 @@ namespace Services{
                 await _cache.DeleteAsync(key);         
             }
             var parameters = new { mbId = monsterBattleId};
-            var query = @"
-                MATCH (n1:Monster)<-[:ATTACKED_MONSTER]-(n:MonsterBattle)-[:ATTACKING_PLAYER]->(n2:Player) 
-                    WHERE id(n)=$mbId 
-                DETACH DELETE n";
+            var query = $@"
+                MATCH (n1:Monster)<-[:ATTACKED_MONSTER]-({_key}:{type})-[:ATTACKING_PLAYER]->(n2:Player) 
+                    WHERE id({_key})=$mbId 
+                DETACH DELETE {_key}";
             return await session.RunAsync(query, parameters);
         }
         

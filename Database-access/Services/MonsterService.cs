@@ -130,11 +130,11 @@ namespace Services{
         {
             var session = _driver.AsyncSession();
             var parameters = new { nId = monsterId };
-            var query = @"
-                MATCH (n:Monster)-[r:HAS]->(m:Attributes) 
-                    WHERE Id(n)=$nId
-                OPTIONAL MATCH (n)<-[a:ATTACKED_MONSTER]-(mb:MonsterBattle)
-                DETACH DELETE m,mb,n";
+            var query = $@"
+                MATCH ({_key}:{type})-[r:HAS]->(m:Attributes) 
+                    WHERE Id({_key})=$nId
+                OPTIONAL MATCH ({_key})<-[a:ATTACKED_MONSTER]-(mb:MonsterBattle)
+                DETACH DELETE m,mb,{_key}";
             return await session.RunAsync(query, parameters);
         }
 

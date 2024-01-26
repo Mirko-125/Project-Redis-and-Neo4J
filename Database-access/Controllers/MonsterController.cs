@@ -69,8 +69,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var market = await _monsterService.GetMonsterAsync(monsterId);
-                return Ok(market);
+                var monster = await _monsterService.GetMonsterAsync(monsterId);
+                return Ok(monster);
             }
             catch (Exception ex)
             {
@@ -83,8 +83,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                await _monsterService.DeleteMonster(monsterId);
-                return Ok();
+                var result = await _monsterService.DeleteMonster(monsterId);
+                return Ok(result);
                 
             }
             catch (Exception ex)
