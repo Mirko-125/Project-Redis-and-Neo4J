@@ -14,14 +14,14 @@ namespace Services
         {
             string query = "";
             query += "WITH " + identifier + "\n";
-            query += ReturnObjectWithItems(type, identifier);
+            query += ReturnObjectWithItems(type, identifier,"HAS");
             return query;
         }
-        public static string ReturnObjectWithItems(string type, string identifier)
+        public static string ReturnObjectWithItems(string type, string identifier, string relationName)
         {
             string query = "";
             query += $@"
-                MATCH ({identifier}:{type})-[:HAS]->(i:Item) 
+                MATCH ({identifier}:{type})-[:{relationName}]->(i:Item) 
                     OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
                 RETURN {identifier} as n, COLLECT({{
                     item: i,

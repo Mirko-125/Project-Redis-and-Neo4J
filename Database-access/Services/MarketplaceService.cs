@@ -90,7 +90,7 @@ namespace Services
                 MATCH ({_key}:{type})-[:HAS]->(i:Item) 
                     OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
                     ";
-            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key);
+            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key, "HAS");
             var cursor = await session.RunAsync(query);
             var marketplaces = new List<Marketplace>();
             Console.WriteLine(query);
@@ -122,7 +122,7 @@ namespace Services
                 MATCH (n:{type})-[:HAS]->(i:Item) 
                     WHERE n.zone = $zone
                     OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes) ";
-            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key);
+            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key, "HAS");
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, new {zone = zone});
             Marketplace market = BuildMarketplace(await cursor.SingleAsync());
