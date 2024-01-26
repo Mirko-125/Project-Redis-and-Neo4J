@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
+using ServiceStack.Redis;
+using Cache;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using ServiceStack.Text;
+using System.Runtime.InteropServices;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -11,11 +16,11 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class ConsumableController : ControllerBase
     {
-        private readonly IDriver _driver;
+       private readonly ConsumableService _consumableService;
 
-        public ConsumableController(IDriver driver)
+        public ConsumableController(ConsumableService consumableService)
         {
-            _driver = driver;
+            _consumableService = consumableService;
         }
 
      
@@ -25,75 +30,29 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:Consumable:Item {
-                            name: $name,
-                            weight: $weight,
-                            type: $type,
-                            dimensions: $dimensions,
-                            value: $value,
-                            effect: $effect
-                        })";
-
-                    var parameters = new
-                    {
-                        name = consumable.Name,
-                        weight = consumable.Weight,
-                        type = consumable.Type,
-                        dimensions = consumable.Dimensions,
-                        value = consumable.Value,
-                        effect = consumable.Effect
-                    };
-
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _consumableService.AddConsumableAsync(consumable);
+                return Ok();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-           
+                   
         [HttpPut("UpdateConsumable")]
         public async Task<IActionResult> UpdateConsumable(ConsumableUpdateDto consumable)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (n:Consumable) WHERE ID(n)=$consumableID
-                            SET n.name=$name
-                            SET n.type=$type
-                            SET n.value=$value 
-                            SET n.dimensions=$dimensions 
-                            SET n.weight=$weight 
-                            SET n.effect=$effect 
-                        return n";
-                    var parameters = new 
-                    { 
-                        consumableID = consumable.ConsumableID,
-                        name = consumable.Name, 
-                        type = consumable.Type,
-                        value = consumable.Value, 
-                        dimensions = consumable.Dimensions, 
-                        weight = consumable.Weight, 
-                        effect = consumable.Effect
-                    };
-
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _consumableService.UpdateConsumableAsync(consumable);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-    
+        
   
     }
 }
