@@ -1,5 +1,3 @@
-
-using Cache;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Neo4j.Driver;
@@ -10,9 +8,7 @@ namespace Services
     {
         private readonly IDriver _driver;
         public readonly string _type = "Consumable";
-        //public readonly string _pluralKey = "consumables";
         public readonly string _key = "consumable";
-
 
         public ConsumableService(IDriver driver)
         {
@@ -45,7 +41,6 @@ namespace Services
 
             var result = await session.RunAsync(query, parameters);
             return result;
-
         }
 
         public async Task<IResultCursor> UpdateConsumableAsync(ConsumableUpdateDto consumableDto)

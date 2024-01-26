@@ -1,4 +1,3 @@
-
 using Cache;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -22,7 +21,6 @@ namespace Services
             var recItem = record["itemsRec"].As<List<Dictionary<string, INode>>>();
             var reqItem = record["itemsReq"].As<List<Dictionary<string, INode>>>();
             return new Trade(tradeNode, playerRec, playerReq, recItem, reqItem);
-
         }
 
         public TradeService(IDriver driver, RedisCache cache)
@@ -71,58 +69,59 @@ namespace Services
 
             var query = $@"
                 MATCH (playerReceiver_:Player)
-                            WHERE id(playerReceiver_)=$receiverID
+                    WHERE id(playerReceiver_)=$receiverID
                             
-                        MATCH (receiverItem: Item)
-                            WHERE receiverItem.name IN $receiverItemNames
-                        WITH playerReceiver_, collect(receiverItem) as receiverItemsList
+                MATCH (receiverItem: Item)
+                    WHERE receiverItem.name IN $receiverItemNames
+                WITH playerReceiver_, collect(receiverItem) as receiverItemsList
                         
-                        MATCH (playerRequester_:Player)
-                            WHERE id(playerRequester_)=$requesterID
+                MATCH (playerRequester_:Player)
+                    WHERE id(playerRequester_)=$requesterID
                             
-                        MATCH (requesterItem: Item)
-                            WHERE requesterItem.name IN $requesterItemNames
-                        WITH playerReceiver_, receiverItemsList, playerRequester_, collect(requesterItem) as requesterItemsList
+                MATCH (requesterItem: Item)
+                    WHERE requesterItem.name IN $requesterItemNames
+                WITH playerReceiver_, receiverItemsList, playerRequester_, collect(requesterItem) as requesterItemsList
                         
-                        CREATE (n:{type} {{
-                                isFinalized: $isFinalized,
-                                receiverGold: $receiverGold,
-                                requesterGold: $requesterGold,
-                                startedAt: $startedAt,
-                                endedAt: $endedAt
-                        }})
+                CREATE (n:{type} {{
+                    isFinalized: $isFinalized,
+                    receiverGold: $receiverGold,
+                    requesterGold: $requesterGold,
+                    startedAt: $startedAt,
+                    endedAt: $endedAt
+                }})
                             
-                        WITH n, playerReceiver_, playerRequester_, receiverItemsList, requesterItemsList
+                WITH n, playerReceiver_, playerRequester_, receiverItemsList, requesterItemsList
                              
-                        CREATE (n)-[:RECEIVER]->(playerReceiver_)
-                        CREATE (n)-[:REQUESTER]->(playerRequester_)
+                CREATE (n)-[:RECEIVER]->(playerReceiver_)
+                CREATE (n)-[:REQUESTER]->(playerRequester_)
 
-                        FOREACH (item IN receiverItemsList |
-                            MERGE (n)-[:RECEIVER_ITEM]->(item)
-                        )
+                FOREACH (item IN receiverItemsList |
+                    MERGE (n)-[:RECEIVER_ITEM]->(item)
+                )
 
-                        FOREACH (item IN requesterItemsList |
-                            MERGE (n)-[:REQUESTER_ITEM]->(item)
-                        )
+                FOREACH (item IN requesterItemsList |
+                    MERGE (n)-[:REQUESTER_ITEM]->(item)
+                )
 
-                        return Id(n) as tradeID";
+                return Id(n) as tradeID";
 
-            var returnQuery = $@"MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player)
-                                        ,(recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
-                                        WHERE Id(trade) = $ID
-                                            OPTIONAL MATCH (recItem)-[r:HAS]->(a:Attributes)
-                                            OPTIONAL MATCH (reqItem)-[r:HAS]->(a:Attributes)
-                                        RETURN 
-                                        trade as tradeInfo, 
-                                        requester, 
-                                        receiver, 
-                                        COLLECT({{ item: recItem,
-                                                    attributes: CASE WHEN recItem:Gear THEN a ELSE NULL END
-                                                }}) AS itemsRec,
+            var returnQuery = $@"
+                MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
+                       (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
+                WHERE Id(trade) = $ID
+                OPTIONAL MATCH (recItem)-[r:HAS]->(a:Attributes)
+                OPTIONAL MATCH (reqItem)-[r:HAS]->(a:Attributes)
+                RETURN 
+                trade as tradeInfo, 
+                requester, 
+                receiver, 
+                COLLECT({{ item: recItem,
+                           attributes: CASE WHEN recItem:Gear THEN a ELSE NULL END
+                        }}) AS itemsRec,
 
-                                        COLLECT({{ item: reqItem,
-                                                    attributes: CASE WHEN reqItem:Gear THEN a ELSE NULL END
-                                                }}) AS itemsReq";
+                COLLECT({{ item: reqItem,
+                           attributes: CASE WHEN reqItem:Gear THEN a ELSE NULL END
+                        }}) AS itemsReq";
 
             var idCursor = await session.RunAsync(query, parameters);
             var idRecord = await idCursor.SingleAsync();
@@ -132,8 +131,6 @@ namespace Services
             Trade trade = BuildTrade(record);
             await _cache.SetDataAsync(_key+tradeID, trade, 1000);
             return trade;
-
-
         }
 
         public async Task<List<Trade>> GetAllTradesAsync()
@@ -163,7 +160,7 @@ namespace Services
                 COLLECT({{ item: reqItem,
                         attributes: CASE WHEN reqItem:Gear THEN a ELSE NULL END
                         }}) AS itemsReq
-                    ";
+                ";
      
             var cursor = await session.RunAsync(query);
             var trades = new List<Trade>();
@@ -190,18 +187,18 @@ namespace Services
 
             string query = $@"
                 MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
-                                (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
-                            WHERE ID(receiver) = $playerid OR ID(requester) = $playerid
-                            OPTIONAL MATCH (recItem)-[r:HAS]->(recAttr:Attributes)
-                            WHERE recItem:Gear
-                            OPTIONAL MATCH (reqItem)-[r:HAS]->(reqAttr:Attributes)
-                            WHERE reqItem:Gear
-                            RETURN 
-                                trade as tradeInfo, 
-                                requester, 
-                                receiver, 
-                                COLLECT(DISTINCT {{ item: recItem, attributes: recAttr }}) AS itemsRec,
-                                COLLECT(DISTINCT {{ item: reqItem, attributes: reqAttr }}) AS itemsReq ";
+                      (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
+                WHERE ID(receiver) = $playerid OR ID(requester) = $playerid
+                OPTIONAL MATCH (recItem)-[r:HAS]->(recAttr:Attributes)
+                WHERE recItem:Gear
+                OPTIONAL MATCH (reqItem)-[r:HAS]->(reqAttr:Attributes)
+                WHERE reqItem:Gear
+                RETURN 
+                trade as tradeInfo, 
+                requester, 
+                receiver, 
+                COLLECT(DISTINCT {{ item: recItem, attributes: recAttr }}) AS itemsRec,
+                COLLECT(DISTINCT {{ item: reqItem, attributes: reqAttr }}) AS itemsReq ";
            
             var cursor = await session.RunAsync(query, new {playerid = playerid});
             var trades = new List<Trade>();
@@ -210,8 +207,7 @@ namespace Services
                trades.Add(BuildTrade(record));
             });
                 
-            return trades;
-            
+            return trades;      
         }
 
         public async Task<IResultCursor> FinalizeTradeAsync(TradeUpdateDto tradeDto)

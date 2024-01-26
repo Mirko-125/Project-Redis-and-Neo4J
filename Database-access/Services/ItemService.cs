@@ -1,5 +1,3 @@
-
-using Cache;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Neo4j.Driver;
@@ -10,16 +8,24 @@ namespace Services
     {
         private readonly IDriver _driver;
         public readonly string _type = "Item";
-        //public readonly string _pluralKey = "items";
         public readonly string _key = "item";
 
-        private static object BuildItem(IRecord record)
+        private static Item BuildItem(IRecord record)
         {
-            var items = new List<object>();
-            var item = record["n"].As<INode>();
-            var connectedNodes = record["attributes"].As<INode>();
-            items.Add(new { Item = item, ConnectedNodes = connectedNodes });
-            return items;
+            var itemNode = record["n"].As<INode>();
+            Item item;
+            if(itemNode.Labels.Contains("Gear"))
+            {
+                INode attributesNode = record["attributes"].As<INode>();
+                item = new Gear(itemNode, attributesNode); 
+                   
+            }
+            else 
+            {
+                item = new Consumable(itemNode);
+            }
+            
+            return item;
         }
 
         public ItemService(IDriver driver)
@@ -27,7 +33,7 @@ namespace Services
             _driver = driver;
         }
 
-        public async Task<List<object>> GetAllAsync()
+        public async Task<List<Item>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
             
@@ -37,18 +43,16 @@ namespace Services
                 ";
             query += AttributesQueryBuilder.ReturnObjectWithAttributes(_type, _key);
             var cursor = await session.RunAsync(query);
-            var items = new List<object>();
-               
+            var items = new List<Item>();
+             
             await cursor.ForEachAsync(record =>
             {
                 items.Add(BuildItem(record));
             });
-           
             return items;            
-   
         }
 
-        public async Task<object> GetItemByNameAsync(string name)
+        public async Task<Item> GetItemByNameAsync(string name)
         {
             var session = _driver.AsyncSession();
 
@@ -66,7 +70,7 @@ namespace Services
             return item;
         }
 
-        public async Task<object> GetItemsByTypeAsync(string type)
+        public async Task<List<Item>> GetItemsByTypeAsync(string type)
         {
             var session = _driver.AsyncSession();
 
@@ -77,7 +81,7 @@ namespace Services
                 RETURN  n, attributes";
 
             var cursor = await session.RunAsync(query, new {type = type});
-            var items = new List<object>();
+            var items = new List<Item>();
             await cursor.ForEachAsync(record =>
             {
                items.Add(BuildItem(record));

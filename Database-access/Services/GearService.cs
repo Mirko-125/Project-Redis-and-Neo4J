@@ -1,5 +1,3 @@
-
-using Cache;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Neo4j.Driver;
@@ -10,7 +8,6 @@ namespace Services
     {
         private readonly IDriver _driver;
         public readonly string _type = "Gear";
-        //public readonly string _pluralKey = "gears";
         public readonly string _key = "gear";
 
         public GearService(IDriver driver)
@@ -68,7 +65,6 @@ namespace Services
 
             var result = await session.RunAsync(query, parameters);
             return result;
-
         }
 
         public async Task<IResultCursor> UpdateGearAsync(GearUpdateDto gearDto)
