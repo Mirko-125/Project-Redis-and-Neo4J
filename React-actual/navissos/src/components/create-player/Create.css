@@ -18,7 +18,7 @@
 .create-btn
 {
     padding: 0.5rem 1rem;
-    background-color: #ffcc00;
+    background-color: #c2c2c2;
     color: #000;
     border: none;
     cursor: pointer;
@@ -47,4 +47,9 @@ create-subtitle
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
     text-align: center;
+}
+
+.whole-wrap {
+    background-image: url('../../assets/back_wall.png');
+    color: white;
 }

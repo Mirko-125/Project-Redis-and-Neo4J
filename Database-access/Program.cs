@@ -46,6 +46,14 @@ builder.Services.AddCors(options =>
             });
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<MarketplaceService>();
+builder.Services.AddScoped<MonsterService>();
+builder.Services.AddScoped<MonsterBattleService>();
+builder.Services.AddScoped<PlayerFightService>();
+builder.Services.AddScoped<NPCService>();
+builder.Services.AddScoped<ItemService>();
+builder.Services.AddScoped<ConsumableService>();
+builder.Services.AddScoped<GearService>();
+builder.Services.AddScoped<TradeService>();
 builder.Services.AddSingleton<IRedisClientsManager>(c => 
     new PooledRedisClientManager("localhost:6379"));
 

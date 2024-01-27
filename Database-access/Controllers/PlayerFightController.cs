@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
-using System.Reflection.Metadata;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -12,11 +12,11 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class PlayerFightController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly PlayerFightService _playerFightService;
 
-        public PlayerFightController(IDriver driver)
+        public PlayerFightController(PlayerFightService playerFightService)
         {
-            _driver = driver;
+            _playerFightService = playerFightService;
         }
 
         [HttpPost("AddPlayerFight")]
@@ -24,30 +24,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:PlayerFight {
-                            winner: $winner,
-                            experience: $experience,
-                            honor: $honor
-                        })
-                        WITH n
-                        MATCH (n1:Player) WHERE id(n1)=$playeri1
-                        MATCH (n2:Player) WHERE id(n2)=$playeri2
-                        CREATE (n1)<-[:PARTICIPATING_PLAYERS]-(n)-[:PARTICIPATING_PLAYERS]->(n2) ";
-
-                    var parameters = new
-                    {
-                        winner = playerFight.Winner,
-                        experience = playerFight.Experience,
-                        honor = playerFight.Honor,
-                        playeri1 = playerFight.Player1Id,
-                        playeri2 = playerFight.Player2Id
-                    };
-                    var result = await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerFightService.AddAsync(playerFight);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -60,23 +38,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:PlayerFight) WHERE Id(n)=$playerFightid
-                                SET n.winner= $winner
-                                SET n.experience= $experience
-                                SET n.honor= $honor
-                                RETURN n";
-                    var parameters = new 
-                    { 
-                        playerFightid = playerFight.PlayerFightId,
-                        winner = playerFight.Winner,
-                        experience = playerFight.Experience,
-                        honor = playerFight.Honor 
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerFightService.UpdatePlayerFightAsync(playerFight);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -89,25 +52,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(p:Player) 
-                                    RETURN playerFight, COLLECT(p) as players";
-                    var cursor = await session.RunAsync(query);
-                    var resultList = new List<PlayerFight>();
-
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var playerFightNode = record["playerFight"].As<INode>();
-                        var players = record["players"].As<List<INode>>();
-                        var player1Node = players[0];
-                        var player2Node = players[1];
-                        PlayerFight playerFight = new(playerFightNode, player1Node, player2Node);
-                        resultList.Add(playerFight);
-                    });
-
-                    return Ok(resultList);
-                }
+                var playerFights = await _playerFightService.GetPlayerFightsAsync();
+                return Ok(playerFights);
              }
             catch (Exception ex)
             {
@@ -120,22 +66,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var parameters = new { plFId = playerFightId };
-                    var query = @"MATCH (playerFight:PlayerFight)-[:PARTICIPATING_PLAYERS]->(p:Player)
-                                    WHERE id(playerFight)= $plFId
-                                RETURN playerFight, COLLECT(p) as players";
-                    var cursor = await session.RunAsync(query,parameters);
-                    var record = await cursor.SingleAsync();
-                    var playerFightNode = record["playerFight"].As<INode>();
-                    var players = record["players"].As<List<INode>>();
-                    var player1Node = players[0];
-                    var player2Node = players[1];
-                    PlayerFight playerFight = new(playerFightNode, player1Node, player2Node);              
-
-                    return Ok(playerFight);
-                }
+                var playerFight = await _playerFightService.GetPlayerFightAsync(playerFightId);
+                return Ok(playerFight);
             }
             catch (Exception ex)
             {
@@ -144,17 +76,12 @@ namespace Databaseaccess.Controllers
         }
               
         [HttpDelete("DeletePlayerFight")]
-        public async Task<IActionResult> RemovePlayerFight(int plFightId)
+        public async Task<IActionResult> RemovePlayerFight(int playerFightId)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {   
-                    var query = @"MATCH (n:PlayerFight) WHERE id(n)=$pfId DETACH DELETE n";
-                    var parameters = new { pfId = plFightId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerFightService.DeletePlayerFight(playerFightId);
+                return Ok(result);   
             }
             catch (Exception ex)
             {

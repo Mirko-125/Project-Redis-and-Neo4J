@@ -1,86 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
+using ServiceStack.Redis;
+using Cache;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
-
+using ServiceStack.Text;
+using System.Runtime.InteropServices;
+using Services;
 namespace Databaseaccess.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class ItemController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly ItemService _itemService;
 
-        public ItemController(IDriver driver)
+        public ItemController(ItemService itemService, RedisCache redisCache)
         {
-            _driver = driver;
+            _itemService = itemService;
         }
 
         [HttpGet("GetAllItems")]
-        public async Task<IActionResult> GetAllItems()
+
+         public async Task<IActionResult> GetAllItems()
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = @"MATCH (n:Item) 
-                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                    RETURN  n, attributes";
-                        var cursor = await tx.RunAsync(query);
-                        var resultList = new List<object>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var item = record["n"].As<INode>();
-                            var connectedNodes = record["attributes"].As<INode>();
-                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
-                        });
-
-                        return resultList;
-                    });
-
-                    return Ok(result);
-                }
+                var items = await _itemService.GetAllAsync();
+                return Ok(items);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
        
-      [HttpGet("GetItemByName")]
+        [HttpGet("GetItemByName")]
         public async Task<IActionResult> GetItemByName(string name)
         {
             try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = @"MATCH (n:Item {name: $name})
-                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                    RETURN  n, attributes";
-                                      
-                        var parameters = new { name = name };
-                        var cursor = await tx.RunAsync(query, parameters);
-                        var resultList = new List<object>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var item = record["n"].As<INode>();
-                            var connectedNodes = record["attributes"].As<INode>();
-                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
-                        });
-
-                        return resultList;
-                    });
-
-                    return Ok(result);
-                }
+            {    
+                var items = await _itemService.GetItemByNameAsync(name);
+                return Ok(items);
             }
             catch (Exception ex)
             {
@@ -88,62 +52,36 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpGet("GetItemByType")]
-        public async Task<IActionResult> GetItemByType(string type)
+
+        [HttpGet("GetItemsByType")]
+        public async Task<IActionResult> GetItemsByType(string type)
         {
             try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = @"MATCH (n:Item {type: $type}) 
-                                      OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                    RETURN  n, attributes";
-                        var parameters = new { type = type };
-        
-                        var cursor = await tx.RunAsync(query, parameters);
-                        var resultList = new List<object>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var item = record["n"].As<INode>();
-                            var connectedNodes = record["attributes"].As<INode>();
-                            resultList.Add(new { Item = item, ConnectedNodes = connectedNodes });
-                        });
-
-                        return resultList;
-                    });
-
-                    return Ok(result);
-                }
+            {    
+                var items = await _itemService.GetItemsByTypeAsync(type);
+                return Ok(items);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+    
         
         [HttpDelete("RemoveItem")]
-        public async Task<IActionResult> RemoveItem(string itemName)
+        public async Task<IActionResult> DeleteItem(string name)
         {
             try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (n:Item {name: $name}) 
-                                  OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
-                                DETACH DELETE n, attributes";
-                    var parameters = new { name = itemName };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+            {    
+                var result = await _itemService.DeleteItem(name);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+    
            
     }
 }

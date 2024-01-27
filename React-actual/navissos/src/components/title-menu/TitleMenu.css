@@ -17,11 +17,17 @@
 .select-button
 {
     padding: 0.5rem 1rem;
-    background-color: #ffcc00;
-    color: #000;
+    background-color: #550d0e;
+    color: white;
     border: none;
     cursor: pointer;
     height: 5%;
     width: 20%;
     margin-bottom: 0.5rem;
+}
+
+.wrap-map
+{
+    background-image: url('../../assets/map.png');
+    color: #550d0e;
 }
