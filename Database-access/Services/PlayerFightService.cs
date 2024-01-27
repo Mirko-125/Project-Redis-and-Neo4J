@@ -23,7 +23,7 @@ namespace Services{
             _driver = driver;
         }
 
-        public async Task<IResultCursor> AddAsync(PlayerFightCreateDto playerFight)
+        public async Task<IResultCursor> CreateAsync(PlayerFightCreateDto playerFight)
         {
             var session = _driver.AsyncSession();
 
@@ -49,7 +49,7 @@ namespace Services{
             return result;
         }
        
-        public async Task<IResultCursor> UpdatePlayerFightAsync(PlayerFightUpdateDto playerFight)
+        public async Task<IResultCursor> UpdateAsync(PlayerFightUpdateDto playerFight)
         {
             var session = _driver.AsyncSession();
             var parameters = new 
@@ -68,7 +68,7 @@ namespace Services{
             var result= await session.RunAsync(query, parameters);
             return result;
         }
-        public async Task<List<PlayerFight>> GetPlayerFightsAsync()
+        public async Task<List<PlayerFight>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
            
@@ -84,7 +84,7 @@ namespace Services{
             });
             return playerFights;
         }
-       public async Task<PlayerFight> GetPlayerFightAsync(int playerFightId)
+       public async Task<PlayerFight> GetOneAsync(int playerFightId)
         {
             var session = _driver.AsyncSession();
             var parameters = new { plFId = playerFightId };
@@ -96,7 +96,7 @@ namespace Services{
             return BuildPlayerFight(await cursor.SingleAsync());
         } 
 
-         public async Task<IResultCursor> DeletePlayerFight(int playerFightId)
+         public async Task<IResultCursor> DeleteAsync(int playerFightId)
         {
             var session = _driver.AsyncSession();
             var parameters = new { plFight = playerFightId };

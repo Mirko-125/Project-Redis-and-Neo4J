@@ -27,7 +27,7 @@ namespace Services
             _cache = cache;
         }
 
-        public async Task<IResultCursor> AddAsync(MarketplaceCreateDto marketplaceDto)
+        public async Task<IResultCursor> CreateAsync(MarketplaceCreateDto marketplaceDto)
         {
             var session = _driver.AsyncSession();
 
@@ -121,19 +121,19 @@ namespace Services
 
             string query = $@"
                 MATCH (n:{type})-[:HAS]->(i:Item) 
-                    WHERE n.zone = '{zone}'
+                    WHERE n.zone = $zone
                     OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes) 
                     WITH n, ";
             query += ItemQueryBuilder.CollectItems();
             query += "Return n, items";
             Console.WriteLine(query);
-            var cursor = await session.RunAsync(query);
+            var cursor = await session.RunAsync(query, new {zone});
             Marketplace market = BuildMarketplace(await cursor.SingleAsync());
             await _cache.SetDataAsync(key, market, 100);
             return market;
         }
 
-        public async Task<IResultCursor> UpdateMarketplaceAsync(MarketplaceUpdateDto dto)
+        public async Task<IResultCursor> UpdateAsync(MarketplaceUpdateDto dto)
         {
             var session = _driver.AsyncSession();
 
@@ -153,12 +153,12 @@ namespace Services
             return await session.RunAsync(query, parameters);
         }
 
-        public async Task<IResultCursor> DeleteMarketplace(string zone)
+        public async Task<IResultCursor> DeleteAsync(string zone)
         {
             var session = _driver.AsyncSession();
             await _cache.DeleteAsync(_key + zone);
             var query = @$"MATCH (n:{type} {{zone: $zone}}) DETACH DELETE n";
-            var parameters = new {zone = zone};
+            var parameters = new {zone};
             return await session.RunAsync(query, parameters);
         }
     }     

@@ -36,12 +36,12 @@ namespace Services
             return query;
         }
 
-        public static string SetAttributes(string identifier="")
+        public static string SetAttributes(string identifier="", string prefix="$")
         {
             string query = " ";
             foreach (var attr in attributes)
             {
-                query += $"SET {identifier}.{attr} = ${attr} \n";
+                query += $"SET {identifier}.{attr} = {prefix}{attr} \n";
             }
             return query;
         }

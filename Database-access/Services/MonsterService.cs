@@ -22,7 +22,7 @@ namespace Services{
             _driver = driver;
         }
 
-        public async Task<IResultCursor> AddAsync(MonsterCreateDto monsterDto)
+        public async Task<IResultCursor> CreateAsync(MonsterCreateDto monsterDto)
         {
             var session = _driver.AsyncSession();
 
@@ -72,16 +72,17 @@ namespace Services{
 
         }
        
-        public async Task<IResultCursor> UpdateMonsterAsync(MonsterUpdateDto monster)
+        public async Task<IResultCursor> UpdateAsync(MonsterUpdateDto monster)
         {
             var session = _driver.AsyncSession();
 
-            var parameters = new { 
-                        mId = monster.MonsterId,
-                        zone = monster.Zone,
-                        imageURL= monster.ImageURL,
-                        status = monster.Status,
-                    };
+            var parameters = new 
+            { 
+                mId = monster.MonsterId,
+                zone = monster.Zone,
+                imageURL= monster.ImageURL,
+                status = monster.Status,
+            };
 
             string query = @$"
                 MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE ID(n)=$mId
@@ -93,7 +94,7 @@ namespace Services{
             var result= await session.RunAsync(query, parameters);
             return result;
         }
-        public async Task<List<Monster>> GetMonstersAsync()
+        public async Task<List<Monster>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
 
@@ -126,7 +127,7 @@ namespace Services{
             return BuildMonster(await cursor.SingleAsync());
         } 
 
-         public async Task<IResultCursor> DeleteMonster(int monsterId)
+         public async Task<IResultCursor> DeleteAsync(int monsterId)
         {
             var session = _driver.AsyncSession();
             var parameters = new { nId = monsterId };

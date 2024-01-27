@@ -18,12 +18,12 @@ namespace Databaseaccess.Controllers
             _monsterBattleService= monsterBattleService;
         }
 
-        [HttpPost("AddMonsterBattle")]
-        public async Task<IActionResult> AddMonsterBattle(MonsterBattleCreateDto mb)
+        [HttpPost]
+        public async Task<IActionResult> CreateMonsterBattle(MonsterBattleCreateDto dto)
         {
             try
             {
-                var result = await _monsterBattleService.AddAsync(mb);
+                var result = await _monsterBattleService.CreateAsync(dto);
                 return Ok(result);
                 
             }
@@ -33,14 +33,13 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpPut("FinalizeMonsterBattle")]
-        public async Task<IActionResult> FinalizeMonsterBattle(MonsterBattleUpdateDto monsterBattleDto)
+        [HttpPut("Finalize")]
+        public async Task<IActionResult> Finalize(MonsterBattleUpdateDto dto)
         {
             try
             {
-                var result= await _monsterBattleService.UpdateMonsterBattleAsync(monsterBattleDto);
+                var result= await _monsterBattleService.Finalize(dto);
                 return Ok(result);
-                
             }
             catch (Exception ex)
             {
@@ -48,12 +47,12 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetAllMonsterBattles")]
-        public async Task<IActionResult> GetAllMonsterBattles()
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var monsterBattle= await _monsterBattleService.GetMonsterBattlesAsync();
+                var monsterBattle= await _monsterBattleService.GetAllAsync();
                 return Ok(monsterBattle);
             }
             catch (Exception ex)
@@ -61,12 +60,12 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         } 
-        [HttpGet("GetMonsterBattle")]
-        public async Task<IActionResult> GetMonsterBattle(int monsterBattleId)
+        [HttpGet("GetOne")]
+        public async Task<IActionResult> GetOne(int monsterBattleId)
         {
             try
             {
-                var monsterBattles = await _monsterBattleService.GetMonsterBattleAsync(monsterBattleId);
+                var monsterBattles = await _monsterBattleService.GetOneAsync(monsterBattleId);
                 return Ok(monsterBattles);
             }
             catch (Exception ex)
@@ -75,12 +74,12 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpDelete("DeleteMonsterBattle")]
-        public async Task<IActionResult> RemoveMonsterBattle(int monsterBattleId)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int monsterBattleId)
         {
             try
             {
-               var result= await _monsterBattleService.DeleteMonsterBattle(monsterBattleId);
+               var result= await _monsterBattleService.DeleteAsync(monsterBattleId);
                return Ok(result);
             }
             catch (Exception ex)

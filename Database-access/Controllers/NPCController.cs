@@ -17,12 +17,12 @@ namespace Databaseaccess.Controllers
             _npcService = npcService;       
         }
 
-        [HttpPost("AddNPC")]
-        public async Task<IActionResult> AddNPC(NPCCreateDto npc)
+        [HttpPost]
+        public async Task<IActionResult> AddNPC(NPCCreateDto dto)
         {
             try
             {
-                var result = await _npcService.AddAsync(npc);
+                var result = await _npcService.CreateAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -30,12 +30,12 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPut("UpdateNPC")]
-        public async Task<IActionResult> UpdateNPC(NPCUpdateDto npc)
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateNPC(NPCUpdateDto dto)
         {
             try
             {
-                var result = await _npcService.UpdateNPCAsync(npc);
+                var result = await _npcService.UpdateAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -56,12 +56,12 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("GetAllNPCs")]
-        public async Task<IActionResult> GetAllNPCs()
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var npcs = await _npcService.GetNPCsAsync();
+                var npcs = await _npcService.GetAllAsync();
                 return Ok(npcs);
             }
             catch (Exception ex)
@@ -69,12 +69,12 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("GetNPC")]
-        public async Task<IActionResult> GetNPC(int npcId)
+        [HttpGet("GetOne")]
+        public async Task<IActionResult> GetOne(int npcId)
         {
             try
             {
-                var npc = await _npcService.GetNPCAsync(npcId);
+                var npc = await _npcService.GetOneAsync(npcId);
                 return Ok(npc);     
             }
             catch (Exception ex)
@@ -82,12 +82,12 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpDelete("DeleteNPC")]
-        public async Task<IActionResult> RemoveNPC(int npcId)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int npcId)
         {
             try
             {
-                var result = await _npcService.DeleteNPC(npcId);
+                var result = await _npcService.DeleteAsync(npcId);
                 return Ok(result);
             }
             catch (Exception ex)

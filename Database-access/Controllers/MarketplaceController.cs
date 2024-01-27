@@ -24,12 +24,12 @@ namespace Databaseaccess.Controllers
         }
 
 
-        [HttpPost("AddMarketplace")]
-        public async Task<IActionResult> AddMarketplace(MarketplaceCreateDto marketplace)
+        [HttpPost]
+        public async Task<IActionResult> CreateMarketplace(MarketplaceCreateDto dto)
         {
             try
             {
-                await _marketplaceService.AddAsync(marketplace);
+                await _marketplaceService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -38,8 +38,8 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpPost("AddMarketplaceItems")]
-        public async Task<IActionResult> AddMarketplaceItems(string zoneName, string itemName)
+        [HttpPost("AddItem")]
+        public async Task<IActionResult> AddItem(string zoneName, string itemName)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetAllMarketplaces")]
+        [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -66,7 +66,7 @@ namespace Databaseaccess.Controllers
             }
         }
    
-        [HttpGet("GetMarketplace")]
+        [HttpGet("GetOne")]
         public async Task<IActionResult> GetOne(string zone)
         {
             try
@@ -80,12 +80,12 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpPut("UpdateMarketplace")]
+        [HttpPut("Update")]
         public async Task<IActionResult> UpdateMarketplace(MarketplaceUpdateDto marketplace)
         {
             try
             {
-                var result = await _marketplaceService.UpdateMarketplaceAsync(marketplace);
+                var result = await _marketplaceService.UpdateAsync(marketplace);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -94,12 +94,12 @@ namespace Databaseaccess.Controllers
             }
         }
      
-        [HttpDelete("DeleteMarketplace")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteMarketplace(string zone)
         {
             try
             {    
-                var result = await _marketplaceService.DeleteMarketplace(zone);
+                var result = await _marketplaceService.DeleteAsync(zone);
                 return Ok(result);
             }
             catch (Exception ex)

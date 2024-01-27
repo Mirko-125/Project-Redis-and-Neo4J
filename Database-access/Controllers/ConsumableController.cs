@@ -16,21 +16,19 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class ConsumableController : ControllerBase
     {
-       private readonly ConsumableService _consumableService;
+        private readonly ConsumableService _consumableService;
 
         public ConsumableController(ConsumableService consumableService)
         {
             _consumableService = consumableService;
         }
 
-     
-
-        [HttpPost("AddConsumable")]
-        public async Task<IActionResult> AddConsumable(ConsumableCreateDto consumable)
+        [HttpPost]
+        public async Task<IActionResult> CreateConsumable(ConsumableCreateDto dto)
         {
             try
             {
-                await _consumableService.AddConsumableAsync(consumable);
+                await _consumableService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -39,12 +37,12 @@ namespace Databaseaccess.Controllers
             }
         }
                    
-        [HttpPut("UpdateConsumable")]
-        public async Task<IActionResult> UpdateConsumable(ConsumableUpdateDto consumable)
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateConsumable(ConsumableUpdateDto dto)
         {
             try
             {
-                var result = await _consumableService.UpdateConsumableAsync(consumable);
+                var result = await _consumableService.UpdateAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -52,7 +50,5 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
-  
     }
 }

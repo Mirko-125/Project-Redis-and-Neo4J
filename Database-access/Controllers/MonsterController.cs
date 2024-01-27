@@ -13,20 +13,18 @@ namespace Databaseaccess.Controllers
     {
         private readonly MonsterService _monsterService;
         
-
         public MonsterController(MonsterService monsterService)
         {
             _monsterService = monsterService;
            
         }
 
-        [HttpPost("AddMonster")]
-        public async Task<IActionResult> AddMonster(MonsterCreateDto monsterDto)
+        [HttpPost]
+        public async Task<IActionResult> Create(MonsterCreateDto dto)
         {
             try
             {
-               
-                await _monsterService.AddAsync(monsterDto);
+                await _monsterService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -35,12 +33,12 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpPut("UpdateMonster")]
-        public async Task<IActionResult> UpdateMonster(MonsterUpdateDto monster)
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateMonster(MonsterUpdateDto dto)
         {
             try
             {
-                var result = await _monsterService.UpdateMonsterAsync(monster);
+                var result = await _monsterService.UpdateAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -49,14 +47,13 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetAllMonsters")]
-        public async Task<IActionResult> GetAllMonsters()
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var monsters = await _monsterService.GetMonstersAsync();
+                var monsters = await _monsterService.GetAllAsync();
                 return Ok(monsters);
-                
             }
             catch (Exception ex)
             {
@@ -64,8 +61,8 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetMonster")]
-        public async Task<IActionResult> GetMonster(int monsterId)
+        [HttpGet("GetOne")]
+        public async Task<IActionResult> GetOne(int monsterId)
         {
             try
             {
@@ -78,12 +75,12 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpDelete("DeleteMonster")]
+        [HttpDelete]
         public async Task<IActionResult> RemoveMonster(int monsterId)
         {
             try
             {
-                var result = await _monsterService.DeleteMonster(monsterId);
+                var result = await _monsterService.DeleteAsync(monsterId);
                 return Ok(result);
                 
             }

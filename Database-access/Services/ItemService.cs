@@ -52,7 +52,7 @@ namespace Services
             return items;            
         }
 
-        public async Task<Item> GetItemByNameAsync(string name)
+        public async Task<Item> GetByNameAsync(string name)
         {
             var session = _driver.AsyncSession();
 
@@ -91,14 +91,14 @@ namespace Services
         }
 
 
-        public async Task<IResultCursor> DeleteItem(string name)
+        public async Task<IResultCursor> DeleteAsync(string name)
         {
             var session = _driver.AsyncSession();
             var query = @$"MATCH (n:{_type}) 
                                 WHERE n.name = $name
                                 OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
                            DETACH DELETE n, attributes";
-            var parameters = new {name = name};
+            var parameters = new {name};
             return await session.RunAsync(query, parameters);
         }
     }     

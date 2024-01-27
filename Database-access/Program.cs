@@ -45,6 +45,9 @@ builder.Services.AddCors(options =>
                 });
             });
 builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<AbilityService>();
+builder.Services.AddScoped<AchievementService>();
+builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<MonsterService>();
 builder.Services.AddScoped<MonsterBattleService>();

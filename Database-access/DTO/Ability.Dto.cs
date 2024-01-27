@@ -9,5 +9,5 @@ public class AbilityDTO
 }
 
 public class UpdateAbilityDto : AbilityDTO{
-        public int Id { get; set; }
+        public string OldName { get; set; }
 }

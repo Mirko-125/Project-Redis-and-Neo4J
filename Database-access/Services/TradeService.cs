@@ -29,7 +29,7 @@ namespace Services
             _cache = cache;
         }
 
-        public async Task<Trade> AddTradeAsync(TradeCreateDto tradeDto)
+        public async Task<Trade> CreateAsync(TradeCreateDto tradeDto)
         {
             var session = _driver.AsyncSession();
 
@@ -96,11 +96,11 @@ namespace Services
                 CREATE (n)-[:REQUESTER]->(playerRequester_)
 
                 FOREACH (item IN receiverItemsList |
-                    MERGE (n)-[:RECEIVER_ITEM]->(item)
+                    CREATE (n)-[:RECEIVER_ITEM]->(item)
                 )
 
                 FOREACH (item IN requesterItemsList |
-                    MERGE (n)-[:REQUESTER_ITEM]->(item)
+                    CREATE (n)-[:REQUESTER_ITEM]->(item)
                 )
 
                 return Id(n) as tradeID";
@@ -134,7 +134,7 @@ namespace Services
             return trade;
         }
 
-        public async Task<List<Trade>> GetAllTradesAsync()
+        public async Task<List<Trade>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
             var keyExists = await _cache.CheckKeyAsync(_pluralKey);
@@ -211,7 +211,7 @@ namespace Services
             return trades;      
         }
 
-        public async Task<IResultCursor> FinalizeTradeAsync(TradeUpdateDto tradeDto)
+        public async Task<IResultCursor> FinalizeAsync(TradeUpdateDto tradeDto)
         {
             var session = _driver.AsyncSession();
 
@@ -235,11 +235,11 @@ namespace Services
             return await session.RunAsync(query, parameters);
         }
 
-        public async Task<IResultCursor> DeleteTrade(int tradeID)
+        public async Task<IResultCursor> DeleteAsync(int tradeID)
         {
             var session = _driver.AsyncSession();
             var query = @$"MATCH (n:{type}) WHERE id(n)=$tradeID DETACH DELETE n";
-            var parameters = new {tradeID = tradeID};
+            var parameters = new {tradeID};
             return await session.RunAsync(query, parameters);
         }
     }     

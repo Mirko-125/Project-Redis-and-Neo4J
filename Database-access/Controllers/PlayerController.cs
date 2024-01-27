@@ -20,12 +20,12 @@ namespace Databaseaccess.Controllers
             _playerService = playerService;
         }
 
-        [HttpPost("Add")]
-        public async Task<IActionResult> Add(PlayerDto player)
+        [HttpPost]
+        public async Task<IActionResult> Create(PlayerDto player)
         {
             try
             {
-                var result = await _playerService.AddPlayerAsync(player);
+                var result = await _playerService.CreateAsync(player);
                 return Ok();
             }
             catch (Exception ex)
@@ -48,7 +48,7 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetOne")]
         public async Task<IActionResult> GetPlayer(string name)
         {
             try
@@ -62,11 +62,13 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpPut("LevelUp")]
-        public async Task<ActionResult> LevelUp(string playerName)
+        [HttpPut("AddExperience")]
+        public async Task<ActionResult> LevelUp(string playerName, int experience)
         {
             try
             {
+                //dodati experience playeru, ukoliko predje 1000, oduzmi 1000 i u radi lvlup(player)
+                //i onda get(player)
                 var result = await _playerService.LevelUpAsync(playerName);
                 return Ok(result);
             }
@@ -90,11 +92,11 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> RemovePlayer(string playerName)
+        public async Task<IActionResult> DeletePlayer(string playerName)
         {
             try
             {
-                var result = await _playerService.RemovePlayerAsync(playerName);
+                var result = await _playerService.DeleteAsync(playerName);
                 return Ok(result);
             }
             catch (Exception ex)

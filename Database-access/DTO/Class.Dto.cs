@@ -5,5 +5,10 @@ public class ClassDto
     public AttributesDto LevelGainAttributes { get; set; }
 }
 
+public class UpdateClassDto : ClassDto
+{
+    public string OldName { get; set; }
+}
+
 
 

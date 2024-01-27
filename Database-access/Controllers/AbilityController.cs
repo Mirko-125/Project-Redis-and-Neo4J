@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -11,40 +12,20 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class AbilityController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly AbilityService _abilityService;
 
-        public AbilityController(IDriver driver)
+        public AbilityController(AbilityService service)
         {
-            _driver = driver;
+            _abilityService = service;
         }
-        [HttpPost("CreateAbility")]
+
+        [HttpPost]
         public async Task<IActionResult> CreateAbility(AbilityDTO ability)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (n:Ability { name: $name, 
-                            damage: $damage,
-                            cooldown: $cooldown,
-                            range: $range,
-                            special: $special,
-                            heal: $heal
-                        })";
-
-                    var parameters = new
-                    {
-                        name = ability.Name,
-                        damage = ability.Damage,
-                        cooldown = ability.Cooldown,
-                        range = ability.Range,
-                        special = ability.Special,
-                        heal = ability.Heal 
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _abilityService.CreateAsync(ability);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -52,27 +33,41 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpPost("AssignAbility")]
-        public async Task<IActionResult> AssignAbility(int abilityId, int playerId)
+        public async Task<IActionResult> AssignAbility(string abilityName, string playerName)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (n:Ability)
-                            WHERE ID(n)=$aId
-                        MATCH (m:Player) WHERE ID(m)=$pId
+                await _abilityService.AssignAbilityAsync(abilityName, playerName);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-                        CREATE (m)-[:KNOWS]->(n)";
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var abilities = await _abilityService.GetAllAsync();
+                return Ok(abilities);
+            }
+        
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-                    var parameters = new
-                    {
-                        aId = abilityId,
-                        pId = playerId
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateAbility(UpdateAbilityDto abilityDTO)
+        {
+            try
+            {
+                var ability = await _abilityService.UpdateAsync(abilityDTO);
+                return Ok(ability);
             }
             catch (Exception ex)
             {
@@ -81,94 +76,13 @@ namespace Databaseaccess.Controllers
         }
         
         [HttpDelete]
-        public async Task<IActionResult> RemoveAbility(int abilityId)
+        public async Task<IActionResult> DeleteAbility(string abilityName)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (c:Ability) where ID(c)=$aId
-                            OPTIONAL MATCH (c)-[r]-()
-
-                        DELETE r,c";
-
-                    var parameters = new { aId = abilityId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _abilityService.DeleteAsync(abilityName);
+                return Ok();
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPut("UpdateAbility")]
-        public async Task<IActionResult> UpdateAbility(UpdateAbilityDto abilityDTO)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    string setName = "";
-
-                    if (abilityDTO.Name != null) {
-                        setName = "SET n.name=$name";
-                    }
-
-                    var parameters = new { 
-                        aId = abilityDTO.Id,
-                        name = abilityDTO.Name,
-                        damage = abilityDTO.Damage,
-                        cooldown = abilityDTO.Cooldown,
-                        range = abilityDTO.Range,
-                        special = abilityDTO.Special,
-                        heal = abilityDTO.Heal 
-                    };
-
-                    var query = @"
-                        MATCH (n:Ability) WHERE ID(n)=$aId "
-                        +setName
-                        +@" SET n.damage=$damage
-                        SET n.cooldown=$cooldown
-                        SET n.range=$range
-                        SET n.special=$special
-                        SET n.heal=$heal
-                        RETURN n";
-                  
-                    Console.WriteLine(query);
-                    
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpGet("AllAbilites")]
-        public async Task<IActionResult> AllAbilites()
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = "MATCH (n:Ability) RETURN n";
-                    var cursor = await session.RunAsync(query);
-                    var nodes = new List<INode>();
-
-                    await cursor.ForEachAsync(record =>
-                    {
-                        var node = record["n"].As<INode>();
-                        nodes.Add(node);
-                    });
-
-                    return Ok(nodes);
-                }; 
-            }
-        
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);

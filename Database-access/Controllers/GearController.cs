@@ -23,13 +23,12 @@ namespace Databaseaccess.Controllers
             _gearService = gearService;
         }
 
-
-        [HttpPost("AddGear")]
-        public async Task<IActionResult> AddGear(GearCreateDto gear)
+        [HttpPost]
+        public async Task<IActionResult> CreateGear(GearCreateDto dto)
         {
             try
             {
-                await _gearService.AddGearAsync(gear);
+                await _gearService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -38,12 +37,12 @@ namespace Databaseaccess.Controllers
             }
         }
            
-        [HttpPut("UpdateGear")]
-        public async Task<IActionResult> UpdateGear(GearUpdateDto gear)
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateGear(GearUpdateDto dto)
         {
             try
             {
-                var result = await _gearService.UpdateGearAsync(gear);
+                var result = await _gearService.UpdateGearAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -51,7 +50,5 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
-        
     }
 }

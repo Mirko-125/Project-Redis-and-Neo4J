@@ -23,13 +23,12 @@ namespace Databaseaccess.Controllers
             _tradeService = tradeService;
         }
 
-
-        [HttpPost("AddTrade")] 
-        public async Task<IActionResult> AddTrade(TradeCreateDto trade)
+        [HttpPost] 
+        public async Task<IActionResult> CreateAsync(TradeCreateDto dto)
         {
             try
             {
-                await _tradeService.AddTradeAsync(trade);
+                await _tradeService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -38,13 +37,12 @@ namespace Databaseaccess.Controllers
             }
         }
         
-
-        [HttpGet("GetAllTrades")]
-        public async Task<IActionResult> GetAllTrades()
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var trades= await _tradeService.GetAllTradesAsync();
+                var trades= await _tradeService.GetAllAsync();
                 return Ok(trades);
             }
             catch (Exception ex)
@@ -69,12 +67,12 @@ namespace Databaseaccess.Controllers
         }
         
 
-        [HttpPut("FinalizeTrade")]
-        public async Task<IActionResult> FinalizeTrade(TradeUpdateDto trade)
+        [HttpPut("Finalize")]
+        public async Task<IActionResult> Finalize(TradeUpdateDto trade)
         {
             try
             {
-                var result = await _tradeService.FinalizeTradeAsync(trade);
+                var result = await _tradeService.FinalizeAsync(trade);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -84,12 +82,12 @@ namespace Databaseaccess.Controllers
         }
         
 
-        [HttpDelete("DeleteTrade")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteTrade(int tradeID)
         {
             try
             {    
-                var result = await _tradeService.DeleteTrade(tradeID);
+                var result = await _tradeService.DeleteAsync(tradeID);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -97,6 +95,5 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
     }
 }

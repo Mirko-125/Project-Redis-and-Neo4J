@@ -29,7 +29,7 @@ namespace Services{
             _cache=cache;
         }
 
-        public async Task<MonsterBattle> AddAsync(MonsterBattleCreateDto mb)
+        public async Task<MonsterBattle> CreateAsync(MonsterBattleCreateDto mb)
         {
             var session = _driver.AsyncSession();
 
@@ -64,7 +64,7 @@ namespace Services{
 
         }
 
-        public async Task<MonsterBattle> UpdateMonsterBattleAsync(MonsterBattleUpdateDto monsterBattleDto)
+        public async Task<MonsterBattle> Finalize(MonsterBattleUpdateDto monsterBattleDto)
         {
             var session = _driver.AsyncSession();
 
@@ -109,7 +109,7 @@ namespace Services{
             return monsterBattle;
         }
         
-        public async Task<List<MonsterBattle>> GetMonsterBattlesAsync()
+        public async Task<List<MonsterBattle>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
             string query = $@"
@@ -128,7 +128,7 @@ namespace Services{
             }
             return monsterBattles;
         }
-       public async Task<MonsterBattle> GetMonsterBattleAsync(int monsterBattleId)
+       public async Task<MonsterBattle> GetOneAsync(int monsterBattleId)
         {
             var session = _driver.AsyncSession();
             string key = _key + monsterBattleId;
@@ -151,7 +151,7 @@ namespace Services{
             return monsterBattle;
         } 
         
-         public async Task<IResultCursor> DeleteMonsterBattle(int monsterBattleId)
+         public async Task<IResultCursor> DeleteAsync(int monsterBattleId)
         {
             var session = _driver.AsyncSession();
             string key = _key + monsterBattleId;

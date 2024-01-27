@@ -19,12 +19,12 @@ namespace Databaseaccess.Controllers
             _playerFightService = playerFightService;
         }
 
-        [HttpPost("AddPlayerFight")]
-        public async Task<IActionResult> AddPlayerFight(PlayerFightCreateDto playerFight)
+        [HttpPost]
+        public async Task<IActionResult> CreateFight(PlayerFightCreateDto playerFight)
         {
             try
             {
-                var result = await _playerFightService.AddAsync(playerFight);
+                var result = await _playerFightService.CreateAsync(playerFight);
                 return Ok();
             }
             catch (Exception ex)
@@ -33,26 +33,12 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpPut("UpdatePlayerFight")]
-        public async Task<IActionResult> UpdatePlayerFight(PlayerFightUpdateDto playerFight)
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _playerFightService.UpdatePlayerFightAsync(playerFight);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        
-        [HttpGet("GetAllPlayerFights")]
-        public async Task<IActionResult> GetAllPlayerFights()
-        {
-            try
-            {
-                var playerFights = await _playerFightService.GetPlayerFightsAsync();
+                var playerFights = await _playerFightService.GetAllAsync();
                 return Ok(playerFights);
              }
             catch (Exception ex)
@@ -61,12 +47,12 @@ namespace Databaseaccess.Controllers
             }
         }
         
-        [HttpGet("GetPlayerFight")]
-        public async Task<IActionResult> GetPlayerFight(int playerFightId)
+        [HttpGet("GetOne")]
+        public async Task<IActionResult> GetOne(int playerFightId)
         {
             try
             {
-                var playerFight = await _playerFightService.GetPlayerFightAsync(playerFightId);
+                var playerFight = await _playerFightService.GetOneAsync(playerFightId);
                 return Ok(playerFight);
             }
             catch (Exception ex)
@@ -74,13 +60,27 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdatePlayerFight(PlayerFightUpdateDto playerFight)
+        {
+            try
+            {
+                var result = await _playerFightService.UpdateAsync(playerFight);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
               
-        [HttpDelete("DeletePlayerFight")]
+        [HttpDelete]
         public async Task<IActionResult> RemovePlayerFight(int playerFightId)
         {
             try
             {
-                var result = await _playerFightService.DeletePlayerFight(playerFightId);
+                var result = await _playerFightService.DeleteAsync(playerFightId);
                 return Ok(result);   
             }
             catch (Exception ex)

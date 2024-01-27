@@ -15,18 +15,18 @@ namespace Services
             _driver = driver;
         }
 
-        public async Task<IResultCursor> AddConsumableAsync(ConsumableCreateDto consumableDto)
+        public async Task<IResultCursor> CreateAsync(ConsumableCreateDto dto)
         {
             var session = _driver.AsyncSession();
 
            var parameters = new
             {
-                name = consumableDto.Name,
-                weight = consumableDto.Weight,
-                type = consumableDto.Type,
-                dimensions = consumableDto.Dimensions,
-                value = consumableDto.Value,
-                effect = consumableDto.Effect
+                name = dto.Name,
+                weight = dto.Weight,
+                type = dto.Type,
+                dimensions = dto.Dimensions,
+                value = dto.Value,
+                effect = dto.Effect
             };
 
             var query = $@"
@@ -43,19 +43,19 @@ namespace Services
             return result;
         }
 
-        public async Task<IResultCursor> UpdateConsumableAsync(ConsumableUpdateDto consumableDto)
+        public async Task<IResultCursor> UpdateAsync(ConsumableUpdateDto dto)
         {
             var session = _driver.AsyncSession();
 
             var parameters = new 
             { 
-                consumableID = consumableDto.ConsumableID,
-                name = consumableDto.Name, 
-                type = consumableDto.Type,
-                value = consumableDto.Value, 
-                dimensions = consumableDto.Dimensions, 
-                weight = consumableDto.Weight, 
-                effect = consumableDto.Effect
+                consumableID = dto.ConsumableID,
+                name = dto.Name, 
+                type = dto.Type,
+                value = dto.Value, 
+                dimensions = dto.Dimensions, 
+                weight = dto.Weight, 
+                effect = dto.Effect
             };
 
             string query = @$"

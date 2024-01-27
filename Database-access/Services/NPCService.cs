@@ -23,7 +23,7 @@ namespace Services{
             _cache = cache;
         }
 
-        public async Task<IResultCursor> AddAsync(NPCCreateDto npc)
+        public async Task<IResultCursor> CreateAsync(NPCCreateDto npc)
         {
             var session = _driver.AsyncSession();
             var parameters = new
@@ -47,7 +47,7 @@ namespace Services{
 
         }
        
-        public async Task<IResultCursor> UpdateNPCAsync(NPCUpdateDto npc)
+        public async Task<IResultCursor> UpdateAsync(NPCUpdateDto npc)
         {
             var session = _driver.AsyncSession();
             var parameters = new 
@@ -104,7 +104,7 @@ namespace Services{
 
             return npc;
         }
-        public async Task<List<NPC>> GetNPCsAsync()
+        public async Task<List<NPC>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
 
@@ -118,7 +118,7 @@ namespace Services{
             });
             return npcs;
         }
-       public async Task<NPC> GetNPCAsync(int npcId)
+        public async Task<NPC> GetOneAsync(int npcId)
         {
             var session = _driver.AsyncSession();
             string key = _key + npcId;
@@ -138,7 +138,7 @@ namespace Services{
             return BuildNPC(await cursor.SingleAsync());
         } 
 
-        public async Task<IResultCursor> DeleteNPC(int npcId)
+        public async Task<IResultCursor> DeleteAsync(int npcId)
         {
             var session = _driver.AsyncSession();
             string key = _key + npcId;

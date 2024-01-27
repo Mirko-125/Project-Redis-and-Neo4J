@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -11,45 +12,19 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class ClassController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly ClassService _classService;
 
-        public ClassController(IDriver driver)
+        public ClassController(ClassService classService)
         {
-            _driver = driver;
+            _classService = classService;
         }
-        [HttpPost("CreateClass")]
-        public async Task<IActionResult> CreateClass(ClassDto classEntity)
+        [HttpPost]
+        public async Task<IActionResult> CreateClass(ClassDto dto)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        CREATE (class:Class { name: $nameValue})
-                        CREATE (base:Attributes { strength: $strengthValue, agility: $agilityValue, intelligence: $intelligenceValue, stamina: $staminaValue, faith: $faithValue, experience: -1, level: -1})
-                        CREATE (level:Attributes { strength: $strength, agility: $agility, intelligence: $intelligence, stamina: $stamina, faith: $faith, experience: -1, level: -1})
-                        CREATE (class)-[:HAS_BASE_ATTRIBUTES]->(base)
-                        CREATE (class)-[:LEVEL_GAINS_ATTRIBUTES]->(level)";
-
-                    var parameters = new
-                    {
-                        // Value is for the base attributes
-                        // Just a name is for the level gains attributes
-                        nameValue = classEntity.Name,
-                        strengthValue = classEntity.BaseAttributes.Strength,
-                        agilityValue = classEntity.BaseAttributes.Agility,
-                        intelligenceValue = classEntity.BaseAttributes.Intelligence,
-                        staminaValue = classEntity.BaseAttributes.Stamina,
-                        faithValue = classEntity.BaseAttributes.Faith,
-                        strength = classEntity.LevelGainAttributes.Strength,
-                        agility = classEntity.LevelGainAttributes.Agility,
-                        intelligence = classEntity.LevelGainAttributes.Intelligence,
-                        stamina = classEntity.LevelGainAttributes.Stamina,
-                        faith = classEntity.LevelGainAttributes.Faith
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _classService.CreateAsync(dto);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -57,26 +32,41 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        [HttpPost("ClassPermission")]
-        public async Task<IActionResult> ClassPermission(int classId, int abilityId)
+        [HttpPost("CreateAbilityPermission")]
+        public async Task<IActionResult> CreateAbilityPermission(AbilityPermissionDto dto)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (n:Class) WHERE ID(n)=$cId
-                        MATCH (m:Ability) WHERE ID(m)=$aId
-                        CREATE (n)-[:PERMITS]->(m)";
+                await _classService.AddPermissionAsync(dto.ClassName, dto.AbilityName, dto.Level);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-                    var parameters = new
-                    {
-                        cId = classId,
-                        aId = abilityId
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAllClasses()
+        {
+            try
+            {
+                var result = await _classService.GetAll();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateClass(UpdateClassDto dto)
+        {
+            try
+            {
+                await _classService.UpdateAsync(dto);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -85,83 +75,17 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> RemoveClass(int classId)
+        public async Task<IActionResult> DeleteClass(string className)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (c:Class) where ID(c)=$cId
-                            OPTIONAL MATCH (c)-[r]-()
-                        DELETE r,c";
-
-                    var parameters = new { cId = classId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                await _classService.DeleteAsync(className);
+                return Ok();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        [HttpPut("UpdateClass")]
-        public async Task<IActionResult> UpdateClass(int classId, string newName)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"
-                        MATCH (n:Class) WHERE ID(n)=$cId
-                            SET n.name=$name
-                        RETURN n";
-
-                    var parameters = new { 
-                        cId = classId,
-                        name = newName 
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("GetAllClasses")]
-        public async Task<IActionResult> GetAllClasses()
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Class) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        }    
     }
 }

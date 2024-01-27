@@ -22,9 +22,8 @@ namespace Databaseaccess.Controllers
             _itemService = itemService;
         }
 
-        [HttpGet("GetAllItems")]
-
-         public async Task<IActionResult> GetAllItems()
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAllItems()
         {
             try
             {
@@ -36,14 +35,13 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
        
-        [HttpGet("GetItemByName")]
-        public async Task<IActionResult> GetItemByName(string name)
+        [HttpGet("GetByName")]
+        public async Task<IActionResult> GetByName(string name)
         {
             try
             {    
-                var items = await _itemService.GetItemByNameAsync(name);
+                var items = await _itemService.GetByNameAsync(name);
                 return Ok(items);
             }
             catch (Exception ex)
@@ -51,7 +49,6 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
 
         [HttpGet("GetItemsByType")]
         public async Task<IActionResult> GetItemsByType(string type)
@@ -66,14 +63,13 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-    
         
-        [HttpDelete("RemoveItem")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteItem(string name)
         {
             try
             {    
-                var result = await _itemService.DeleteItem(name);
+                var result = await _itemService.DeleteAsync(name);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -81,7 +77,5 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
-    
-           
     }
 }

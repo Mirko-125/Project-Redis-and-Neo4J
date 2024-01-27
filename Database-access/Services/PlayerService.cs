@@ -38,7 +38,7 @@ namespace Services
             return player;
         }
 
-        public async Task<IResultCursor> AddPlayerAsync(PlayerDto player)
+        public async Task<IResultCursor> CreateAsync(PlayerDto player)
         {
             var session = _driver.AsyncSession();
 
@@ -113,13 +113,13 @@ namespace Services
             string levelGainAttributes = "levelGainAttributes";
             var query = $@"
                 MATCH (player:Player)
-                    WHERE player.name = '{playerName}'
+                    WHERE player.name = $playerName
                 MATCH (player)-[:IS]->(class)
                 MATCH (class)-[:LEVEL_GAINS_ATTRIBUTES]->({levelGainAttributes})
                 MATCH (player)-[:HAS]->({attributeIdentifier})";
             query += AttributeQueryBuilder.AttributeAddition(attributeIdentifier, levelGainAttributes + ".");
 
-            var result = await session.RunAsync(query);
+            var result = await session.RunAsync(query, new {playerName});
             return result;
         }
 
@@ -130,21 +130,20 @@ namespace Services
             string findPlayerQuery = $@" 
                 WITH {ItemQueryBuilder.singularKey}
                 MATCH (player:Player)-[:OWNS]->(inventory:Inventory)
-                    WHERE player.name = '{playerName}'
+                    WHERE player.name = $playerName
                     
                 MERGE (inventory)-[:CONTAINS]->(item)";
             
             string query = findItemQuery + findPlayerQuery;
             Console.WriteLine(query);
-            var cursor = await session.RunAsync(query);
+            var cursor = await session.RunAsync(query, new {playerName});
             return cursor;
         }
-
         public async Task<Player> GetPlayerAsync(string name)
         {
             var session = _driver.AsyncSession();
             string query = $@"
-                MATCH (n:Player) WHERE n.name = '{name}'
+                MATCH (n:Player) WHERE n.name = $name
                 MATCH (n)-[:HAS]->(attributes)
                 OPTIONAL MATCH (n)-[:ACHIEVED]->(achievement)
                 OPTIONAL MATCH (n)-[:KNOWS]->(ability)
@@ -164,19 +163,19 @@ namespace Services
                 + ItemQueryBuilder.CollectItems("equippedItem", "equipmentA", "equippedItems") + " \n "
                 + "return n, attributes, achievements, abilities, inventory, class, equipment, inventoryItems, equippedItems";
             Console.WriteLine(query);
-            var cursor = await session.RunAsync(query);  
+            var cursor = await session.RunAsync(query, new {name});  
             var record = await cursor.SingleAsync();
             Player player = BuildComplexPlayer(record);
             return player;
         }
 
-        public async Task<IResultCursor> RemovePlayerAsync(string name)
+        public async Task<IResultCursor> DeleteAsync(string name)
         {
             var session = _driver.AsyncSession();
             var query = $@"
-                MATCH (p:Player) WHERE p.name = '{name}'
+                MATCH (p:Player) WHERE p.name = $name
                 DETACH DELETE p";
-            var result = await session.RunAsync(query);
+            var result = await session.RunAsync(query, new {name});
             return result;
         }
     }

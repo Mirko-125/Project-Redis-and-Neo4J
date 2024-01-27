@@ -15,29 +15,29 @@ namespace Services
             _driver = driver;
         }
 
-        public async Task<IResultCursor> AddGearAsync(GearCreateDto gearDto)
+        public async Task<IResultCursor> CreateAsync(GearCreateDto dto)
         {
             var session = _driver.AsyncSession();
 
             var parameters = new
             {
-                name = gearDto.Name,
-                weight = gearDto.Weight,
-                type = gearDto.Type,
-                dimensions = gearDto.Dimensions,
-                value = gearDto.Value,
-                slot = gearDto.Slot,   
-                level = gearDto.Level,
-                quality = gearDto.Quality,
+                name = dto.Name,
+                weight = dto.Weight,
+                type = dto.Type,
+                dimensions = dto.Dimensions,
+                value = dto.Value,
+                slot = dto.Slot,   
+                level = dto.Level,
+                quality = dto.Quality,
 
                 //attributes
-                strength = gearDto.Attributes.Strength,
-                agility = gearDto.Attributes.Agility,
-                intelligence = gearDto.Attributes.Intelligence,
-                stamina = gearDto.Attributes.Stamina,
-                faith = gearDto.Attributes.Faith,
-                experience = gearDto.Attributes.Experience,
-                levelAttributes = gearDto.Attributes.Level
+                strength = dto.Attributes.Strength,
+                agility = dto.Attributes.Agility,
+                intelligence = dto.Attributes.Intelligence,
+                stamina = dto.Attributes.Stamina,
+                faith = dto.Attributes.Faith,
+                experience = dto.Attributes.Experience,
+                levelAttributes = dto.Attributes.Level
             };
 
             var query = $@"
@@ -67,29 +67,29 @@ namespace Services
             return result;
         }
 
-        public async Task<IResultCursor> UpdateGearAsync(GearUpdateDto gearDto)
+        public async Task<IResultCursor> UpdateGearAsync(GearUpdateDto dto)
         {
             var session = _driver.AsyncSession();
 
             var parameters = new 
             { 
-                gearID = gearDto.GearID,
-                name = gearDto.Name,
-                type = gearDto.Type, 
-                value = gearDto.Value, 
-                dimensions = gearDto.Dimensions, 
-                weight = gearDto.Weight, 
-                slot = gearDto.Slot,
-                level = gearDto.Level,
-                quality = gearDto.Quality,
+                gearID = dto.GearID,
+                name = dto.Name,
+                type = dto.Type, 
+                value = dto.Value, 
+                dimensions = dto.Dimensions, 
+                weight = dto.Weight, 
+                slot = dto.Slot,
+                level = dto.Level,
+                quality = dto.Quality,
 
-                strength = gearDto.Attributes.Strength,
-                agility = gearDto.Attributes.Agility ,
-                intelligence = gearDto.Attributes.Intelligence,
-                stamina = gearDto.Attributes.Stamina,
-                faith = gearDto.Attributes.Faith,
-                experience = gearDto.Attributes.Experience ,
-                levelAttributes = gearDto.Attributes.Level                
+                strength = dto.Attributes.Strength,
+                agility = dto.Attributes.Agility ,
+                intelligence = dto.Attributes.Intelligence,
+                stamina = dto.Attributes.Stamina,
+                faith = dto.Attributes.Faith,
+                experience = dto.Attributes.Experience ,
+                levelAttributes = dto.Attributes.Level                
             };
 
             string query = @$"
