@@ -30,7 +30,7 @@ namespace Databaseaccess.Models
         [JsonIgnore]
         public List<NPC> NPCs { get; set; } // Peđa
 
-        public Player(INode node, string pr = null)
+        private void BasePlayer(INode node)
         {
             Name = node["name"].As<string>();
             Email = node["email"].As<string>();
@@ -40,15 +40,39 @@ namespace Databaseaccess.Models
             Password = node["password"].As<string>();
             Gold = node["gold"].As<int>();
             Honor = node["honor"].As<int>();
-            if ( pr != null)
+        }
+
+        public Player(INode node)
+        {
+            BasePlayer(node);
+        }
+
+        public Player(
+            INode playerNode,
+            INode inventoryNode,
+            INode equipmentNode,
+            INode attributes,
+            List<INode> achievements,
+            List<INode> abilities,
+            List<Dictionary<string, INode>> inventoryItems,
+            List<Dictionary<string, INode>> equippedItems)
+        {
+            BasePlayer(playerNode);
+            Attributes = new Attributes(attributes);
+            Inventory = new Inventory(inventoryNode, inventoryItems);
+            Equipment = new Equipment(equipmentNode, equippedItems);
+            Achievements = [];
+            foreach (var node in achievements)
             {
-                Attributes = new Attributes(node);
-                Inventory = new Inventory(node);
-                Equipment = new Equipment(node);
-                Achievements = new List<Achievement>();
-                Abilities = new List<Ability>();
-                NPCs = new List<NPC>();
+                Achievements.Add(new Achievement(node));
             }
+            Abilities = [];
+            foreach (var node in abilities)
+            {
+                Abilities.Add(new Ability(node));
+            }
+
+            NPCs = [];
         }
     }
 }

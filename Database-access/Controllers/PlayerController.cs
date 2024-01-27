@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Databaseaccess.Models;
 using System.Reflection.Metadata.Ecma335;
+using Services;
 
 namespace Databaseaccess.Controllers
 {
@@ -12,36 +13,34 @@ namespace Databaseaccess.Controllers
     [Route("api/[controller]")]
     public class PlayerController : ControllerBase
     {
-        private readonly IDriver _driver;
+        private readonly PlayerService _playerService;
 
-        public PlayerController(IDriver driver)
+        public PlayerController(PlayerService playerService)
         {
-            _driver = driver;
+            _playerService = playerService;
         }
-        [HttpGet("AllPlayers")]
+
+        [HttpPost("Add")]
+        public async Task<IActionResult> Add(PlayerDto player)
+        {
+            try
+            {
+                var result = await _playerService.AddPlayerAsync(player);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetAll")]
         public async Task<IActionResult> AllPlayers()
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.ExecuteReadAsync(async tx =>
-                    {
-                        var query = "MATCH (n:Player) RETURN n";
-                        var cursor = await tx.RunAsync(query);
-                        var nodes = new List<INode>();
-
-                        await cursor.ForEachAsync(record =>
-                        {
-                            var node = record["n"].As<INode>();
-                            nodes.Add(node);
-                        });
-
-                        return nodes;
-                    });
-
-                    return Ok(result);
-                }
+                var players = await _playerService.GetAllAsync();
+                return Ok(players);
             }
             catch (Exception ex)
             {
@@ -49,77 +48,27 @@ namespace Databaseaccess.Controllers
             }
         }
 
-        //dodati route lvlup(player) vuce LevelGainAttrbiutes od klase igraca, i dodaje mu u njegove atribute
+        [HttpGet]
+        public async Task<IActionResult> GetPlayer(string name)
+        {
+            try
+            {
+                var player = await _playerService.GetPlayerAsync(name);
+                return Ok(player);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut("LevelUp")]
-        public async Task<ActionResult> LevelUp(int playerId)
+        public async Task<ActionResult> LevelUp(string playerName)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (player:Player) WHERE ID(player)=$id
-                                  MATCH (player)-[:IS]->(class)
-                                  MATCH (class)-[:LEVEL_GAINS_ATTRIBUTES]->(x)
-                                  MATCH (player)-[:HAS]->(attributes)
-                                    SET attributes.strength = attributes.strength + x.strength,
-                                        attributes.agility = attributes.agility + x.agility,
-                                        attributes.intelligence = attributes.intelligence + x.intelligence,
-                                        attributes.stamina = attributes.stamina + x.stamina,
-                                        attributes.faith = attributes.faith + x.faith,
-                                        attributes.experience = attributes.experience + 25,
-                                        attributes.level = attributes.level + 1";
-                    var parameters = new 
-                    { 
-                        id = playerId
-                    };
-    
-                    var result = await session.RunAsync(query, parameters);
-                    return Ok();
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        //Ubaciti i klasu kao parameter u dto, i koristiti baseAttributes od te klase da se generisu atributi playera
-        [HttpPost("AddProperPlayer")]
-        public async Task<IActionResult> AddProperPlayer(PlayerDto player)
-        {
-            try
-            {
-                using (var session = _driver.AsyncSession())
-                {
-
-                    var query = @"
-                        CREATE (n:Player { name: $name, email: $email, bio: $bio, achievementPoints: 0, createdAt: $createdAt, password: $password, gold: 0, honor: 0})
-
-                        WITH n
-                            MATCH (class:Class) WHERE ID(class)=$classId
-                            CREATE (n)-[:IS]->(class)
-
-                        WITH n, class
-                            MATCH (class)-[:HAS_BASE_ATTRIBUTES]->(x)
-                            CREATE (m:Inventory {weightLimit : 0, dimensions: 0, freeSpots: 0, usedSpots: 0})
-                            CREATE (o:Attributes { strength: x.strength, agility: x.agility, intelligence: x.intelligence, stamina: x.stamina, faith: x.faith, experience: 0, level: 0})
-                            CREATE (p:Equipment { averageQuality: 0, weight: 0})
-                            CREATE (n)-[:OWNS]->(m)
-                            CREATE (n)-[:HAS]->(o)
-                            CREATE (n)-[:WEARS]->(p)";
-
-                    var parameters = new
-                    {
-                        name = player.Name,
-                        email = player.Email,
-                        bio = player.Bio,
-                        createdAt = player.CreatedAt,
-                        password = player.Password,
-                        classId = player.ClassId
-                    };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerService.LevelUpAsync(playerName);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -128,30 +77,12 @@ namespace Databaseaccess.Controllers
         }
 
         [HttpPut("AddItem")]
-        public async Task<IActionResult> AddItem(string itemName, int playerID)
+        public async Task<IActionResult> AddItem(string itemName, string playerName)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var parameters = new {
-                        item = itemName,
-                        player = playerID
-                    };
-
-                    var query =@"
-                        MATCH (item:Item) 
-                            WHERE item.name = $item
-
-                        WITH item
-                        MATCH (player:Player)-[:OWNS]->(inventory:Inventory)
-                            WHERE ID(player) = $player
-                        
-                        CREATE (inventory)-[:HAS]->(item)"
-                    ;
-                    var result = await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerService.AddItemAsync(itemName, playerName);
+                return Ok(result);   
             }
             catch (Exception ex)
             {
@@ -159,18 +90,12 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> RemovePlayer(int playerId)
+        public async Task<IActionResult> RemovePlayer(string playerName)
         {
             try
             {
-                using (var session = _driver.AsyncSession())
-                {
-                    var query = @"MATCH (p:Player) WHERE ID(p)=$id
-                                DETACH DELETE p"; 
-                    var parameters = new { id = playerId };
-                    await session.RunAsync(query, parameters);
-                    return Ok();
-                }
+                var result = await _playerService.RemovePlayerAsync(playerName);
+                return Ok(result);
             }
             catch (Exception ex)
             {

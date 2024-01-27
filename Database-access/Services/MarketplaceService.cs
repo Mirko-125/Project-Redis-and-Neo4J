@@ -61,13 +61,13 @@ namespace Services
             };
 
             string item = ItemQueryBuilder.singularKey;
-            string itemQuery = ItemQueryBuilder.FindItem(item);
+            string itemQuery = ItemQueryBuilder.FindItem(item, itemName);
             string addItemQuery = @$"
                 WITH {item}
                     MATCH ({_key}:{type} {{zone: $zone}})
                     MERGE ({_key})-[:HAS]->({item}) ";
-            string returnQuery = ItemQueryBuilder.ReturnSpecificObjectWithItems(type, _key);
-            string query = itemQuery + addItemQuery + returnQuery;
+            //string returnQuery = ItemQueryBuilder.CollectItemsWith(type, _key);
+            string query = itemQuery + addItemQuery;// + returnQuery;
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, parameters);
             var record = await cursor.SingleAsync();
@@ -87,10 +87,11 @@ namespace Services
             }
 
             string query = $@"
-                MATCH ({_key}:{type})-[:HAS]->(i:Item) 
+                MATCH (n:{type})-[:HAS]->(i:Item) 
                     OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes)
-                    ";
-            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key);
+                WITH n, ";
+            query += ItemQueryBuilder.CollectItems();
+            query += $" RETURN n, items";
             var cursor = await session.RunAsync(query);
             var marketplaces = new List<Marketplace>();
             Console.WriteLine(query);
@@ -120,11 +121,13 @@ namespace Services
 
             string query = $@"
                 MATCH (n:{type})-[:HAS]->(i:Item) 
-                    WHERE n.zone = $zone
-                    OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes) ";
-            query += ItemQueryBuilder.ReturnObjectWithItems(type, _key);
+                    WHERE n.zone = '{zone}'
+                    OPTIONAL MATCH (i)-[r:HAS]->(a:Attributes) 
+                    WITH n, ";
+            query += ItemQueryBuilder.CollectItems();
+            query += "Return n, items";
             Console.WriteLine(query);
-            var cursor = await session.RunAsync(query, new {zone = zone});
+            var cursor = await session.RunAsync(query);
             Marketplace market = BuildMarketplace(await cursor.SingleAsync());
             await _cache.SetDataAsync(key, market, 100);
             return market;

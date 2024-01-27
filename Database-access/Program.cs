@@ -44,6 +44,7 @@ builder.Services.AddCors(options =>
                     policy.AllowAnyHeader().AllowAnyOrigin().WithMethods("POST", "PUT", "GET");
                 });
             });
+builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddSingleton<IRedisClientsManager>(c => 
     new PooledRedisClientManager("localhost:6379"));

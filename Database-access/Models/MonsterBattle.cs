@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using Neo4j.Driver;
+using Services;
 
 namespace Databaseaccess.Models
 {
@@ -20,29 +21,7 @@ namespace Databaseaccess.Models
         public List<Item> Loot { get; set; }
         public MonsterBattle(INode monsterBattle, INode monster, INode monsterAttributes, INode player, List<Dictionary<string, INode>> possibleLootNodeList, List<Dictionary<string, INode>> lootNodeList=null)
         {
-            Loot = [];
-            if (lootNodeList.Count > 0)
-            {
-                lootNodeList.ForEach(itemAndAttributes => 
-                {
-                    INode itemNode = itemAndAttributes["item"];
-                    if(itemNode!=null)
-                    {
-                        Item item;
-                        if (itemNode.Labels.Contains("Gear")) 
-                        {  
-                            INode attributesNode = itemAndAttributes["attributes"];
-                            item = new Gear(itemNode, attributesNode);
-                        }
-                        else 
-                        {
-                            item = new Consumable(itemNode);
-                        }
-                        Loot.Add(item);
-                    }
-                    
-                });
-            }
+            Loot = ItemQueryBuilder.BuildItemList(lootNodeList);
             Id = (int)monsterBattle.Id;
             StartedAt = monsterBattle["startedAt"].As<string>();
             EndedAt = monsterBattle["endedAt"].As<string>();

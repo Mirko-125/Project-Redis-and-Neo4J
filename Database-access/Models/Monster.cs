@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Neo4j.Driver;
+using Services;
 
 namespace Databaseaccess.Models
 {
@@ -18,25 +19,7 @@ namespace Databaseaccess.Models
         public List<Item> PossibleLoot { get; set; }
         public Monster(INode monster, List<Dictionary<string, INode>> possibleLootNodeList, INode attributes = null)
         {
-            PossibleLoot = [];
-            if (possibleLootNodeList.Count > 0)
-            {
-                possibleLootNodeList.ForEach(itemAndAttributes => 
-                {
-                    INode itemNode = itemAndAttributes["item"];
-                    Item item;
-                    if (itemNode.Labels.Contains("Gear")) 
-                    {   
-                        INode attributesNode = itemAndAttributes["attributes"];
-                        item = new Gear(itemNode, attributesNode);
-                    }
-                    else 
-                    {
-                        item = new Consumable(itemNode);
-                    }
-                    PossibleLoot.Add(item);
-                });
-            }
+            PossibleLoot = ItemQueryBuilder.BuildItemList(possibleLootNodeList);
             Name = monster["name"].As<string>();
             Zone = monster["zone"].As<string>();
             Type = monster["type"].As<string>();
