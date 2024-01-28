@@ -13,10 +13,12 @@ namespace Databaseaccess.Controllers
     public class PlayerFightController : ControllerBase
     {
         private readonly PlayerFightService _playerFightService;
+        private readonly PlayerService _playerService;
 
-        public PlayerFightController(PlayerFightService playerFightService)
+        public PlayerFightController(PlayerFightService playerFightService, PlayerService playerService)
         {
             _playerFightService = playerFightService;
+            _playerService = playerService;
         }
 
         [HttpPost]
@@ -24,8 +26,11 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var result = await _playerFightService.CreateAsync(playerFight);
-                return Ok();
+                await _playerFightService.CreateAsync(playerFight);
+                await _playerService.AddHonor(playerFight.Winner, playerFight.Honor);
+                await _playerService.AddExperience(playerFight.Winner, playerFight.Experience);
+                var result = await _playerService.GetPlayerAsync(playerFight.Winner);
+                return Ok(result);
             }
             catch (Exception ex)
             {

@@ -179,5 +179,87 @@ namespace Services
             var result = await session.RunAsync(query, new {name});
             return result;
         }
+
+        public async Task<IResultCursor> AddExperience(string name, double experience)
+        {
+            var session = _driver.AsyncSession();
+            var query = $@"
+                MATCH (p:Player)-[:HAS]->(a:Attributes)
+                    WHERE p.name = $name
+                SET a.experience = a.experience + $experience 
+                RETURN a.experience AS currentExperience";
+            var cursor = await session.RunAsync(query, new {name, experience});
+            var record = await cursor.SingleAsync();
+            double currentExperience = record["currentExperience"].As<double>();
+            if(currentExperience > 1000)
+            {
+                Console.WriteLine("vece");
+                var query2 = $@"
+                MATCH (p:Player)-[:HAS]->(a:Attributes)
+                    WHERE p.name = $name
+                SET a.experience = a.experience - 1000 
+                ";
+                await session.RunAsync(query2, new {name});
+                cursor = await LevelUpAsync(name);
+            }
+            return cursor;
+        }
+        public async Task<IResultCursor> AddHonor(string name, int honor)
+        {
+            var session = _driver.AsyncSession();
+            var query = $@"
+                MATCH (p:Player)
+                    WHERE p.name = $name
+                SET p.honor = p.honor + $honor 
+                ";
+            var result = await session.RunAsync(query, new {name, honor});
+            return result;
+        }
+
+        public async Task<IResultCursor> DetachGear(string gearName, string playerName)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new {playerName, gearName};
+            var query = @$"
+                MATCH (player:Player)-[:WEARS]->(equipment:Equipment) 
+                    WHERE player.name = $playerName
+                MATCH (equipment)-[relation:CONTAINS]->(gear:Gear)
+                    WHERE gear.name = $gearName
+                SET equipment.weight= equipment.weight - gear.weight
+                DELETE relation";
+            return await session.RunAsync(query, parameters);
+        }
+
+        public async Task<IResultCursor> EquipGear(string gearName, string playerName)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new {playerName, gearName};
+            var query = @$"
+                MATCH (player:Player)-[:WEARS]->(equipment:Equipment) 
+                    WHERE player.name = $playerName
+                MATCH (gear:Gear)
+                    WHERE gear.name=$gearName
+                SET equipment.weight = equipment.weight + gear.weight
+                WITH equipment, gear
+                CREATE (equipment)-[:CONTAINS]->(gear)";
+            return await session.RunAsync(query, parameters);
+        }
+         public static async Task<bool> PlayerExist(string name, IAsyncSession sessions)
+        {
+            var session = sessions;
+            string query= $@" 
+                MATCH (player:Player) 
+                    WHERE player.name=$name 
+                RETURN COUNT(player) AS count";
+            var cursor = await session.RunAsync(query, new{name});
+            var record = await cursor.SingleAsync();
+            var br = record["count"].As<int>();
+            if(br > 0)
+            { 
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -25,13 +25,21 @@ namespace Services{
         public async Task<IResultCursor> CreateAsync(PlayerFightCreateDto playerFight)
         {
             var session = _driver.AsyncSession();
-            if(!await NPCService.PlayerExist(playerFight.Player1Name, session))
+            if(!await PlayerService.PlayerExist(playerFight.Player1Name, session))
             {
                 throw new Exception("Player1 with this name doesn't exist.");
             }
-            if(!await NPCService.PlayerExist(playerFight.Player2Name, session))
+            if(!await PlayerService.PlayerExist(playerFight.Player2Name, session))
             {
                 throw new Exception("Player2 with this name doesn't exist.");
+            }
+            if(playerFight.Player1Name == playerFight.Player2Name)
+            {
+                throw new Exception("Player can't fight himself.");
+            }
+            if(playerFight.Winner != playerFight.Player1Name && playerFight.Winner != playerFight.Player2Name)
+            {
+                throw new Exception("Winner must be one of the players.");
             }
             var parameters = new
             {

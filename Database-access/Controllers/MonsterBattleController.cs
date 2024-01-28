@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
 using Databaseaccess.Models;
-using Cache;
 using ServiceStack.Redis;
 using Services;
 
@@ -12,10 +11,12 @@ namespace Databaseaccess.Controllers
     public class MonsterBattleController : ControllerBase
     {
         private readonly MonsterBattleService _monsterBattleService;
+        private readonly PlayerService _playerService;
 
-        public MonsterBattleController(MonsterBattleService monsterBattleService, RedisCache redisCache)
+        public MonsterBattleController(MonsterBattleService monsterBattleService, PlayerService playerService)
         {
             _monsterBattleService= monsterBattleService;
+            _playerService = playerService;
         }
 
         [HttpPost]
@@ -37,7 +38,14 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var result= await _monsterBattleService.Finalize(dto);
+                MonsterBattle monsterBattle= await _monsterBattleService.Finalize(dto);
+                if(dto.LootItemsNames.Length > 0)
+                {
+                    foreach(string item in dto.LootItemsNames)
+                    {
+                        //await _playerService.AddItemAsync(item, monsterBattle.Player.Name);
+                    }
+                }
                 return Ok();
             }
             catch (Exception ex)

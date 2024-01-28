@@ -14,10 +14,12 @@ namespace Databaseaccess.Controllers
     public class PlayerController : ControllerBase
     {
         private readonly PlayerService _playerService;
+        private readonly ItemService _itemService;
 
-        public PlayerController(PlayerService playerService)
+        public PlayerController(PlayerService playerService, ItemService itemService)
         {
             _playerService = playerService;
+            _itemService = itemService;
         }
 
         [HttpPost]
@@ -67,9 +69,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                //dodati experience playeru, ukoliko predje 1000, oduzmi 1000 i u radi lvlup(player)
-                //i onda get(player)
-                var result = await _playerService.LevelUpAsync(playerName);
+                await _playerService.AddExperience(playerName, experience);
+                var result = await _playerService.GetPlayerAsync(playerName);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -91,6 +92,33 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("EquipGear")]
+        public async Task<ActionResult> EquipGear(string gearName, string playerName)
+        {
+            try
+            {
+                Player player = await _playerService.GetPlayerAsync(playerName);
+                Item item = await _itemService.GetByNameAsync(gearName);
+                if(item is Gear newGear )
+                {
+                    foreach(Gear oldGear in player.Equipment.EquippedGear)
+                    {
+                        if(oldGear.Slot == newGear.Slot)
+                        {
+                            await _playerService.DetachGear(oldGear.Name, playerName);
+                        }
+                    }
+                    await _playerService.EquipGear(gearName, playerName);
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpDelete]
         public async Task<IActionResult> DeletePlayer(string playerName)
         {

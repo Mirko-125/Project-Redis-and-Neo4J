@@ -83,7 +83,7 @@ namespace Services{
             {
                 throw new Exception("NPC with this name doesn't exist.");
             }
-            if(!await PlayerExist(playerName, session))
+            if(!await PlayerService.PlayerExist(playerName, session))
             {
                 throw new Exception("Player with this name doesn't exist.");
             }
@@ -180,23 +180,6 @@ namespace Services{
 
             return false;
         }
-        public static async Task<bool> PlayerExist(string name, IAsyncSession sessions)
-        {
-            var session = sessions;
-            string query= $@" 
-                MATCH (player:Player) 
-                    WHERE player.name=$name 
-                RETURN COUNT(player) AS count";
-            var cursor = await session.RunAsync(query, new{name});
-            var record = await cursor.SingleAsync();
-            var br = record["count"].As<int>();
-            if(br > 0)
-            { 
-                return true;
-            }
-
-            return false;
-        }
-
+       
     }
 }

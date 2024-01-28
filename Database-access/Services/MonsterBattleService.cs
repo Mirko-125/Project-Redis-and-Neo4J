@@ -31,7 +31,7 @@ namespace Services{
         public async Task<MonsterBattle> CreateAsync(MonsterBattleCreateDto mb)
         {
             var session = _driver.AsyncSession();
-            if(!await NPCService.PlayerExist(mb.PlayerName, session))
+            if(!await PlayerService.PlayerExist(mb.PlayerName, session))
             {
                 throw new Exception("Player with this name doesn't exist.");
             }
@@ -111,8 +111,7 @@ namespace Services{
             query +=$@"  
                 WITH {_key}
                 MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-({_key})-[:ATTACKING_PLAYER]->(player:Player)";
-            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");
-            Console.WriteLine(query);          
+            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");         
             var cursor=await session.RunAsync(query, parameters);
             var record=await cursor.SingleAsync();
             MonsterBattle monsterBattle= BuildMonsterBattle(record);
