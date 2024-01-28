@@ -28,7 +28,6 @@ public class GearCreateDto : ItemCreateDto
 
 public class GearUpdateDto : ItemUpdateDto
 {
-    public int GearID { get; set; }
     public int Slot { get; set; }
     public int Level { get; set; }
     public string Quality { get; set; }
@@ -43,7 +42,6 @@ public class ConsumableCreateDto : ItemCreateDto
 
 public class ConsumableUpdateDto : ItemUpdateDto
 {
-    public int ConsumableID { get; set; }
     public string Effect { get; set; }
 
 }

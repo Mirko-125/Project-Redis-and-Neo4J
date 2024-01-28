@@ -55,7 +55,12 @@ namespace Services
         public async Task<Item> GetByNameAsync(string name)
         {
             var session = _driver.AsyncSession();
-
+            bool itemExists = await ItemExist(name);
+            if(!itemExists)
+            {
+                throw new Exception($"Item with name '{name}' doesn't exists.");
+            }
+            
             string query = $@"
                 MATCH (n:{_type}) 
                     WHERE n.name = $name
@@ -73,7 +78,11 @@ namespace Services
         public async Task<List<Item>> GetItemsByTypeAsync(string type)
         {
             var session = _driver.AsyncSession();
-
+            bool itemExists = await ItemTypeExist(type);
+            if(!itemExists)
+            {
+                throw new Exception($"Item with type '{type}' doesn't exists.");
+            }
             string query = $@"
                 MATCH (n:{_type}) 
                     WHERE n.type = $type
@@ -94,12 +103,55 @@ namespace Services
         public async Task<IResultCursor> DeleteAsync(string name)
         {
             var session = _driver.AsyncSession();
+            bool itemExists = await ItemExist(name);
+            if(!itemExists)
+            {
+                throw new Exception($"Item with name '{name}' doesn't exists.");
+            }
             var query = @$"MATCH (n:{_type}) 
                                 WHERE n.name = $name
                                 OPTIONAL MATCH (n)-[:HAS]->(attributes:Attributes)
                            DETACH DELETE n, attributes";
             var parameters = new {name};
             return await session.RunAsync(query, parameters);
+        }
+
+        public async Task<bool> ItemExist(string name)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new { name = name };
+            var checkQuery = $@"
+                MATCH ({_key}:{_type}{{name: $name}})
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countItem = record["count"].As<int>();
+
+            if (countItem > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ItemTypeExist(string type)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new { type = type };
+            var checkQuery = $@"
+                MATCH ({_key}:{_type}{{type: $type}})
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countItem = record["count"].As<int>();
+
+            if (countItem > 0)
+            {
+                return true;
+            }
+            return false;
         }
     }     
 }

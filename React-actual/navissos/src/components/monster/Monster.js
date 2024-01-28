@@ -17,7 +17,21 @@ function Monster() {
     const [monsterExperience, setMonsterExperience] = useState('');
     const [monsterLevel, setMonsterLevel] = useState('');
     const [possibleLootNames, setPossibleLootNames] = useState([]);
+    const [singleMonster, setSingleMonster] = useState([]);
     
+    const handleFindMonster = () => {
+        return fetch(`http://localhost:5236/api/Monster/GetOne?monsterName=${monsterName}`)
+            .then(response => response.json())
+            .then(data => {
+                setSingleMonster(data);
+                return data;
+            })
+            .catch(error => {
+                // Handle the error if needed
+                console.error(error);
+            });
+    };
+
     const handleCreateMonster = () => {
         const monsterData = {
             name: monsterName,
@@ -25,7 +39,8 @@ function Monster() {
             type: monsterType,
             imageURL: monsterImageURL,
             status: monsterStatus,
-            attributes: {
+            attributes: 
+            {
                 strength: monsterStrength,
                 agility: monsterAgility,
                 intelligence: monsterIntelligence,
@@ -34,20 +49,22 @@ function Monster() {
                 experience: monsterExperience,
                 level: monsterLevel
             },
-            possibleLoot: possibleLootNames.map(lootName => ({ name: lootName }))
+            possibleLootNames: possibleLootNames
         };
-
-        fetch('http://localhost:5236/api/NPC/AddNPC', {
+        const data = JSON.stringify(monsterData);
+        console.log(data);
+        fetch('http://localhost:5236/api/Monster', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(monsterData)
+            body: data
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
                 console.log(data);
+                window.location.reload();
+                return data;
             })
             .catch(error => {
                 // Handle the error if needed
@@ -62,7 +79,7 @@ function Monster() {
     }, []);
     
     const handleDeleteMonster = () => {
-        fetch(`http://localhost:5236/api/Monster?monsterId=${monsterId}`, {
+        fetch(`http://localhost:5236/api/Monster?monsterName=${monsterName}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -165,43 +182,43 @@ function Monster() {
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster strength"
                     onChange={(e) => setMonsterStrength(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster agility"
                     onChange={(e) => setMonsterAgility(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster intelligence"
                     onChange={(e) => setMonsterIntelligence(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster stamina"
                     onChange={(e) => setMonsterStamina(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster faith"
                     onChange={(e) => setMonsterFaith(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster experience"
                     onChange={(e) => setMonsterExperience(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster level"
                     onChange={(e) => setMonsterLevel(e.target.value)}
                 />
@@ -215,17 +232,10 @@ function Monster() {
             </div>
             <h1 className='i-m'>Admin: Update a monster</h1>
             <div className='update-monster'>
-                <input 
-                    className='create-input' 
-                    type="number" 
-                    placeholder="Enter monster ID" 
-                    value={monsterId} 
-                    onChange={e => setSetMonsterId(e.target.value)} 
-                />
-                <input
+            <input
                     className='create-input'
                     type="text"
-                    placeholder="Enter monster name"
+                    placeholder="Enter old monster name"
                     onChange={(e) => setMonsterName(e.target.value)}
                 />
                 <input
@@ -254,54 +264,84 @@ function Monster() {
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster strength"
                     onChange={(e) => setMonsterStrength(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster agility"
                     onChange={(e) => setMonsterAgility(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster intelligence"
                     onChange={(e) => setMonsterIntelligence(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster stamina"
                     onChange={(e) => setMonsterStamina(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster faith"
                     onChange={(e) => setMonsterFaith(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster experience"
                     onChange={(e) => setMonsterExperience(e.target.value)}
                 />
                 <input
                     className='create-input'
-                    type="text"
+                    type="number"
                     placeholder="Enter monster level"
                     onChange={(e) => setMonsterLevel(e.target.value)}
+                />
+                <input
+                    className='create-input'
+                    type="text"
+                    placeholder="Enter possible loot names (separated by commas)"
+                    onChange={(e) => setPossibleLootNames(e.target.value.split(','))}
                 />
                 <button onClick={handleUpdateMonster}>Update monster</button>
             </div>
             <h1 className='i-m'>Admin-Delete a monster</h1>
             <div className='delete-monster'>
-                <input type="number" placeholder="Enter monster ID" value={monsterId} onChange={e => setSetMonsterId(e.target.value)} />
+                <input type="text" placeholder="Enter monster's name" value={monsterName} onChange={e => setMonsterName(e.target.value)} />
                 <button onClick={handleDeleteMonster}>Delete a monster</button>
             </div>
+            <h1 className='i-p'>Gamewise: See a the certain Monster</h1>
+            <div className='npc-player'>
+                <input type="text" placeholder="Monster's name is..." onChange={e => setMonsterName(e.target.value)} />
+                <button onClick={handleFindMonster}>Call</button>
+                <div className='players'>
+                    <div style={{
+                        backgroundColor: 'black',
+                        backgroundSize: 'cover',
+                        width: '200px',
+                        height: '200px', 
+                        border: 'none',
+                        cursor: 'pointer',
+                        margin: '3rem',
+                        color: 'white'
+                    }}
+                    >
+                        Name: {singleMonster.name}<br/>
+                        Zone: {singleMonster.zone}<br/>
+                        Type: {singleMonster.type}<br/>
+                        Image source: {singleMonster.imageURL}<br/>
+                        Status: {singleMonster.status}<br/>
+                    </div>
+            </div>
         </div>
+    </div>
     );
 }
 

@@ -17,7 +17,7 @@
     width: 25%;
 }
 
-.delete-monster input[type="number"] {
+.delete-monster input[type="text"] {
     width: 100%;
     padding: 0.5rem;
     margin-bottom: 1rem;
@@ -88,6 +88,16 @@
     cursor: pointer;
 }
 
+.dungeon-wrap
+{
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    background-image: url('../../assets/cave.png');
+    background-size: contain;
+    color: #f1f1f1;
+    height: 100%;
+}
 
 .all-item-data {
     margin: 2rem;
