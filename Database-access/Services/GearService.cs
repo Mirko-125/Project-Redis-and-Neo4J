@@ -18,7 +18,11 @@ namespace Services
         public async Task<IResultCursor> CreateAsync(GearCreateDto dto)
         {
             var session = _driver.AsyncSession();
-
+            bool gearExists = await GearExist(dto.Name);
+            if(gearExists)
+            {
+                throw new Exception($"Gear with name '{dto.Name}' already exists.");
+            }
             var parameters = new
             {
                 name = dto.Name,
@@ -70,10 +74,13 @@ namespace Services
         public async Task<IResultCursor> UpdateGearAsync(GearUpdateDto dto)
         {
             var session = _driver.AsyncSession();
-
+            bool gearExists = await GearExist(dto.Name);
+            if(!gearExists)
+            {
+                throw new Exception($"Gear with name '{dto.Name}' doesn't exists.");
+            }
             var parameters = new 
             { 
-                gearID = dto.GearID,
                 name = dto.Name,
                 type = dto.Type, 
                 value = dto.Value, 
@@ -93,8 +100,7 @@ namespace Services
             };
 
             string query = @$"
-                MATCH (n:{_type})-[:HAS]->(attributes:Attributes) WHERE ID(n)=$gearID
-                    SET n.name=$name
+                MATCH (n:{_type})-[:HAS]->(attributes:Attributes) WHERE n.name=$name
                     SET n.type=$type
                     SET n.value=$value 
                     SET n.dimensions=$dimensions 
@@ -116,5 +122,23 @@ namespace Services
             return await session.RunAsync(query, parameters);
         }
 
+        public async Task<bool> GearExist(string name)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new { name = name };
+            var checkQuery = $@"
+                MATCH ({_key}:{_type}:Item {{name: $name}})
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countGear = record["count"].As<int>();
+
+            if (countGear > 0)
+            {
+                return true;
+            }
+            return false;
+        }
     }     
 }

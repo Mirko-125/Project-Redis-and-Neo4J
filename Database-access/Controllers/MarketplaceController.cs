@@ -107,6 +107,20 @@ namespace Databaseaccess.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpDelete("DeleteItem")]
+        public async Task<IActionResult> DeleteItem(string zone, string name)
+        {
+            try
+            {    
+                var result = await _marketplaceService.DeleteOneItemAsync(zone, name);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     
 
    
