@@ -95,7 +95,7 @@ function Monster() {
     
     const handleUpdateMonster = () => {
         const monsterData = {
-            monsterId: monsterId,
+            name: monsterName,
             zone: monsterZone,
             imageURL: monsterImageURL,
             attributes: {

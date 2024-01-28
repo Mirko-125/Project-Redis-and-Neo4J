@@ -21,7 +21,6 @@ public abstract class ItemUpdateDto
 public class GearCreateDto : ItemCreateDto
 {
     public int Slot { get; set; }
-    public int Level { get; set; }
     public string Quality { get; set; }
     public AttributesDto Attributes { get; set; } 
 }
@@ -29,7 +28,6 @@ public class GearCreateDto : ItemCreateDto
 public class GearUpdateDto : ItemUpdateDto
 {
     public int Slot { get; set; }
-    public int Level { get; set; }
     public string Quality { get; set; }
     public AttributesDto Attributes { get; set; } 
 }

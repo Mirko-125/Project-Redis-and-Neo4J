@@ -74,20 +74,25 @@ namespace Services{
         public async Task<IResultCursor> UpdateAsync(MonsterUpdateDto monster)
         {
             var session = _driver.AsyncSession();
-            if(!await MonsterExist(monster.Name, session))
+            if(!await MonsterExist(monster.OldName, session))
             {
                 throw new Exception("Monster with this name doesn't exist.");
             }
+
             var parameters = new 
             { 
+                oldName = monster.OldName,
                 name = monster.Name,
+                type = monster.Type,
                 zone = monster.Zone,
                 imageURL= monster.ImageURL,
                 status = monster.Status,
             };
             string query = @$"
-                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE n.name=$name
+                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE n.name=$oldName
+                SET n.name = $name
                 SET n.zone= $zone
+                SET n.type = $type
                 SET n.imageURL= $imageURL
                 SET n.status= $status";
             query += AttributesService.UpdateAttributes(monster.Attributes);

@@ -35,7 +35,8 @@ public class Gear : Item
     public Gear(INode itemNode, INode attributesNode) : base(itemNode)
     {
         Slot = itemNode["slot"].As<int>();
-        Level = itemNode["level"].As<int>();
+        if (itemNode.Properties.ContainsKey("level"))
+            Level = itemNode["level"].As<int>();
         Quality = itemNode["quality"].As<string>();
         Attributes = new Attributes(attributesNode);
     }

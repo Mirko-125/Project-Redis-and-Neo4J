@@ -31,7 +31,6 @@ namespace Services
                 dimensions = dto.Dimensions,
                 value = dto.Value,
                 slot = dto.Slot,   
-                level = dto.Level,
                 quality = dto.Quality,
 
                 //attributes
@@ -52,7 +51,6 @@ namespace Services
                     dimensions: $dimensions,
                     value: $value,
                     slot: $slot,
-                    level: $level,
                     quality: $quality
                 }})
                 CREATE (attributes:Attributes {{ 
@@ -62,7 +60,7 @@ namespace Services
                     stamina: $stamina, 
                     faith: $faith, 
                     experience: $experience, 
-                    levelAttributes: $levelAttributes
+                    level: $levelAttributes
                 }})
                 CREATE (gear)-[:HAS]->(attributes)
                 ";
@@ -87,7 +85,6 @@ namespace Services
                 dimensions = dto.Dimensions, 
                 weight = dto.Weight, 
                 slot = dto.Slot,
-                level = dto.Level,
                 quality = dto.Quality,
 
                 strength = dto.Attributes.Strength,
@@ -106,7 +103,6 @@ namespace Services
                     SET n.dimensions=$dimensions 
                     SET n.weight=$weight 
                     SET n.slot=$slot
-                    SET n.level=$level
                     SET n.quality=$quality
 
                     SET attributes.strength= $strength
@@ -115,7 +111,7 @@ namespace Services
                     SET attributes.stamina= $stamina
                     SET attributes.faith= $faith
                     SET attributes.experience= $experience
-                    SET attributes.levelAttributes= $levelAttributes
+                    SET attributes.level= $levelAttributes
 
                 return n";
 
