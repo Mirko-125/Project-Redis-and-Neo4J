@@ -24,8 +24,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result = await _monsterBattleService.CreateAsync(dto);
-                return Ok(result);
-                
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -39,7 +38,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result= await _monsterBattleService.Finalize(dto);
-                return Ok(result);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -52,8 +51,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var monsterBattle= await _monsterBattleService.GetAllAsync();
-                return Ok(monsterBattle);
+                var monsterBattles = await _monsterBattleService.GetAllAsync();
+                return Ok(monsterBattles);
             }
             catch (Exception ex)
             {
@@ -65,8 +64,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                var monsterBattles = await _monsterBattleService.GetOneAsync(monsterBattleId);
-                return Ok(monsterBattles);
+                var monsterBattle = await _monsterBattleService.GetOneAsync(monsterBattleId);
+                return Ok(monsterBattle);
             }
             catch (Exception ex)
             {
@@ -80,7 +79,7 @@ namespace Databaseaccess.Controllers
             try
             {
                var result= await _monsterBattleService.DeleteAsync(monsterBattleId);
-               return Ok(result);
+               return Ok();
             }
             catch (Exception ex)
             {

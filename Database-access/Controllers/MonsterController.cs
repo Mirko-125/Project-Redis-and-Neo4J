@@ -15,8 +15,7 @@ namespace Databaseaccess.Controllers
         
         public MonsterController(MonsterService monsterService)
         {
-            _monsterService = monsterService;
-           
+            _monsterService = monsterService;  
         }
 
         [HttpPost]
@@ -24,7 +23,7 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                await _monsterService.CreateAsync(dto);
+                var result = await _monsterService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -39,7 +38,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result = await _monsterService.UpdateAsync(dto);
-                return Ok(result);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -62,11 +61,11 @@ namespace Databaseaccess.Controllers
         }
         
         [HttpGet("GetOne")]
-        public async Task<IActionResult> GetOne(int monsterId)
+        public async Task<IActionResult> GetOne(string monsterName)
         {
             try
             {
-                var monster = await _monsterService.GetMonsterAsync(monsterId);
+                var monster = await _monsterService.GetOneAsync(monsterName);
                 return Ok(monster);
             }
             catch (Exception ex)
@@ -76,13 +75,12 @@ namespace Databaseaccess.Controllers
         }
         
         [HttpDelete]
-        public async Task<IActionResult> RemoveMonster(int monsterId)
+        public async Task<IActionResult> RemoveMonster(string monsterName)
         {
             try
             {
-                var result = await _monsterService.DeleteAsync(monsterId);
-                return Ok(result);
-                
+                var result = await _monsterService.DeleteAsync(monsterName);
+                return Ok();     
             }
             catch (Exception ex)
             {

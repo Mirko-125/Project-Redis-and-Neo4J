@@ -81,7 +81,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result = await _playerFightService.DeleteAsync(playerFightId);
-                return Ok(result);   
+                return Ok();   
             }
             catch (Exception ex)
             {

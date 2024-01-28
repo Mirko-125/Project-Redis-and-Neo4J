@@ -6,7 +6,6 @@ namespace Services{
     {
         private readonly IDriver _driver;
         public readonly string type = "Monster";
-        public readonly string _pluralKey = "monsters";
         public readonly string _key = "monster";
 
         public static Monster BuildMonster(IRecord record)
@@ -25,16 +24,18 @@ namespace Services{
         public async Task<IResultCursor> CreateAsync(MonsterCreateDto monsterDto)
         {
             var session = _driver.AsyncSession();
-
+            if(await MonsterExist(monsterDto.Name, session))
+            {
+                throw new Exception("Monster already exists.");
+            }
             var parameters = new
             {
                 name = monsterDto.Name,
                 zone = monsterDto.Zone,
                 type = monsterDto.Type,
                 imageURL= monsterDto.ImageURL,
-                status=monsterDto.Status,
-                possibleLootItems=monsterDto.PossibleLootNames
-                
+                status = monsterDto.Status,
+                possibleLootItems = monsterDto.PossibleLootNames    
             };
             if (monsterDto.PossibleLootNames.Length > 0)
             {
@@ -42,8 +43,7 @@ namespace Services{
                     MATCH (possibleLootItem: Item)
                         WHERE possibleLootItem.name
                             IN $possibleLootItems
-
-                    return possibleLootItem"
+                    RETURN possibleLootItem"
                 ;
                 var possibleLootItemResult = await session.RunAsync(possibleLootQuery, parameters);
                 var possibleLootItems = await possibleLootItemResult.ToListAsync();
@@ -69,23 +69,24 @@ namespace Services{
             query+=ItemQueryBuilder.ConnectWithItemsFromList(monsterDto.PossibleLootNames, _key, "POSSIBLE_LOOT");
             var result = await session.RunAsync(query,parameters);
             return result;
-
         }
        
         public async Task<IResultCursor> UpdateAsync(MonsterUpdateDto monster)
         {
             var session = _driver.AsyncSession();
-
+            if(!await MonsterExist(monster.Name, session))
+            {
+                throw new Exception("Monster with this name doesn't exist.");
+            }
             var parameters = new 
             { 
-                mId = monster.MonsterId,
+                name = monster.Name,
                 zone = monster.Zone,
                 imageURL= monster.ImageURL,
                 status = monster.Status,
             };
-
             string query = @$"
-                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE ID(n)=$mId
+                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE n.name=$name
                 SET n.zone= $zone
                 SET n.imageURL= $imageURL
                 SET n.status= $status";
@@ -97,7 +98,6 @@ namespace Services{
         public async Task<List<Monster>> GetAllAsync()
         {
             var session = _driver.AsyncSession();
-
             string query = $@"
                 MATCH ({_key}:{type})
                 OPTIONAL MATCH ({_key})-[:HAS]->(m:Attributes) 
@@ -112,31 +112,37 @@ namespace Services{
             });
             return monsters;
         }
-       public async Task<Monster> GetMonsterAsync(int monsterId)
+       public async Task<Monster> GetOneAsync(string monsterName)
         {
             var session = _driver.AsyncSession();
-            var parameters = new { idn = monsterId };
+            if(!await MonsterExist(monsterName, session))
+            {
+                throw new Exception("Monster with this name doesn't exist.");
+            }
             var query = $@"
                 MATCH ({_key}:{type}) 
-                    WHERE id({_key})=$idn
+                    WHERE {_key}.name=$monsterName
                 OPTIONAL MATCH ({_key})-[:HAS]->(m:Attributes) 
                 ";
-            query +=ReturnMonsterWithItems(type, _key,"POSSIBLE_LOOT");
+            query += ReturnMonsterWithItems(type, _key,"POSSIBLE_LOOT");
 
-            var cursor = await session.RunAsync(query, parameters);
+            var cursor = await session.RunAsync(query, new{monsterName});
             return BuildMonster(await cursor.SingleAsync());
         } 
 
-         public async Task<IResultCursor> DeleteAsync(int monsterId)
+         public async Task<IResultCursor> DeleteAsync(string monsterName)
         {
             var session = _driver.AsyncSession();
-            var parameters = new { nId = monsterId };
+            if(!await MonsterExist(monsterName, session))
+            {
+                throw new Exception("Monster with this name doesn't exist.");
+            }
             var query = $@"
                 MATCH ({_key}:{type})-[r:HAS]->(m:Attributes) 
-                    WHERE Id({_key})=$nId
+                    WHERE {_key}.name=$monsterName
                 OPTIONAL MATCH ({_key})<-[a:ATTACKED_MONSTER]-(mb:MonsterBattle)
                 DETACH DELETE m,mb,{_key}";
-            return await session.RunAsync(query, parameters);
+            return await session.RunAsync(query, new{monsterName});
         }
 
         public static string ReturnMonsterWithItems(string type, string identifier, string relationName)
@@ -144,6 +150,24 @@ namespace Services{
             string query = ItemQueryBuilder.ReturnObjectWithItems(type, identifier, relationName);
             query+= $@",m";
             return query;
+        }
+
+        public static async Task<bool> MonsterExist(string name, IAsyncSession sessions)
+        {
+            var session = sessions;
+            string query= $@" 
+                MATCH (monster:Monster) 
+                    WHERE monster.name=$name
+                RETURN COUNT(monster) AS count";
+            var cursor = await session.RunAsync(query, new{name});
+            var record = await cursor.SingleAsync();
+            var br = record["count"].As<int>();
+            if(br > 0)
+            { 
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result = await _npcService.CreateAsync(dto);
-                return Ok(result);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -36,7 +36,7 @@ namespace Databaseaccess.Controllers
             try
             {
                 var result = await _npcService.UpdateAsync(dto);
-                return Ok(result);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -44,11 +44,11 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpPut("Interaction")]
-        public async Task<IActionResult> Interaction(int playerId, int npcId)
+        public async Task<IActionResult> Interaction(string playerName, string npcName)
         {
             try
             {
-                var npc = await _npcService.Interaction(playerId,npcId);
+                var npc = await _npcService.Interaction(playerName, npcName);
                 return Ok(npc);
             }
             catch (Exception ex)
@@ -70,11 +70,11 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpGet("GetOne")]
-        public async Task<IActionResult> GetOne(int npcId)
+        public async Task<IActionResult> GetOne(string npcName)
         {
             try
             {
-                var npc = await _npcService.GetOneAsync(npcId);
+                var npc = await _npcService.GetOneAsync(npcName);
                 return Ok(npc);     
             }
             catch (Exception ex)
@@ -83,11 +83,11 @@ namespace Databaseaccess.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> Delete(int npcId)
+        public async Task<IActionResult> Delete(string npcName)
         {
             try
             {
-                var result = await _npcService.DeleteAsync(npcId);
+                var result = await _npcService.DeleteAsync(npcName);
                 return Ok(result);
             }
             catch (Exception ex)

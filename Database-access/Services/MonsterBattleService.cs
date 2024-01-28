@@ -8,7 +8,6 @@ namespace Services{
         private readonly IDriver _driver;
         private readonly RedisCache _cache;
         public readonly string type = "MonsterBattle";
-        public readonly string _pluralKey = "monsterBattles";
         public readonly string _key = "monsterBattle";
 
         public static MonsterBattle BuildMonsterBattle(IRecord record)
@@ -26,20 +25,27 @@ namespace Services{
         public MonsterBattleService(IDriver driver, RedisCache cache)
         {
             _driver = driver;
-            _cache=cache;
+            _cache = cache;
         }
 
         public async Task<MonsterBattle> CreateAsync(MonsterBattleCreateDto mb)
         {
             var session = _driver.AsyncSession();
-
-            var parameters = new
+            if(!await NPCService.PlayerExist(mb.PlayerName, session))
+            {
+                throw new Exception("Player with this name doesn't exist.");
+            }
+            if(!await MonsterService.MonsterExist(mb.MonsterName, session))
+            {
+                throw new Exception("Monster with this name doesn't exist.");
+            }
+             var parameters = new
             {
                 startedAt=DateTime.Now,
                 endedAt="--",
                 isFinalized="false",
-                playeri=mb.PlayerId,
-                monsteri=mb.MonsterId
+                playername=mb.PlayerName,
+                monstername=mb.MonsterName
             };
             string query = $@"
                 CREATE ({_key}:{type} {{
@@ -48,18 +54,17 @@ namespace Services{
                     isFinalized: $isFinalized
                 }}) 
                 WITH {_key}
-                MATCH (monster:Monster) WHERE id(monster)=$monsteri
-                MATCH (player:Player) WHERE id(player)=$playeri
+                MATCH (monster:Monster) WHERE monster.name=$monstername
+                MATCH (player:Player) WHERE player.name=$playername
                 CREATE (monster)<-[:ATTACKED_MONSTER]-({_key})-[:ATTACKING_PLAYER]->(player)
                 WITH {_key}, monster, player"
             ;
             query += ReturnMonsterBattleWithAllItems(type, _key, "LOOT");
-            //Console.WriteLine(query);
             var cursor=await session.RunAsync(query, parameters);
             var record=await cursor.SingleAsync();
             var monsterBattleId=record["monsterBattleId"].As<string>();
             MonsterBattle monsterBattle= BuildMonsterBattle(record);
-            await _cache.SetDataAsync(_key + monsterBattleId , monsterBattle, 1000);
+            await _cache.SetDataAsync(_key + monsterBattleId, monsterBattle, 1000);
             return monsterBattle;
 
         }
@@ -67,7 +72,10 @@ namespace Services{
         public async Task<MonsterBattle> Finalize(MonsterBattleUpdateDto monsterBattleDto)
         {
             var session = _driver.AsyncSession();
-
+            if(!await MonsterBattleExist(monsterBattleDto.MonsterBattleId, session))
+            {
+                throw new Exception("Monster battle with this ID doesn't exist.");
+            }
             var parameters = new 
             {   
                 monsterBattleId = monsterBattleDto.MonsterBattleId,
@@ -83,7 +91,7 @@ namespace Services{
                         WHERE lootItem.name
                             IN $lootItems
                             AND (lootItem)<-[:POSSIBLE_LOOT]-(monster)
-                    return lootItem"
+                    RETURN lootItem"
                 ;
                 var lootItemResult = await session.RunAsync(lootQuery, parameters);
                 var lootItems = await lootItemResult.ToListAsync();
@@ -100,12 +108,11 @@ namespace Services{
             query +=$@"  
                 WITH {_key}
                 MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-({_key})-[:ATTACKING_PLAYER]->(player:Player)";
-            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");
-                
+            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");          
             var cursor=await session.RunAsync(query, parameters);
             var record=await cursor.SingleAsync();
             MonsterBattle monsterBattle= BuildMonsterBattle(record);
-            await _cache.SetDataAsync(_key + monsterBattleDto.MonsterBattleId , monsterBattle, 100);
+            await _cache.SetDataAsync(_key + monsterBattleDto.MonsterBattleId, monsterBattle, 100);
             return monsterBattle;
         }
         
@@ -118,7 +125,7 @@ namespace Services{
             query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");
             var cursor=await session.RunAsync(query);
             var monsterBattles=new List<MonsterBattle>();
-             await cursor.ForEachAsync(record =>
+            await cursor.ForEachAsync(record =>
             {
                 monsterBattles.Add(BuildMonsterBattle(record));
             });
@@ -131,6 +138,10 @@ namespace Services{
        public async Task<MonsterBattle> GetOneAsync(int monsterBattleId)
         {
             var session = _driver.AsyncSession();
+            if(!await MonsterBattleExist(monsterBattleId, session))
+            {
+                throw new Exception("Monster battle with this ID doesn't exist.");
+            }
             string key = _key + monsterBattleId;
             var keyExists = await _cache.CheckKeyAsync(key);
             if (keyExists)
@@ -138,13 +149,11 @@ namespace Services{
                 var cachedMonsterBattle = await _cache.GetDataAsync<MonsterBattle>(key);
                 return cachedMonsterBattle;          
             }
-            var parameters = new { idn = monsterBattleId };
             string query = $@"
                 MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-({_key}:{type})-[:ATTACKING_PLAYER]->(player:Player)
-                    WHERE ID({_key})=$idn";
+                    WHERE ID({_key})=$monsterBattleId";
             query +=ReturnMonsterBattleWithAllItems(type, _key,"LOOT");
-
-            var cursor=await session.RunAsync(query, parameters);
+            var cursor=await session.RunAsync(query, new{monsterBattleId});
             var record=await cursor.SingleAsync();
             MonsterBattle monsterBattle= BuildMonsterBattle(record);
             await _cache.SetDataAsync(_key + monsterBattleId , monsterBattle, 100);
@@ -154,26 +163,28 @@ namespace Services{
          public async Task<IResultCursor> DeleteAsync(int monsterBattleId)
         {
             var session = _driver.AsyncSession();
+            if(!await MonsterBattleExist(monsterBattleId, session))
+            {
+                throw new Exception("Monster battle with this ID doesn't exist.");
+            }
             string key = _key + monsterBattleId;
             var keyExists = await _cache.CheckKeyAsync(key);
             if (keyExists)
             {
                 await _cache.DeleteAsync(key);         
             }
-            var parameters = new { mbId = monsterBattleId};
             var query = $@"
                 MATCH (n1:Monster)<-[:ATTACKED_MONSTER]-({_key}:{type})-[:ATTACKING_PLAYER]->(n2:Player) 
-                    WHERE id({_key})=$mbId 
+                    WHERE Id({_key})=$monsterBattleId 
                 DETACH DELETE {_key}";
-            return await session.RunAsync(query, parameters);
+            return await session.RunAsync(query, new{monsterBattleId});
         }
         
         public static string ReturnMonsterBattleWithAllItems(string type, string identifier, string relationName)
         {
-            
             string query= $@" 
                 MATCH (monster)-[:HAS]->(monsterAttributes:Attributes)
-                MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
+                OPTIONAL MATCH (monster)-[:POSSIBLE_LOOT]->(pLoot:Item)
                     OPTIONAL MATCH (pLoot)-[:HAS]->(att:Attributes)";
             query += ItemQueryBuilder.ReturnObjectWithItems(type, identifier, relationName);
             query += $@", Id({identifier}) AS monsterBattleId, player, monster, monsterAttributes, COLLECT(DISTINCT{{
@@ -184,5 +195,22 @@ namespace Services{
             return query;
         }
         
+        public static async Task<bool> MonsterBattleExist(int monsterBattleId, IAsyncSession sessions)
+        {
+            var session = sessions;
+            string query= $@" 
+                MATCH (n:MonsterBattle) 
+                    WHERE Id(n)=$monsterBattleId 
+                RETURN COUNT(n) AS count";
+            var cursor = await session.RunAsync(query, new{monsterBattleId});
+            var record = await cursor.SingleAsync();
+            var br = record["count"].As<int>();
+            if(br > 0)
+            { 
+                return true;
+            }
+
+            return false;
+        }
     }
 }

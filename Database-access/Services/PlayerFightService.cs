@@ -6,12 +6,11 @@ namespace Services{
     {
         private readonly IDriver _driver;
         public readonly string type = "PlayerFight";
-        public readonly string _pluralKey = "playerFights";
         public readonly string _key = "playerFight";
 
         public static PlayerFight BuildPlayerFight(IRecord record)
         {
-           var playerFightNode = record["playerFight"].As<INode>();
+            var playerFightNode = record["playerFight"].As<INode>();
             var players = record["players"].As<List<INode>>();
             var player1Node = players[0];
             var player2Node = players[1];
@@ -26,32 +25,43 @@ namespace Services{
         public async Task<IResultCursor> CreateAsync(PlayerFightCreateDto playerFight)
         {
             var session = _driver.AsyncSession();
-
+            if(!await NPCService.PlayerExist(playerFight.Player1Name, session))
+            {
+                throw new Exception("Player1 with this name doesn't exist.");
+            }
+            if(!await NPCService.PlayerExist(playerFight.Player2Name, session))
+            {
+                throw new Exception("Player2 with this name doesn't exist.");
+            }
             var parameters = new
             {
                 winner = playerFight.Winner,
                 experience = playerFight.Experience,
                 honor = playerFight.Honor,
-                playeri1 = playerFight.Player1Id,
-                playeri2 = playerFight.Player2Id
+                player1name = playerFight.Player1Name,
+                player2name = playerFight.Player2Name
             };
             string query = $@"
-                        CREATE ({_key}:{type} {{
-                            winner: $winner,
-                            experience: $experience,
-                            honor: $honor
-                        }})
-                        WITH {_key}
-                        MATCH (n1:Player) WHERE id(n1)=$playeri1
-                        MATCH (n2:Player) WHERE id(n2)=$playeri2
-                        CREATE (n1)<-[:PARTICIPATING_PLAYERS]-({_key})-[:PARTICIPATING_PLAYERS]->(n2) ";
-            var result = await session.RunAsync(query,parameters);
+                CREATE ({_key}:{type} {{
+                    winner: $winner,
+                    experience: $experience,
+                    honor: $honor
+                }})
+                WITH {_key}
+                MATCH (n1:Player) WHERE n1.name=$player1name
+                MATCH (n2:Player) WHERE n2.name=$player2name
+                CREATE (n1)<-[:PARTICIPATING_PLAYERS]-({_key})-[:PARTICIPATING_PLAYERS]->(n2) ";
+            var result = await session.RunAsync(query, parameters);
             return result;
         }
        
         public async Task<IResultCursor> UpdateAsync(PlayerFightUpdateDto playerFight)
         {
             var session = _driver.AsyncSession();
+            if(!await PlayerFightExist(playerFight.PlayerFightId, session))
+            {
+                throw new Exception("Player Fight with this ID doesn't exist.");
+            }
             var parameters = new 
             { 
                 playerFightid = playerFight.PlayerFightId,
@@ -64,20 +74,18 @@ namespace Services{
                     SET {_key}.winner= $winner
                     SET {_key}.experience= $experience
                     SET {_key}.honor= $honor
-                    RETURN {_key}";
+                RETURN {_key}";
             var result= await session.RunAsync(query, parameters);
             return result;
         }
         public async Task<List<PlayerFight>> GetAllAsync()
         {
-            var session = _driver.AsyncSession();
-           
+            var session = _driver.AsyncSession();  
             var query = $@"
                 MATCH ({_key}:{type})-[:PARTICIPATING_PLAYERS]->(p:Player)
                 RETURN {_key} , COLLECT(p) AS players";
             var cursor = await session.RunAsync(query);
             var playerFights = new List<PlayerFight>();
-
             await cursor.ForEachAsync(record =>
             {
                 playerFights.Add(BuildPlayerFight(record));
@@ -87,23 +95,48 @@ namespace Services{
        public async Task<PlayerFight> GetOneAsync(int playerFightId)
         {
             var session = _driver.AsyncSession();
-            var parameters = new { plFId = playerFightId };
-            var query = $@"MATCH ({_key}:{type})-[:PARTICIPATING_PLAYERS]->(p:Player)
-                            WHERE id({_key})= $plFId
-                        RETURN {_key}, COLLECT(p) AS players";
-            var cursor = await session.RunAsync(query,parameters);
-                    
+            if(!await PlayerFightExist(playerFightId, session))
+            {
+                throw new Exception("Player Fight with this ID doesn't exist.");
+            }
+            var query = $@"
+                MATCH ({_key}:{type})-[:PARTICIPATING_PLAYERS]->(p:Player)
+                    WHERE Id({_key})= $playerFightId
+                RETURN {_key}, COLLECT(p) AS players";
+            var cursor = await session.RunAsync(query, new{playerFightId});          
             return BuildPlayerFight(await cursor.SingleAsync());
         } 
 
          public async Task<IResultCursor> DeleteAsync(int playerFightId)
         {
             var session = _driver.AsyncSession();
-            var parameters = new { plFight = playerFightId };
+            if(!await PlayerFightExist(playerFightId, session))
+            {
+                throw new Exception("Player Fight with this ID doesn't exist.");
+            }
             var query = $@"
-                MATCH ({_key}:{type}) WHERE ID({_key})=$plFight 
+                MATCH ({_key}:{type}) 
+                    WHERE ID({_key})=$playerFightId
                 DETACH DELETE {_key}";
-            return await session.RunAsync(query, parameters);
+            return await session.RunAsync(query, new{playerFightId});
+        }
+
+         public static async Task<bool> PlayerFightExist(int playerFightId, IAsyncSession sessions)
+        {
+            var session = sessions;
+            string query= $@" 
+                MATCH (n:PlayerFight) 
+                    WHERE ID(n)=$playerFightId 
+                RETURN COUNT(n) AS count";
+            var cursor = await session.RunAsync(query, new{playerFightId});
+            var record = await cursor.SingleAsync();
+            var br = record["count"].As<int>();
+            if(br > 0)
+            { 
+                return true;
+            }
+
+            return false;
         }
     }
 }
