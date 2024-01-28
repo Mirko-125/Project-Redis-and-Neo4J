@@ -5,8 +5,129 @@
 
 .quests
 {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-    grid-gap: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.wrap-map-a
+{
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    background-image: url('../../assets/map.png');
+    color: #550d0e;
+    height: 100%;
+}
+
+.create-achievement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.create-achievement input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-achievement input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-achievement button {
+    background-color: #550d0e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+
+.update-achievement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.update-achievement input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.update-achievement input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.update-achievement button {
+    background-color: #550d0e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-achievement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.delete-achievement input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.delete-achievement input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.delete-achievement button {
+    background-color: #550d0e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.give-achievement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.give-achievement input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.give-achievement input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.give-achievement button {
+    background-color: #550d0e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
 }

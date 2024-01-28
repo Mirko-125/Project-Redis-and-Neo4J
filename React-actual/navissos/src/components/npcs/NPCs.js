@@ -3,12 +3,25 @@ import './NPCs.css';
 
 const NPCs = () => {
     const [npcs, setNPCs] = useState([]);
-    const [npcId, setNPCID] = useState('');
     const [npcName, setNPCName] = useState('');
     const [npcAffinity, setNPCAffinity] = useState('');
     const [npcImageURL, setNPCImageURL] = useState('');
     const [npcZone, setNPCZone] = useState('');
     const [npcMood, setNPCMood] = useState('');
+    const [singleNPC, setSingleNPC] = useState([]);
+
+    const handleFindNPC = () => {
+        return fetch(`http://localhost:5236/api/NPC/GetOne?npcName=${npcName}`)
+            .then(response => response.json())
+            .then(data => {
+                setSingleNPC(data);
+                return data;
+            })
+            .catch(error => {
+                // Handle the error if needed
+                console.error(error);
+            });
+    };
 
     const handleCreateNPC = () => {
         const npcData = {
@@ -19,7 +32,7 @@ const NPCs = () => {
             mood: npcMood
         };
 
-        fetch('http://localhost:5236/api/NPC/AddNPC', {
+        fetch('http://localhost:5236/api/NPC', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -28,8 +41,8 @@ const NPCs = () => {
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
-                console.log(data);
+                window.location.reload();
+                return data;
             })
             .catch(error => {
                 // Handle the error if needed
@@ -38,13 +51,13 @@ const NPCs = () => {
     };
     
     const handleDeleteNPC = () => {
-        fetch(`http://localhost:5236/api/NPC/DeleteNPC?npcId=${npcId}`, {
+        fetch(`http://localhost:5236/api/NPC?npcName=${npcName}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
-                console.log(data);
+                window.location.reload();
+                return data;
             })
             .catch(error => {
                 // Handle the error if needed
@@ -54,7 +67,6 @@ const NPCs = () => {
 
     const handleUpdateNPC = () => {
         const npcData = {
-            npcId: npcId,
             name: npcName,
             affinity: npcAffinity,
             imageURL: npcImageURL,
@@ -62,7 +74,7 @@ const NPCs = () => {
             mood: npcMood
         };
 
-        fetch('http://localhost:5236/api/NPC/UpdateNPC', {
+        fetch('http://localhost:5236/api/NPC/Update', { 
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -71,8 +83,8 @@ const NPCs = () => {
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
-                console.log(data);
+                window.location.reload();
+                return data;
             })
             .catch(error => {
                 // Handle the error if needed
@@ -81,12 +93,12 @@ const NPCs = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/NPC/GetAllNPCs')
+        fetch('http://localhost:5236/api/NPC/GetAll')
             .then(response => response.json())
             .then(data => setNPCs(data));
     }, []);
     return (
-        <div>
+        <div className='wrap-n'>
             <h1 className='i-n'>NPCs</h1>
             <div className='people'>
             {npcs.map(npc => (
@@ -139,17 +151,11 @@ const NPCs = () => {
             </div>
             <h1 className='i-n'>Admin: Delete a NPC</h1>
             <div className='delete-npc'>
-                <input type="number" placeholder="Enter npc ID" onChange={e => setNPCID(e.target.value)} />
+                <input type="text" placeholder="Enter npc's name" onChange={e => setNPCName(e.target.value)} />
                 <button onClick={handleDeleteNPC}>Delete a NPC</button>
             </div>
             <h1 className='i-n'>Admin: Update your non playable character</h1>
             <div className='update-npc'>
-                <input 
-                    className='update-input' 
-                    type="number" 
-                    placeholder="Enter npc ID" 
-                    onChange={e => setNPCID(e.target.value)} 
-                />
                 <input
                     className='update-input'
                     type="text"
@@ -182,7 +188,31 @@ const NPCs = () => {
                 />
                 <button onClick={handleUpdateNPC}>Update NPC</button>
             </div>
+            <h1 className='i-p'>Gamewise: See a possible ally</h1>
+            <div className='npc-player'>
+                <input type="text" placeholder="NPC's name is..." onChange={e => setNPCName(e.target.value)} />
+                <button onClick={handleFindNPC}>Call</button>
+                <div className='players'>
+                    <div style={{
+                        backgroundColor: 'black',
+                        backgroundSize: 'cover',
+                        width: '200px',
+                        height: '200px', 
+                        border: 'none',
+                        cursor: 'pointer',
+                        margin: '3rem',
+                        color: 'white'
+                    }}
+                    >
+                        Name: {singleNPC.name}<br/>
+                        Affinity: {singleNPC.affinity}<br/>
+                        Image source: {singleNPC.imageURL}<br/>
+                        Zone: {singleNPC.zone}<br/>
+                        Mood: {singleNPC.mood}<br/>
+                    </div>
+            </div>
         </div>
+    </div>
     );
 };
 

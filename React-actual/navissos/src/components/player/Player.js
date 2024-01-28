@@ -3,29 +3,31 @@ import './Player.css';
 
 const Player = () => {
     const [player, setPlayer] = useState([]);
-    const [playerId, setPlayerId] = useState('');
+    const [playerName, setPlayerName] = useState('');
     const [itemData, setItemData] = useState([]);
     const [itemName, setItemName] = useState('');
+    const [experience, setExperience] = useState('');
+    const [singlePlayer, setSinglePlayer] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Item/GetAllItems')
+        fetch('http://localhost:5236/api/Item/GetAll')
             .then(response => response.json())
             .then(data => setItemData(data));
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Player/AllPlayers') 
+        fetch('http://localhost:5236/api/Player/GetAll') 
             .then(response => response.json())
             .then(data => setPlayer(data));
     }, []);
 
     const handleDeletePlayer = () => {
-        fetch(`http://localhost:5236/api/Player?playerId=${playerId}`, {
+        fetch(`http://localhost:5236/api/Player?playerName=${playerName}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
+                window.location.reload();
                 console.log(data);
             })
             .catch(error => {
@@ -34,11 +36,12 @@ const Player = () => {
             });
     };
     
-    const handleNPCCall = (npcId) => {
-        return fetch(`http://localhost:5236/api/NPC/GetNPC?npcId=${npcId}`)
+    const handlePlayerCall = () => {
+        return fetch(`http://localhost:5236/api/Player/GetOne?name=${playerName}`)
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
+                console.log(data);
+                setSinglePlayer(data);
                 return data;
             })
             .catch(error => {
@@ -48,12 +51,13 @@ const Player = () => {
     };
 
     const handleLevelUpPlayer = () => {
-        fetch(`http://localhost:5236/api/Player/LevelUp?playerId=${playerId}`, {
+        fetch(`http://localhost:5236/api/Player/AddExperience?playerName=${playerName}&experience=${experience}`, 
+        {
             method: 'PUT'
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
+                window.location.reload();
                 console.log(data);
             })
             .catch(error => {
@@ -63,12 +67,13 @@ const Player = () => {
     };
 
     const handleItemPlayer = () => {
-        fetch(`http://localhost:5236/api/Player/AddItem?itemName=${itemName}&playerID=${playerId}`, {
+        fetch(`http://localhost:5236/api/Player/AddItem?itemName=${itemName}&playerName=${playerName}`, 
+        {
             method: 'PUT'
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
+                window.location.reload();
                 console.log(data);
             })
             .catch(error => {
@@ -78,10 +83,10 @@ const Player = () => {
     };
 
     return (
-        <div>
+        <div className='wrap-p'>
             <div className='all-item-data'> Items around the world: 
                 {itemData.map(itemData => (
-                        <p>{itemData.item.id} - {itemData.item.properties.name}</p>
+                        <p>{itemData.name}</p>
                     ))}
             </div>
             <h1 className='i-p'>Players</h1>
@@ -99,37 +104,58 @@ const Player = () => {
                         color: 'white'
                     }}
                     >
-                        Player: {player.properties.name}<br/>
-                        Bio: {player.properties.bio}<br/>
-                        Honor: {player.properties.honor}<br/>
-                        Gold: {player.properties.gold}<br/>
-                        Id: [{player.id}]<br/>
-                        Email: {player.properties.email}<br/>
-                        Created At: {player.properties.createdAt}<br/>
-                        Achievement Points: {player.properties.achievementPoints}<br/>
+                        Player: {player.name}<br/>
+                        Bio: {player.bio}<br/>
+                        Honor: {player.honor}<br/>
+                        Gold: {player.gold}<br/>
+                        Email: {player.email}<br/>
+                        Created At: {player.createdAt}<br/>
+                        Achievement Points: {player.achievementPoints}<br/>
                     </button>
                 ))}
             </div>
             <h1 className='i-p'>Admin: Delete a player</h1>
             <div className='delete-player'>
-                <input type="number" placeholder="Enter player ID" onChange={e => setPlayerId(e.target.value)} />
+                <input type="text" placeholder="Enter player's name" onChange={e => setPlayerName(e.target.value)}/>
                 <button onClick={handleDeletePlayer}>Delete Player</button>
             </div>
             <h1 className='i-p'>Admin: Level up a player</h1>
             <div className='level-player'>
-                <input type="number" placeholder="Enter player ID" onChange={e => setPlayerId(e.target.value)} />
+                <input type="text" placeholder="Enter player's name" onChange={e => setPlayerName(e.target.value)} />
+                <input type="number" placeholder="Enter deserved experience" onChange={e => setExperience(e.target.value)} />
                 <button onClick={handleLevelUpPlayer}>Level up!</button>
             </div>
             <h1 className='i-p'>Admin: Give player an item</h1>
             <div className='item-player'>
-                <input type="number" placeholder="Enter player ID" onChange={e => setPlayerId(e.target.value)} />
+                <input type="text" placeholder="Enter player's name" onChange={e => setPlayerName(e.target.value)} />
                 <input type="text" placeholder="Enter item name" onChange={e => setItemName(e.target.value)} />
                 <button onClick={handleItemPlayer}>Give</button>
             </div>
             <h1 className='i-p'>Gamewise: See a possible ally</h1>
             <div className='npc-player'>
-                <input type="number" placeholder="Enter npc ID" onChange={e => setPlayerId(e.target.value)} />
-                <button onClick={handleNPCCall}>Call</button>
+                <input type="text" placeholder="Enter player's name" onChange={e => setPlayerName(e.target.value)} />
+                <button onClick={handlePlayerCall}>Call</button>
+                <div className='players'>
+                    <div style={{
+                        backgroundColor: 'black',
+                        backgroundSize: 'cover',
+                        width: '200px',
+                        height: '200px', 
+                        border: 'none',
+                        cursor: 'pointer',
+                        margin: '3rem',
+                        color: 'white'
+                    }}
+                    >
+                        Player: {singlePlayer.name}<br/>
+                        Bio: {singlePlayer.bio}<br/>
+                        Honor: {singlePlayer.honor}<br/>
+                        Gold: {singlePlayer.gold}<br/>
+                        Email: {singlePlayer.email}<br/>
+                        Created At: {singlePlayer.createdAt}<br/>
+                        Achievement Points: {singlePlayer.achievementPoints}<br/>
+                    </div>
+            </div>
             </div>
         </div>
     );

@@ -1,0 +1,58 @@
+.split-t {
+    display: flex;
+    height: 100vh; 
+  }
+  
+  .player-t, .consumable {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .player-t 
+  {
+    background-color: #f0f8ff;
+  }
+  
+  .market-t 
+  {
+    background-color: #faebd7;
+  }
+
+.i-t
+{
+    margin: 2rem;
+}
+
+.create-trade
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.create-trade input[type="text"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-trade input[type="number"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-trade button 
+{
+    background-color: rgb(123, 132, 255);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}

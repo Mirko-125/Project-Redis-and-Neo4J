@@ -87,6 +87,7 @@ namespace Services
                     CREATE (n)-[:HAS]->(o)
                     CREATE (n)-[:WEARS]->(p)";
 
+            Console.WriteLine(query);
             var cursor = await session.RunAsync(query, parameters);
             return cursor;
             
