@@ -11,7 +11,7 @@ function Marketplace() {
     const [marketplaceID, setMarketplaceID] = useState(0);
     
     useEffect(() => {
-        fetch(`http://localhost:5236/api/Marketplace/GetAllMarketplaces`)
+        fetch(`http://localhost:5236/api/Marketplace/GetAll`)
             .then(response => response.json())
             .then(data => setMarketplaces(data));
     }, []);
@@ -23,7 +23,7 @@ function Marketplace() {
             restockCycle: restockCycle
         };
 
-        fetch(`http://localhost:5236/api/Marketplace/AddMarketplace`, {
+        fetch(`http://localhost:5236/api/Marketplace`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -48,7 +48,7 @@ function Marketplace() {
             restockCycle: restockCycle
         };
 
-        fetch(`http://localhost:5236/api/Marketplace/UpdateMarketplace`, {
+        fetch(`http://localhost:5236/api/Marketplace/Update`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ function Marketplace() {
     };
 
     const handleDeleteMarketplace = () => {
-        fetch(`http://localhost:5236/api/Marketplace/DeleteMarketplace?zone=${zone}`, {
+        fetch(`http://localhost:5236/api/Marketplace?zone=${zone}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -83,7 +83,7 @@ function Marketplace() {
 
     const handleAddItemToMarketplace = () => {
 
-        fetch(`http://localhost:5236/api/Marketplace/AddMarketplaceItems?zoneName=${marketZone}&itemName=${itemName}`, {
+        fetch(`http://localhost:5236/api/Marketplace/AddItem?zoneName=${marketZone}&itemName=${itemName}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

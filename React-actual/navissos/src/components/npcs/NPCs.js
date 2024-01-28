@@ -19,7 +19,7 @@ const NPCs = () => {
             mood: npcMood
         };
 
-        fetch('http://localhost:5236/api/NPC/AddNPC', {
+        fetch('http://localhost:5236/api/NPC', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -38,7 +38,7 @@ const NPCs = () => {
     };
     
     const handleDeleteNPC = () => {
-        fetch(`http://localhost:5236/api/NPC/DeleteNPC?npcId=${npcId}`, {
+        fetch(`http://localhost:5236/api/NPC?npcId=${npcId}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -62,7 +62,7 @@ const NPCs = () => {
             mood: npcMood
         };
 
-        fetch('http://localhost:5236/api/NPC/UpdateNPC', {
+        fetch('http://localhost:5236/api/NPC/Update', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -81,7 +81,7 @@ const NPCs = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/NPC/GetAllNPCs')
+        fetch('http://localhost:5236/api/NPC/GetAll')
             .then(response => response.json())
             .then(data => setNPCs(data));
     }, []);

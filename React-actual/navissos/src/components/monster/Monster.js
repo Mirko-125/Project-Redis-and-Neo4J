@@ -56,13 +56,13 @@ function Monster() {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Monster/GetAllMonsters')
+        fetch('http://localhost:5236/api/Monster/GetAll')
             .then(response => response.json())
             .then(data => setMonsters(data));
     }, []);
     
     const handleDeleteMonster = () => {
-        fetch(`http://localhost:5236/api/Monster/DeleteMonster?monsterId=${monsterId}`, {
+        fetch(`http://localhost:5236/api/Monster?monsterId=${monsterId}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -93,7 +93,7 @@ function Monster() {
             status: monsterStatus
         };
 
-        fetch('http://localhost:5236/api/Monster/UpdateMonster', {
+        fetch('http://localhost:5236/api/Monster/Update', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
