@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react';
 import './Ability.css';
 
 const Ability = () => {
-    const [abilityId, setAbilityId] = useState('');
-    const [playerId, setPlayerId] = useState('');
+    const [playerName, setPlayerName] = useState('');
     const [ability, setAbilities] = useState([]);
     const [name, setName] = useState('');
+    const [oldName, setOldName] = useState('');
     const [damage, setDamage] = useState(0);
     const [cooldown, setCooldown] = useState(0);
     const [range, setRange] = useState(0);
     const [special, setSpecial] = useState('');
     const [heal, setHeal] = useState(0);
 
-    const handleCreateAbility = () => {
+    const createData = () => {
         const abilityData = {
             name: name,
             damage: damage,
@@ -21,8 +21,18 @@ const Ability = () => {
             special: special,
             heal: heal
         };
+        return abilityData 
+    }
 
-        fetch('localhost:5236/api/Ability/CreateAbility', {
+    const updateData = () => {
+        const abilityData = {...createData(), oldName: oldName};
+        return abilityData;
+    }
+
+    const handleCreateAbility = () => {
+        const abilityData = createData();
+
+        fetch('http://localhost:5236/api/Ability', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -42,17 +52,9 @@ const Ability = () => {
     };
 
     const handleUpdateAbility = () => {
-        const abilityData = {
-            id: abilityId,
-            name: name,
-            damage: damage,
-            cooldown: cooldown,
-            range: range,
-            special: special,
-            heal: heal
-        };
+        const abilityData = updateData();
 
-        fetch('http://localhost:5236/api/Ability/UpdateAbility', {
+        fetch('http://localhost:5236/api/Ability/Update', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -72,7 +74,7 @@ const Ability = () => {
     };
 
     const handleDeleteAbility = () => {
-        fetch(`http://localhost:5236/api/Ability?abilityId=${abilityId}`, {
+        fetch(`http://localhost:5236/api/Ability?abilityName=${name}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -87,7 +89,7 @@ const Ability = () => {
     };
 
     const handleAssignAbility = () => {
-        fetch(`http://localhost:5236/api/Ability/AssignAbility?abilityId=${abilityId}&playerId=${playerId}`, {
+        fetch(`http://localhost:5236/api/Ability/AssignAbility?abilityName=${name}&playerName=${playerName}`, {
             method: 'POST'
         })
             .then(response => response.json())
@@ -102,7 +104,7 @@ const Ability = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Ability/AllAbilites')
+        fetch('http://localhost:5236/api/Ability/GetAll')
             .then(response => response.json())
             .then(data => setAbilities(data));
     }, []);
@@ -121,14 +123,12 @@ const Ability = () => {
                     margin: '3rem',
                     color: 'white'
                 }}>
-                    Id: [{ability.id}]<br/>
-                    {ability.properties.name}<br/>
-                    Special: {ability.properties.special}<br/>
-                    Damage: {ability.properties.damage}<br/>
-                    Heal: {ability.properties.heal}<br/>
-                    Cooldown: {ability.properties.cooldown}<br/>
-                    Range: {ability.properties.range}<br/>
-
+                    {ability.name}<br/>
+                    Special: {ability.special}<br/>
+                    Damage: {ability.damage}<br/>
+                    Heal: {ability.heal}<br/>
+                    Cooldown: {ability.cooldown}<br/>
+                    Range: {ability.range}<br/>
                 </button>
             ))}
             </div>
@@ -174,12 +174,6 @@ const Ability = () => {
             </div>
             <h1 className='i-a'>Update an ability</h1>
             <div className='update-ability'>
-                <input 
-                    className='create-input' 
-                    type="number" 
-                    placeholder="Enter ability ID" 
-                    onChange={e => setAbilityId(e.target.value)}
-                />
                 <input
                     className='create-input'
                     type="text"
@@ -216,17 +210,23 @@ const Ability = () => {
                     placeholder="Heal"
                     onChange={(e) => setHeal(e.target.value)}
                 />
+                <input
+                    className='create-input'
+                    type="text"
+                    placeholder="Current Name"
+                    onChange={(e) => setOldName(e.target.value)}
+                />
                 <button className='create-btn' onClick={handleUpdateAbility}>Edit an ability</button>
             </div>
             <h1 className='i-a'>Admin: Delete an ability</h1>
             <div className='delete-ability'>
-                <input type="number" placeholder="Enter ability ID" onChange={e => setAbilityId(e.target.value)} />
-                <button onClick={handleDeleteAbility}>Delete a NPC</button>
+                <input type="text" placeholder="Ability name" onChange={e => setName(e.target.value)} />
+                <button onClick={handleDeleteAbility}>Delete an Ability</button>
             </div>
             <h1 className='i-a'>Admin: Assign an ability</h1>
             <div className='assign-ability'>
-                <input type="number" placeholder="Id from ability..." onChange={e => setAbilityId(e.target.value)} />
-                <input type="number" placeholder="to player with id..." onChange={e => setPlayerId(e.target.value)} />
+                <input type="text" placeholder="Ability name..." onChange={e => setName(e.target.value)} />
+                <input type="text" placeholder="Player name..." onChange={e => setPlayerName(e.target.value)} />
                 <button onClick={handleAssignAbility}>Assign</button>
             </div>
         </div>
