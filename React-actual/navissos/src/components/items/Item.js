@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Item.css';
 
 const Item = () => {
-    const [item, setItem] = useState([]);
+    const [items, setItem] = useState([]);
     const [itemType, setItemType] = useState('');
     const [gearId, setGearId] = useState('');
     const [gearName, setGearName] = useState('');
@@ -26,8 +26,9 @@ const Item = () => {
     const [consumableDimensions, setConsumableDimensions] = useState(0);
     const [consumableValue, setConsumableValue] = useState(0);
     const [consumableEffect, setConsumableEffect] = useState('');
+    
 
-    const handleCreateGear = () => {
+    const createGearData = () => {
         const gearData = {
             name: gearName,
             type: gearType,
@@ -36,16 +37,30 @@ const Item = () => {
             value: gearValue,
             slot: gearSlot,
             level: gearLevel,
+            attributes: {
+                level: gearLevel,
+                strength: gearStrength,
+                agility: gearAgility,
+                intelligence: gearIntelligence,
+                stamina: gearStamina,
+                faith: gearFaith,
+                experience: gearExperience
+            },
             quality: gearQuality,
-            strength: gearStrength,
-            agility: gearAgility,
-            intelligence: gearIntelligence,
-            stamina: gearStamina,
-            faith: gearFaith,
-            experience: gearExperience
         };
+        return gearData;
+    }
 
-        fetch('http://localhost:5236/api/NPC/AddNPC', {
+    const updateGearData = () => {
+        const gearData = {...createGearData(), gearId: gearId};
+        return gearData;
+    }
+
+    const handleCreateGear = () => {
+        
+        const gearData = createGearData();
+
+        fetch('http://localhost:5236/api/Gear', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -73,7 +88,7 @@ const Item = () => {
             effect: consumableEffect
         };
 
-        fetch('http://localhost:5236/api/Consumable/AddConsumable', {
+        fetch('http://localhost:5236/api/Consumable', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -98,29 +113,13 @@ const Item = () => {
     }
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Item/GetAllItems') 
+        fetch('http://localhost:5236/api/Item/GetAll') 
             .then(response => response.json())
             .then(data => setItem(data));
     }, []);
     
     const handleUpdateGear = () => {
-        const gearData = {
-            gearId: gearId,
-            name: gearName,
-            type: gearType,
-            weight: gearWeight,
-            dimensions: gearDimensions,
-            value: gearValue,
-            slot: gearSlot,
-            level: gearLevel,
-            quality: gearQuality,
-            strength: gearStrength,
-            agility: gearAgility,
-            intelligence: gearIntelligence,
-            stamina: gearStamina,
-            faith: gearFaith,
-            experience: gearExperience
-        };
+        const gearData = updateGearData();
 
         fetch('http://localhost:5236/api/Gear/UpdateGear', {
             method: 'PUT',
@@ -174,10 +173,10 @@ const Item = () => {
         <div>
             <h1 className='i-a'>Items</h1>
             <div className='items'>
-                {item.map(item => (
-                    <button key={item.id} 
+                {items.map(item => (
+                    <button key={item.name} 
                     style={{
-                        backgroundColor: '#ADD8E6',
+                        backgroundColor: item.$type === 'Gear' ? '#FF0000' : '#0000FF',
                         backgroundSize: 'cover',
                         width: '200px',
                         height: '200px', 
@@ -187,143 +186,73 @@ const Item = () => {
                         color: 'white'
                     }}
                     >
-                        Id: [{item.item.id}]<br/>
-                        {item.item.properties.name}<br/>
-                        ({item.item.labels[1]})<br/>
-                        effect: {item.item.properties.effect}<br/>
-                        weight: {item.item.properties.weight}<br/>
-                        type: {item.item.properties.type}<br/>
-                        value: {item.item.properties.value}<br/>
-                        dimensions: {item.item.properties.dimensions}<br/>
-                        level: {item.item.properties.level}<br/>
-                        slot: {item.item.properties.slot}<br/>
-                        quality: {item.item.properties.quality}<br/>
+                        {item.name}<br/>
+                        weight: {item.weight}<br/>
+                        type: {item.type}<br/>
+                        value: {item.value}<br/>
+                        dimensions: {item.dimensions}<br/>
+                        {item.$type === 'Gear' && (
+                        <>
+                            level: {item.attributes.level}<br/>
+                            slot: {item.slot}<br/>
+                            quality: {item.quality}<br/>
+                        </>
+                        )}
+                        {item.$type !== 'Gear' && (
+                        <>
+                            effect: {item.effect}<br />
+                        </>
+                        )}
                     </button>
-                ))}
-                {item.map(item => (
-                <button key={item.id} style={{
-                    backgroundSize: 'cover',
-                    width: '200px',
-                    height: '100px', 
-                    border: 'none',
-                    cursor: 'pointer',
-                    margin: '3rem'
-                }}>
-                    {item.name}
-                </button>
             ))}
-            </div>
-            <div className='item-type'>
-                <h1 className='i-a'>Find your item by type</h1>
-                <input type="text" placeholder="Enter item type" onChange={e => setItemType(e.target.value)} />
-                <button onClick={handleItemType}>Find it</button>
-                <div className='found'>
-                    {itemType && item.map(item => (
-                        <button key={item.id} 
-                        style={{
-                            backgroundColor: '#ADD8E6',
-                            backgroundSize: 'cover',
-                            width: '200px',
-                            height: '200px', 
-                            border: 'none',
-                            cursor: 'pointer',
-                            margin: '3rem',
-                            color: 'white'
-                        }}
-                        >
-                            Id: [{item.item.id}]<br/>
-                            {item.item.properties.name}<br/>
-                            ({item.item.labels[1]})<br/>
-                            effect: {item.item.properties.effect}<br/>
-                            weight: {item.item.properties.weight}<br/>
-                            type: {item.item.properties.type}<br/>
-                            value: {item.item.properties.value}<br/>
-                            dimensions: {item.item.properties.dimensions}<br/>
-                            level: {item.item.properties.level}<br/>
-                            slot: {item.item.properties.slot}<br/>
-                            quality: {item.item.properties.quality}<br/>
-                        </button>
-                    ))}
-                </div>
-                <div className='item-type'>
-                <h1 className='i-a'>Find your item by type</h1>
-                <input type="text" placeholder="Enter item name" onChange={e => setItemType(e.target.value)} />
-                <button onClick={handleItemType}>Find it</button>
-                <div className='found'>
-                    {itemType && item.map(item => (
-                        <button key={item.id} 
-                        style={{
-                            backgroundColor: '#ADD8E6',
-                            backgroundSize: 'cover',
-                            width: '200px',
-                            height: '200px', 
-                            border: 'none',
-                            cursor: 'pointer',
-                            margin: '3rem',
-                            color: 'white'
-                        }}
-                        >
-                            Id: [{item.item.id}]<br/>
-                            {item.item.properties.name}<br/>
-                            ({item.item.labels[1]})<br/>
-                            effect: {item.item.properties.effect}<br/>
-                            weight: {item.item.properties.weight}<br/>
-                            type: {item.item.properties.type}<br/>
-                            value: {item.item.properties.value}<br/>
-                            dimensions: {item.item.properties.dimensions}<br/>
-                            level: {item.item.properties.level}<br/>
-                            slot: {item.item.properties.slot}<br/>
-                            quality: {item.item.properties.quality}<br/>
-                        </button>
-                    ))}
-                </div>
-            </div>
             </div>
             <div className='split'>
                 <div className='gear'>
-                    <h1 className='i-n'>+ Gear</h1>
-                        <div className='create-gear'>
-                            <input className='create-input' type="text" placeholder="Enter gear name" onChange={(e) => setGearName(e.target.value)} />
-                            <input className='create-input' type="text" placeholder="Enter gear type" onChange={(e) => setGearType(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear weight" onChange={(e) => setGearWeight(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear dimensions" onChange={(e) => setGearDimensions(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear value" onChange={(e) => setGearValue(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear slot" onChange={(e) => setGearSlot(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear level" onChange={(e) => setGearLevel(e.target.value)} />
-                            <input className='create-input' type="text" placeholder="Enter gear quality" onChange={(e) => setGearQuality(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear strength" onChange={(e) => setGearStrength(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear agility" onChange={(e) => setGearAgility(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear intelligence" onChange={(e) => setGearIntelligence(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear stamina" onChange={(e) => setGearStamina(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear faith" onChange={(e) => setGearFaith(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter gear experience" onChange={(e) => setGearExperience(e.target.value)} />
-                            <br/>
-                            <button className='gear-button' onClick={handleCreateGear}>Create a new Gear</button>
-                        </div>
-                            <h1 className='i-n'>Modify Gear</h1>
-                            <div className='create-gear'>
-                                <input className='create-input' type="number" placeholder="Enter gear ID" onChange={e => setGearId(e.target.value)} />
-                                <input className='create-input' type="text" placeholder="Enter gear name" onChange={(e) => setGearName(e.target.value)} />
-                                <input className='create-input' type="text" placeholder="Enter gear type" onChange={(e) => setGearType(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear weight" onChange={(e) => setGearWeight(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear dimensions" onChange={(e) => setGearDimensions(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear value" onChange={(e) => setGearValue(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear slot" onChange={(e) => setGearSlot(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear level" onChange={(e) => setGearLevel(e.target.value)} />
-                                <input className='create-input' type="text" placeholder="Enter gear quality" onChange={(e) => setGearQuality(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear strength" onChange={(e) => setGearStrength(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear agility" onChange={(e) => setGearAgility(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear intelligence" onChange={(e) => setGearIntelligence(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear stamina" onChange={(e) => setGearStamina(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear faith" onChange={(e) => setGearFaith(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter gear experience" onChange={(e) => setGearExperience(e.target.value)} />
-                                <br/>
-                                <button className='gear-button' onClick={handleUpdateGear}>Modify gear</button>
-                            </div>    
+                    <div className='create-gear'>
+                        <h1 className='i-n'>+ Gear</h1>
+                        <input className='create-input' type="text" placeholder="Enter gear name" onChange={(e) => setGearName(e.target.value)} />
+                        <input className='create-input' type="text" placeholder="Enter gear type" onChange={(e) => setGearType(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear weight" onChange={(e) => setGearWeight(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear dimensions" onChange={(e) => setGearDimensions(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear value" onChange={(e) => setGearValue(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear slot" onChange={(e) => setGearSlot(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear level" onChange={(e) => setGearLevel(e.target.value)} />
+                        <input className='create-input' type="text" placeholder="Enter gear quality" onChange={(e) => setGearQuality(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear strength" onChange={(e) => setGearStrength(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear agility" onChange={(e) => setGearAgility(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear intelligence" onChange={(e) => setGearIntelligence(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear stamina" onChange={(e) => setGearStamina(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear faith" onChange={(e) => setGearFaith(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear experience" onChange={(e) => setGearExperience(e.target.value)} />
+                        <br/>
+                        <button className='gear-button' onClick={handleCreateGear}>Create a new Gear</button>
+                    </div>
+                        
+                    <div className='create-gear'>
+                        <h1 className='i-n'>Modify Gear</h1>
+                        <input className='create-input' type="number" placeholder="Enter gear ID" onChange={e => setGearId(e.target.value)} />
+                        <input className='create-input' type="text" placeholder="Enter gear name" onChange={(e) => setGearName(e.target.value)} />
+                        <input className='create-input' type="text" placeholder="Enter gear type" onChange={(e) => setGearType(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear weight" onChange={(e) => setGearWeight(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear dimensions" onChange={(e) => setGearDimensions(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear value" onChange={(e) => setGearValue(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear slot" onChange={(e) => setGearSlot(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear level" onChange={(e) => setGearLevel(e.target.value)} />
+                        <input className='create-input' type="text" placeholder="Enter gear quality" onChange={(e) => setGearQuality(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear strength" onChange={(e) => setGearStrength(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear agility" onChange={(e) => setGearAgility(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear intelligence" onChange={(e) => setGearIntelligence(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear stamina" onChange={(e) => setGearStamina(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear faith" onChange={(e) => setGearFaith(e.target.value)} />
+                        <input className='create-input' type="number" placeholder="Enter gear experience" onChange={(e) => setGearExperience(e.target.value)} />
+                        <br/>
+                        <button className='gear-button' onClick={handleUpdateGear}>Modify gear</button>
+                    </div>    
                 </div>
-                <div className='consumable'>
-                <h1 className='i-n'>+ Cons.</h1>
+                <div className='consumable-div'>
+                
                 <div className='create-consumable'>
+                    <h1 className='i-n'>+ Cons.</h1>
                     <input className='create-input' type="text" placeholder="Enter consumable name" onChange={(e) => setConsumableName(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter consumable type" onChange={(e) => setConsumableType(e.target.value)} />
                     <input className='create-input' type="number" placeholder="Enter consumable weight" onChange={(e) => setConsumableWeight(e.target.value)} />
@@ -333,8 +262,9 @@ const Item = () => {
                     <br/>
                     <button className='consumable-button' onClick={handleCreateConsumable}>Create a new Consumable</button>
                 </div>
-                <h1 className='i-n'>Mod Cons.</h1>
+                
                 <div className='create-consumable'>
+                    <h1 className='i-n'>Mod Cons.</h1>
                     <input className='create-input' type="number" placeholder="Enter consumable ID" onChange={e => setConsumableId(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter consumable name" onChange={(e) => setConsumableName(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter consumable type" onChange={(e) => setConsumableType(e.target.value)} />
