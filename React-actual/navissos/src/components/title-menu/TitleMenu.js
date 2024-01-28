@@ -19,7 +19,6 @@ function TitleMenu() {
         <button className='select-button' onClick={() => navigate('/marketplace')}>Marketplace</button>
         <button className='select-button' onClick={() => navigate('/trade')}>Trade</button>
         <button className='select-button' onClick={() => navigate('/')}>Logout</button>
-        <button className='select-button' onClick={() => navigate('/super-secret-panel')}>Admin board</button>
       </div>
     </div>
   );

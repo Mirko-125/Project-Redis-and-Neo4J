@@ -78,7 +78,7 @@ const Player = () => {
     };
 
     return (
-        <div>
+        <div className='wrap-p'>
             <div className='all-item-data'> Items around the world: 
                 {itemData.map(itemData => (
                         <p>{itemData.item.id} - {itemData.item.properties.name}</p>

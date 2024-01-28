@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import Create from './components/create-player/Create';
 import TitleMenu from './components/title-menu/TitleMenu';
 import Ability from './components/ability/Ability';
@@ -13,7 +12,6 @@ import Monster from './components/monster/Monster';
 import NPCs from './components/npcs/NPCs';
 import Player from './components/player/Player';
 import Trade from './components/trade/Trade';
-import Admin from './components/super-secret-panel/Admin';
 
 import reportWebVitals from './reportWebVitals';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -38,8 +36,7 @@ const router = createBrowserRouter([
   { path: '/monster', element: <Monster></Monster> },
   { path: '/npcs', element: <NPCs></NPCs> },
   { path: '/player', element: <Player></Player> },
-  { path: '/trade', element: <Trade></Trade> },
-  { path: '/super-secret-panel', element: <Admin></Admin> },
+  { path: '/trade', element: <Trade></Trade> }
 ]);
 
 
