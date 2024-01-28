@@ -182,14 +182,14 @@ namespace Services
 
         
         
-        public async Task<List<Trade>> GetPlayerTradesAsync(int playerid)
+        public async Task<List<Trade>> GetPlayerTradesAsync(string playerName)
         {
             var session = _driver.AsyncSession();
 
             string query = $@"
                 MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
                       (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
-                WHERE ID(receiver) = $playerid OR ID(requester) = $playerid
+                WHERE receiver.name = $playerName OR requester.name = $playerName
                 OPTIONAL MATCH (recItem)-[r:HAS]->(recAttr:Attributes)
                 WHERE recItem:Gear
                 OPTIONAL MATCH (reqItem)-[r:HAS]->(reqAttr:Attributes)
@@ -201,7 +201,7 @@ namespace Services
                 COLLECT(DISTINCT {{ item: recItem, attributes: recAttr }}) AS itemsRec,
                 COLLECT(DISTINCT {{ item: reqItem, attributes: reqAttr }}) AS itemsReq ";
            
-            var cursor = await session.RunAsync(query, new {playerid = playerid});
+            var cursor = await session.RunAsync(query, new {playerName = playerName});
             var trades = new List<Trade>();
             await cursor.ForEachAsync(record =>
             {
@@ -214,7 +214,11 @@ namespace Services
         public async Task<IResultCursor> FinalizeAsync(TradeUpdateDto tradeDto)
         {
             var session = _driver.AsyncSession();
-
+            bool tradeExist = await TradeExist(tradeDto.TradeID);
+            if(!tradeExist)
+            {
+                throw new Exception($"Trade with this ID doesn't exist.");
+            }
             var parameters = new
             {
                 tradeID = tradeDto.TradeID,
@@ -238,9 +242,34 @@ namespace Services
         public async Task<IResultCursor> DeleteAsync(int tradeID)
         {
             var session = _driver.AsyncSession();
+            bool tradeExist = await TradeExist(tradeID);
+            if(!tradeExist)
+            {
+                throw new Exception($"Trade with this ID doesn't exist.");
+            }
             var query = @$"MATCH (n:{type}) WHERE id(n)=$tradeID DETACH DELETE n";
             var parameters = new {tradeID};
             return await session.RunAsync(query, parameters);
         }
+
+        public async Task<bool> TradeExist(int tradeID)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new { tradeID = tradeID };
+            var checkQuery = $@"
+                MATCH ({_key}:{type}) where ID({_key})=$tradeID
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countTrade = record["count"].As<int>();
+
+            if (countTrade > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        
     }     
 }
