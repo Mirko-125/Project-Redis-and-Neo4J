@@ -8,13 +8,13 @@ function Create() {
     const [password, setPassword] = useState('');
     const [createdAt, setCreatedAt] = useState('');
     const [bio, setBio] = useState('');
-    const [classId, setClassId] = useState('');
+    const [className, setClassName] = useState('');
     const [classData, setClassData] = useState([]);
 
     const navigate = useNavigate();
     
     useEffect(() => {
-        fetch('http://localhost:5236/api/Class/GetAllClasses')
+        fetch('http://localhost:5236/api/Class/GetAll')
             .then(response => response.json())
             .then(data => setClassData(data));
     }, []);
@@ -22,20 +22,21 @@ function Create() {
 
     const handleCreate = () => {
         const playerData = {
-            email,
-            name,
-            password,
-            createdAt,
-            bio,
-            classId
+            email: email,
+            name: name,
+            password: password,
+            createdAt: createdAt,
+            bio: bio,
+            class: className
         };
-
-        fetch('http://localhost:5236/api/Player/AddProperPlayer', {
+        const player = JSON.stringify(playerData);
+        console.log(player);
+        fetch('http://localhost:5236/api/Player', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(playerData)
+            body: player
         })
         .then(response => {
             if (response.ok) {
@@ -57,7 +58,7 @@ function Create() {
             <div className='create-frame'>
                 <div className='all-class-data'> In-game classes: 
                     {classData.map(classData => (
-                            <p>{classData.id} - {classData.properties.name}</p>
+                            <p>{classData.name}</p>
                         ))}
                 </div>
                 <h1 className='create-title'>The Elder Scrolls: Navissos</h1>
@@ -100,9 +101,9 @@ function Create() {
                     <input
                         className='create-input'
                         type="text"
-                        placeholder="Class ID"
-                        value={classId}
-                        onChange={(e) => setClassId(e.target.value)}
+                        placeholder="Enter class' name"
+                        value={className}
+                        onChange={(e) => setClassName(e.target.value)}
                     />
                     <button className='create-btn' onClick={handleCreate}>Start adventure!</button>
             </div>

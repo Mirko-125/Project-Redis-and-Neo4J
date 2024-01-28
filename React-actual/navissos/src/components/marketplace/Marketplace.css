@@ -8,3 +8,35 @@
     display: flex;
     flex-wrap: wrap;
 }
+
+.create-marketplace
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem;
+    width: 25%;
+}
+
+.create-marketplace input[type="text"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-marketplace input[type="number"] 
+{
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-marketplace button 
+{
+    background-color: rgb(255, 161, 37);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    cursor: pointer;
+}
