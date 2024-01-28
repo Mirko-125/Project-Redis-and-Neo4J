@@ -188,7 +188,7 @@ const NPCs = () => {
                 />
                 <button onClick={handleUpdateNPC}>Update NPC</button>
             </div>
-            <h1 className='i-p'>Gamewise: See a possible ally</h1>
+            <h1 className='i-p'>Gamewise: See a the certain NPC</h1>
             <div className='npc-player'>
                 <input type="text" placeholder="NPC's name is..." onChange={e => setNPCName(e.target.value)} />
                 <button onClick={handleFindNPC}>Call</button>
