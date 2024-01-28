@@ -104,11 +104,15 @@ namespace Services{
                     SET {_key}.endedAt= $endedAt
                     SET {_key}.isFinalized= $isFinalized
                 WITH {_key}";
-            query +=ItemQueryBuilder.ConnectWithItemsFromList(monsterBattleDto.LootItemsNames, _key, "LOOT");
+            if(monsterBattleDto.LootItemsNames.Length > 0)
+            {
+                query +=ItemQueryBuilder.ConnectWithItemsFromList(monsterBattleDto.LootItemsNames, _key, "LOOT");
+            }
             query +=$@"  
                 WITH {_key}
                 MATCH (monster:Monster)<-[:ATTACKED_MONSTER]-({_key})-[:ATTACKING_PLAYER]->(player:Player)";
-            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");          
+            query +=ReturnMonsterBattleWithAllItems(type, _key, "LOOT");
+            Console.WriteLine(query);          
             var cursor=await session.RunAsync(query, parameters);
             var record=await cursor.SingleAsync();
             MonsterBattle monsterBattle= BuildMonsterBattle(record);
