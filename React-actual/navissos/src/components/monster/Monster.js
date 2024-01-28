@@ -3,8 +3,8 @@ import './Monster.css';
 
 function Monster() {
     const [monsters, setMonsters] = useState([]);
-    const [monsterId, setSetMonsterId] = useState('');
     const [monsterName, setMonsterName] = useState('');
+    const [monsterOldName, setMonsterOldName] = useState('');
     const [monsterZone, setMonsterZone] = useState('');
     const [monsterType, setMonsterType] = useState('');
     const [monsterImageURL, setMonsterImageURL] = useState('');
@@ -98,6 +98,7 @@ function Monster() {
             name: monsterName,
             zone: monsterZone,
             imageURL: monsterImageURL,
+            type: monsterType,
             attributes: {
                 strength: monsterStrength,
                 agility: monsterAgility,
@@ -107,7 +108,8 @@ function Monster() {
                 experience: monsterExperience,
                 level: monsterLevel
             },
-            status: monsterStatus
+            status: monsterStatus,
+            oldName: monsterOldName
         };
 
         fetch('http://localhost:5236/api/Monster/Update', {
@@ -232,10 +234,10 @@ function Monster() {
             </div>
             <h1 className='i-m'>Admin: Update a monster</h1>
             <div className='update-monster'>
-            <input
+                <input
                     className='create-input'
                     type="text"
-                    placeholder="Enter old monster name"
+                    placeholder="Enter new monster name"
                     onChange={(e) => setMonsterName(e.target.value)}
                 />
                 <input
@@ -307,8 +309,8 @@ function Monster() {
                 <input
                     className='create-input'
                     type="text"
-                    placeholder="Enter possible loot names (separated by commas)"
-                    onChange={(e) => setPossibleLootNames(e.target.value.split(','))}
+                    placeholder="Current name"
+                    onChange={(e) => setMonsterOldName(e.target.value)}
                 />
                 <button onClick={handleUpdateMonster}>Update monster</button>
             </div>
