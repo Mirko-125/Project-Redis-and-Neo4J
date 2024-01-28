@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import './Achievement.css';
 
 const Achievement = () => { 
-    const [playerId, setPlayerId] = useState(0);
-    const [achievementId, setAchievementId] = useState(0);
+    const [playerName, setPlayerName] = useState(0);
     const [achievementName, setAchievementName] = useState('');
+    const [achievementOldName, setAchievementOldName] = useState('');
     const [achievementType, setAchievementType] = useState('');
     const [achievementPoints, setAchievementPoints] = useState(0);
     const [achievementConditions, setAchievementConditions] = useState('');
@@ -16,10 +16,11 @@ const Achievement = () => {
             name: achievementName,
             type: achievementType,
             points: achievementPoints,
-            conditions: achievementConditions
+            conditions: achievementConditions,
+            oldName: achievementOldName
         };
 
-        fetch('http://localhost:5236/api/Achievement/AddAchievement', {
+        fetch('http://localhost:5236/api/Achievement', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -38,13 +39,13 @@ const Achievement = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Achievement/AllAchievements') 
+        fetch('http://localhost:5236/api/Achievement/GetAll') 
             .then(response => response.json())
             .then(data => setAchievement(data));
     }, []);
     
     const handleUpdateAchievement = () => {
-        fetch(`http://localhost:5236/api/Achievement/UpdateAchievement?achievementId=${achievementId}&newName=${achievementName}&newType=${achievementType}&newPoints=${achievementPoints}&newConditions=${achievementConditions}`, {
+        fetch(`http://localhost:5236/api/Achievement/Update?newName=${achievementName}&newType=${achievementType}&newPoints=${achievementPoints}&newConditions=${achievementConditions}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -62,7 +63,7 @@ const Achievement = () => {
     };
 
     const handleDeleteAchievement = () => {
-        fetch(`http://localhost:5236/api/Achievement?achievementId=${achievementId}`, {
+        fetch(`http://localhost:5236/api/Achievement?achievementName=${achievementName}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -77,7 +78,7 @@ const Achievement = () => {
     };
 
     const handleGiveAchievment = () => {
-        fetch(`http://localhost:5236/api/Achievement/GiveAchievement?playerId=${playerId}&achievementId=${achievementId}`, {
+        fetch(`http://localhost:5236/api/Achievement/GiveAchievement?playerName=${playerName}&achievementName=${achievementName}`, {
             method: 'POST'
         })
             .then(response => response.json())
@@ -108,11 +109,10 @@ const Achievement = () => {
                         margin: '3rem',
                         color: 'white'
                     }}>
-                        Id: [{achievement.id}]<br/>
-                        {achievement.properties.name}<br/>
-                        Desc: {achievement.properties.conditions}<br/>
-                        Reward: {achievement.properties.points}<br/>
-                        Type: {achievement.properties.type}<br/>
+                        {achievement.name}<br/>
+                        Desc: {achievement.conditions}<br/>
+                        Reward: {achievement.points}<br/>
+                        Type: {achievement.type}<br/>
                     </button>
                 ))}
             </div>
@@ -148,9 +148,9 @@ const Achievement = () => {
             <div className='update-achievement'>
                 <input
                     className='create-input'
-                    type="number"
-                    placeholder="Enter achievement's id"
-                    onChange={(e) => setAchievementId(e.target.value)}
+                    type="text"
+                    placeholder="Enter achievement name"
+                    onChange={(e) => setAchievementOldName(e.target.value)}
                 />
                 <input
                     className='create-input'
@@ -180,13 +180,13 @@ const Achievement = () => {
             </div>
             <h1 className='i-m'>Admin: Remove an achievement</h1>
             <div className='delete-achievement'>
-                <input type="number" placeholder="Enter achievement ID" onChange={e => setAchievementId(e.target.value)} />
+                <input type="text" placeholder="Enter achievement Name" onChange={e => setAchievementName(e.target.value)} />
                 <button onClick={handleDeleteAchievement}>Remove achievement</button>
             </div>
             <h1 className='i-m'>Admin: Give an achievement</h1>
             <div className='give-achievement'>
-                <input type="number" placeholder="To player" onChange={e => setPlayerId(e.target.value)} />
-                <input type="number" placeholder="Give achivement" onChange={e => setAchievementId(e.target.value)} />
+                <input type="text" placeholder="To player" onChange={e => setPlayerName(e.target.value)} />
+                <input type="text" placeholder="Give achivement" onChange={e => setAchievementName(e.target.value)} />
                 <button onClick={handleGiveAchievment}>Give</button>
             </div>
         </div>

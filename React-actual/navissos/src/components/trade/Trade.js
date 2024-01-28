@@ -26,7 +26,7 @@ function Trade() {
             requesterItemNames: requesterItemNames
         };
 
-        fetch('http://localhost:5236/api/Trade/AddTrade', {
+        fetch('http://localhost:5236/api/Trade', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -50,7 +50,7 @@ function Trade() {
             requesterGold: requesterGold
         };
 
-        fetch('http://localhost:5236/api/Trade/FinalizeTrade', {
+        fetch('http://localhost:5236/api/Trade/Finalize', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -68,7 +68,7 @@ function Trade() {
             });
     };
     const handleRemoveTrade = () => {
-        fetch(`http://localhost:5236/api/Trade/DeleteTrade?tradeID=${tradeID}`, {
+        fetch(`http://localhost:5236/api/Trade?tradeID=${tradeID}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
