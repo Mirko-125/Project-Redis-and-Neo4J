@@ -16,8 +16,7 @@ const Achievement = () => {
             name: achievementName,
             type: achievementType,
             points: achievementPoints,
-            conditions: achievementConditions,
-            oldName: achievementOldName
+            conditions: achievementConditions
         };
 
         fetch('http://localhost:5236/api/Achievement', {
@@ -45,11 +44,22 @@ const Achievement = () => {
     }, []);
     
     const handleUpdateAchievement = () => {
-        fetch(`http://localhost:5236/api/Achievement/Update?newName=${achievementName}&newType=${achievementType}&newPoints=${achievementPoints}&newConditions=${achievementConditions}`, {
+        const achievementData = {
+            name: achievementName,
+            type: achievementType,
+            points: achievementPoints,
+            conditions: achievementConditions,
+            oldName: achievementOldName
+        };
+
+        const body = JSON.stringify(achievementData);
+
+        fetch(`http://localhost:5236/api/Achievement/Update`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: body
         })
             .then(response => response.json())
             .then(data => {
@@ -149,13 +159,13 @@ const Achievement = () => {
                 <input
                     className='create-input'
                     type="text"
-                    placeholder="Enter achievement name"
+                    placeholder="Current name"
                     onChange={(e) => setAchievementOldName(e.target.value)}
                 />
                 <input
                     className='create-input'
                     type="text"
-                    placeholder="Enter achievement name"
+                    placeholder="New name"
                     onChange={(e) => setAchievementName(e.target.value)}
                 />
                 <input
