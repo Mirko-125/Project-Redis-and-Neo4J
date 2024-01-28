@@ -34,7 +34,7 @@ namespace Services
             var parameters = new
             {
                 zone = marketplaceDto.Zone,
-                itemCount = marketplaceDto.ItemCount,
+                itemCount = 0,
                 restockCycle = marketplaceDto.RestockCycle
             };
 
@@ -49,7 +49,6 @@ namespace Services
             return result;
 
         }
-
         public async Task<Marketplace> AddItem(string zoneName, string itemName)
         {
             var session = _driver.AsyncSession();
@@ -65,11 +64,14 @@ namespace Services
             string addItemQuery = @$"
                 WITH {item}
                     MATCH ({_key}:{type} {{zone: $zone}})
-                    MERGE ({_key})-[:HAS]->({item}) ";
+                    MERGE ({_key})-[:HAS]->({item}) 
+                    SET ({_key}).itemCount = COALESCE(({_key}).itemCount, 0) + 1";
             //string returnQuery = ItemQueryBuilder.CollectItemsWith(type, _key);
             string query = itemQuery + addItemQuery;// + returnQuery;
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, parameters);
+            Console.WriteLine("prvi");
+            ///ne radiiiiiii
             var record = await cursor.SingleAsync();
             Marketplace market = BuildMarketplace(record);
             await _cache.SetDataAsync(_key + zoneName, market, 60);
@@ -139,15 +141,13 @@ namespace Services
 
             var parameters = new 
             { 
-                marketplaceID = dto.MarketplaceID,
                 zone = dto.Zone,
                 restockCycle = dto.RestockCycle
             };
 
             string query = @$"
-                MATCH (n:{type}) WHERE ID(n)=$marketplaceID
-                    SET n.zone = $zone
-                    SET n.restockCycle = $restockCycle
+                MATCH (n:{type}) WHERE n.zone = $zone
+                   SET n.restockCycle = $restockCycle
                 RETURN n";
 
             return await session.RunAsync(query, parameters);
@@ -160,6 +160,46 @@ namespace Services
             var query = @$"MATCH (n:{type} {{zone: $zone}}) DETACH DELETE n";
             var parameters = new {zone};
             return await session.RunAsync(query, parameters);
+        }
+
+        public async Task<IResultCursor> DeleteOneItemAsync(string zone, string name)
+        {
+            var session = _driver.AsyncSession();
+            var query = $@"
+                MATCH (n:Marketplace)-[r:HAS]->(i:Item)
+                    WHERE n.zone = $zone AND i.name = $name
+                    OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
+                    DELETE r
+                    SET n.itemCount = COALESCE(n.itemCount, 0) - 1
+                    RETURN n
+                ";
+            var parameters = new {zone, name};
+            return await session.RunAsync(query, parameters);
+        }
+
+
+        public async Task<bool> MarketplaceExist(string zone)
+        {
+            var session = _driver.AsyncSession();
+            bool marketplaceExist = await MarketplaceExist(zone);
+            if(!marketplaceExist)
+            {
+                throw new Exception($"Marketplace with this zone doesn't exist.");
+            }
+            var parameters = new { zone = zone };
+            var checkQuery = $@"
+                MATCH ({_key}:{type}) WHERE{_key}.zone=$zone
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countMarketplace = record["count"].As<int>();
+
+            if (countMarketplace > 0)
+            {
+                return true;
+            }
+            return false;
         }
     }     
 }

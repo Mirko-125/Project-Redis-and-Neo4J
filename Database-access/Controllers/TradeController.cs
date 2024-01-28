@@ -53,11 +53,11 @@ namespace Databaseaccess.Controllers
         
 
         [HttpGet("GetPlayerTrades")]
-        public async Task<IActionResult> GetPlayerTrades(int playerid)
+        public async Task<IActionResult> GetPlayerTrades(string playerName)
         {
             try
             {    
-                var trades = await _tradeService.GetPlayerTradesAsync(playerid);
+                var trades = await _tradeService.GetPlayerTradesAsync(playerName);
                 return Ok(trades);
             }
             catch (Exception ex)

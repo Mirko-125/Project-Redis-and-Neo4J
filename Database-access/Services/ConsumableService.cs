@@ -18,8 +18,12 @@ namespace Services
         public async Task<IResultCursor> CreateAsync(ConsumableCreateDto dto)
         {
             var session = _driver.AsyncSession();
-
-           var parameters = new
+            bool consumableExists = await ConsumableExist(dto.Name);
+            if(consumableExists)
+            {
+                throw new Exception($"Consumable with name '{dto.Name}' already exists.");
+            }
+            var parameters = new
             {
                 name = dto.Name,
                 weight = dto.Weight,
@@ -46,10 +50,13 @@ namespace Services
         public async Task<IResultCursor> UpdateAsync(ConsumableUpdateDto dto)
         {
             var session = _driver.AsyncSession();
-
+            bool consumableExists = await ConsumableExist(dto.Name);
+            if(!consumableExists)
+            {
+                throw new Exception($"Consumable with name '{dto.Name}' doesn't exists.");
+            }
             var parameters = new 
             { 
-                consumableID = dto.ConsumableID,
                 name = dto.Name, 
                 type = dto.Type,
                 value = dto.Value, 
@@ -59,8 +66,7 @@ namespace Services
             };
 
             string query = @$"
-                MATCH (n:{_type}) WHERE ID(n)=$consumableID
-                    SET n.name=$name
+                MATCH (n:{_type}) WHERE n.name=$name
                     SET n.type=$type
                     SET n.value=$value 
                     SET n.dimensions=$dimensions 
@@ -69,6 +75,25 @@ namespace Services
                 return n";
 
             return await session.RunAsync(query, parameters);
+        }
+
+        public async Task<bool> ConsumableExist(string name)
+        {
+            var session = _driver.AsyncSession();
+            var parameters = new { name = name };
+            var checkQuery = $@"
+                MATCH ({_key}:{_type}:Item {{name: $name}})
+                    RETURN COUNT({_key}) AS count";
+
+            var cursor = await session.RunAsync(checkQuery, parameters);
+            var record = await cursor.SingleAsync();
+            var countConsumable = record["count"].As<int>();
+
+            if (countConsumable > 0)
+            {
+                return true;
+            }
+            return false;
         }
 
     }     
