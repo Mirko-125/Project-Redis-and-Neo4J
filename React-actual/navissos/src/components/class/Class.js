@@ -3,6 +3,7 @@ import './Class.css';
 
 const Class = () => {
     const [classId, setClassId] = useState('');
+    const [className, setClassName] = useState('');
     const [classData, setClassData] = useState([]);
     const [name, setName] = useState('');
     const [baseStrength, setBaseStrength] = useState(0);
@@ -21,12 +22,12 @@ const Class = () => {
     const [levelGainLevel, setLevelGainLevel] = useState(0);
 
     const handleDeleteClass = () => {
-        fetch(`http://localhost:5236/api/Class?classId=${classId}`, {
+        fetch(`http://localhost:5236/api/Class?className=${className}`, {
             method: 'DELETE'
         })
             .then(response => response.json())
             .then(data => {
-                
+                window.location.reload();
                 console.log(data);
             })
             .catch(error => {
@@ -79,7 +80,7 @@ const Class = () => {
             levelGainLevel: levelGainLevel
         };
 
-        fetch('http://localhost:5236/api/Class/CreateClass', {
+        fetch('http://localhost:5236/api/Class', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,7 +89,7 @@ const Class = () => {
         })
             .then(response => response.json())
             .then(data => {
-                // Handle the response data if needed
+                window.location.reload();
                 console.log(data);
             })
             .catch(error => {
@@ -98,12 +99,13 @@ const Class = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5236/api/Class/GetAllClasses')
+        fetch('http://localhost:5236/api/Class/GetAll')
             .then(response => response.json())
             .then(data => setClassData(data));
     }, []);
 
     return (
+    <div className='class-wrap'>
         <div className='classFrame'>
             <div className='classes-data'>
                 <h1 className='i-c'>All classes: </h1>
@@ -116,7 +118,7 @@ const Class = () => {
                         border: 'none',
                         cursor: 'pointer',
                         margin: '3rem'
-                    }}>{classData.id} - {classData.properties.name}</div>
+                    }}>{classData.id} - {classData.name}</div>
                 ))}
             </div>
             <h1 className='i-c'>Admin: Create a new playable class</h1>
@@ -230,11 +232,12 @@ const Class = () => {
                 <button onClick={handleEditClass}>Edit class</button>
             </div>
             <h1 className='i-n'>Admin: Delete a class</h1>
-            <div className='delete-class'>
-                <input type="number" placeholder="Enter class ID" onChange={e => setClassId(e.target.value)} />
-                <button onClick={handleDeleteClass}>Delete a class</button>
+            <div className='create-class'>
+                <input type="text" placeholder="Enter class name" onChange={e => setClassName(e.target.value)} />
+                <button onClick={handleDeleteClass}>Delete class</button>
             </div>
         </div>
+    </div>
     );
 }
 
