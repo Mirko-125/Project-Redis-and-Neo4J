@@ -98,13 +98,15 @@ function Create() {
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
                     />
-                    <input
+                    <select
                         className='create-input'
-                        type="text"
-                        placeholder="Enter class' name"
                         value={className}
                         onChange={(e) => setClassName(e.target.value)}
-                    />
+                    >
+                        {classData.map(classItem => (
+                            <option key={classItem.id} value={classItem.name}>{classItem.name}</option>
+                        ))}
+                    </select>
                     <button className='create-btn' onClick={handleCreate}>Start adventure!</button>
             </div>
         </div>
