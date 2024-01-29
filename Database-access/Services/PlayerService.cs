@@ -216,7 +216,7 @@ namespace Services
             return result;
         }
 
-        public async Task<IResultCursor> DetachGear(string gearName, string playerName)
+        public async Task<IResultCursor> UnequipGear(string gearName, string playerName)
         {
             var session = _driver.AsyncSession();
             var parameters = new {playerName, gearName};

@@ -15,7 +15,7 @@ namespace Databaseaccess.Controllers
 
         public MonsterBattleController(MonsterBattleService monsterBattleService, PlayerService playerService)
         {
-            _monsterBattleService= monsterBattleService;
+            _monsterBattleService = monsterBattleService;
             _playerService = playerService;
         }
 
@@ -38,12 +38,12 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                MonsterBattle monsterBattle= await _monsterBattleService.Finalize(dto);
-                if(dto.LootItemsNames.Length > 0)
+                MonsterBattle monsterBattle = await _monsterBattleService.Finalize(dto);
+                if (dto.LootItemsNames.Length > 0)
                 {
                     foreach(string item in dto.LootItemsNames)
                     {
-                        //await _playerService.AddItemAsync(item, monsterBattle.Player.Name);
+                        await _playerService.AddItemAsync(item, monsterBattle.Player.Name);
                     }
                 }
                 return Ok();
@@ -86,7 +86,7 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-               var result= await _monsterBattleService.DeleteAsync(monsterBattleId);
+               var result = await _monsterBattleService.DeleteAsync(monsterBattleId);
                return Ok();
             }
             catch (Exception ex)

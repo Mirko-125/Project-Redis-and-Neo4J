@@ -100,13 +100,14 @@ namespace Databaseaccess.Controllers
             {
                 Player player = await _playerService.GetPlayerAsync(playerName);
                 Item item = await _itemService.GetByNameAsync(gearName);
-                if(item is Gear newGear )
+                if (item is Gear newGear)
                 {
                     foreach(Gear oldGear in player.Equipment.EquippedGear)
                     {
                         if(oldGear.Slot == newGear.Slot)
                         {
-                            await _playerService.DetachGear(oldGear.Name, playerName);
+                            await _playerService.UnequipGear(oldGear.Name, playerName);
+                            await _playerService.AddItemAsync(oldGear.Name, playerName);
                         }
                     }
                     await _playerService.EquipGear(gearName, playerName);

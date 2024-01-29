@@ -10,13 +10,13 @@ namespace Databaseaccess.Models
 {
     public class Equipment
     {
-        public double AverageQuality { get; set; }
+        public string AverageQuality { get; set; }
         public double Weight { get; set; } 
         public List<Item> EquippedGear { get; set; }
 
         private void SetBaseAttributes(INode node)
         {
-            AverageQuality = node["averageQuality"].As<double>();
+            AverageQuality = node["averageQuality"].As<string>();
             Weight = node["weight"].As<double>();
         }
         public Equipment(INode node)
