@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import './Class.css';
 
 const Class = () => {
-    const [classId, setClassId] = useState('');
+    const [classOldName, setClassOldName] = useState('');
     const [className, setClassName] = useState('');
     const [classData, setClassData] = useState([]);
-    const [name, setName] = useState('');
     const [baseStrength, setBaseStrength] = useState(0);
     const [baseAgility, setBaseAgility] = useState(0);
     const [baseIntelligence, setBaseIntelligence] = useState(0);
@@ -21,7 +20,8 @@ const Class = () => {
     const [levelGainExperience, setLevelGainExperience] = useState(0);
     const [levelGainLevel, setLevelGainLevel] = useState(0);
 
-    const handleDeleteClass = () => {
+    const handleDeleteClass = () => 
+    {
         fetch(`http://localhost:5236/api/Class?className=${className}`, {
             method: 'DELETE'
         })
@@ -39,11 +39,28 @@ const Class = () => {
 
     const handleEditClass = () => {
         const classData = {
-            id: classId,
-            name: name
+            name: className,
+            baseAttributes: {
+                strength: baseStrength,
+                agility: baseAgility,
+                intelligence: baseIntelligence,
+                stamina: baseStamina,
+                faith: baseFaith,
+                experience: baseExperience,
+                level: baseLevel
+            },
+            levelGainAttributes: {
+                strength: levelGainStrength,
+                agility: levelGainAgility,
+                intelligence: levelGainIntelligence,
+                stamina: levelGainStamina,
+                faith: levelGainFaith,
+                experience: levelGainExperience,
+                level: levelGainLevel
+            },
+            oldName: classOldName
         };
-
-        fetch('http://localhost:5236/api/Class/UpdateClass?classId=${id}&newName=${name}', {
+        fetch(`http://localhost:5236/api/Class/Update`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -63,21 +80,25 @@ const Class = () => {
 
     const handleCreateClass = () => {
         const classData = {
-            name: name,
-            baseStrength: baseStrength,
-            baseAgility: baseAgility,
-            baseIntelligence: baseIntelligence,
-            baseStamina: baseStamina,
-            baseFaith: baseFaith,
-            baseExperience: baseExperience,
-            baseLevel: baseLevel,
-            levelGainStrength: levelGainStrength,
-            levelGainAgility: levelGainAgility,
-            levelGainIntelligence: levelGainIntelligence,
-            levelGainStamina: levelGainStamina,
-            levelGainFaith: levelGainFaith,
-            levelGainExperience: levelGainExperience,
-            levelGainLevel: levelGainLevel
+            name: className,
+            baseAttributes: {
+                strength: baseStrength,
+                agility: baseAgility,
+                intelligence: baseIntelligence,
+                stamina: baseStamina,
+                faith: baseFaith,
+                experience: baseExperience,
+                level: baseLevel
+            },
+            levelGainAttributes: {
+                strength: levelGainStrength,
+                agility: levelGainAgility,
+                intelligence: levelGainIntelligence,
+                stamina: levelGainStamina,
+                faith: levelGainFaith,
+                experience: levelGainExperience,
+                level: levelGainLevel
+            }
         };
 
         fetch('http://localhost:5236/api/Class', {
@@ -127,7 +148,7 @@ const Class = () => {
                     className='create-input'
                     type="text"
                     placeholder="Enter name"
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setClassName(e.target.value)}
                 />
                 <input
                     className='create-input'
@@ -219,15 +240,99 @@ const Class = () => {
             <div className='create-class'>
                 <input
                     className='create-input'
+                    type="text"
+                    placeholder="Enter class' old name"
+                    onChange={(e) => setClassOldName(e.target.value)}
+                />
+                <input
+                    className='create-input'
                     type="number"
-                    placeholder="Enter class id"
-                    onChange={(e) => setClassId(e.target.value)}
+                    placeholder="Enter base strength"
+                    onChange={(e) => setBaseStrength(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base agility"
+                    onChange={(e) => setBaseAgility(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base intelligence"
+                    onChange={(e) => setBaseIntelligence(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base stamina"
+                    onChange={(e) => setBaseStamina(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base faith"
+                    onChange={(e) => setBaseFaith(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base experience"
+                    onChange={(e) => setBaseExperience(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter base level"
+                    onChange={(e) => setBaseLevel(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain strength"
+                    onChange={(e) => setLevelGainStrength(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain agility"
+                    onChange={(e) => setLevelGainAgility(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain intelligence"
+                    onChange={(e) => setLevelGainIntelligence(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain stamina"
+                    onChange={(e) => setLevelGainStamina(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain faith"
+                    onChange={(e) => setLevelGainFaith(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain experience"
+                    onChange={(e) => setLevelGainExperience(parseInt(e.target.value))}
+                />
+                <input
+                    className='create-input'
+                    type="number"
+                    placeholder="Enter level gain level"
+                    onChange={(e) => setLevelGainLevel(parseInt(e.target.value))}
                 />
                 <input
                     className='create-input'
                     type="text"
                     placeholder="Enter class' new name"
-                    onChange={(e) => setName(parseInt(e.target.value))}
+                    onChange={(e) => setClassName(e.target.value)}
                 />
                 <button onClick={handleEditClass}>Edit class</button>
             </div>
