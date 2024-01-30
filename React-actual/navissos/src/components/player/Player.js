@@ -84,11 +84,11 @@ const Player = () => {
 
     return (
         <div className='wrap-p'>
-            <div className='all-item-data'> Items around the world: 
+            {/*<div className='all-item-data'> Items around the world: 
                 {itemData.map(itemData => (
                         <p>{itemData.name}</p>
                     ))}
-            </div>
+                </div>*/}
             <h1 className='i-p'>Players</h1>
             <div className='players'>
                 {player.map(player => (
@@ -109,7 +109,7 @@ const Player = () => {
                         Honor: {player.honor}<br/>
                         Gold: {player.gold}<br/>
                         Email: {player.email}<br/>
-                        Created At: {player.createdAt}<br/>
+                        Created At: {new Date(player.createdAt).toLocaleString('en-GB', { hour12: false })}<br/>
                         Achievement Points: {player.achievementPoints}<br/>
                     </button>
                 ))}
@@ -128,8 +128,19 @@ const Player = () => {
             <h1 className='i-p'>Admin: Give player an item</h1>
             <div className='item-player'>
                 <input type="text" placeholder="Enter player's name" onChange={e => setPlayerName(e.target.value)} />
-                <input type="text" placeholder="Enter item name" onChange={e => setItemName(e.target.value)} />
-                <button onClick={handleItemPlayer}>Give</button>
+                <select value={itemName} onChange={e => setItemName(e.target.value)}
+                    style={{
+                        width: '380px', 
+                        height: '30px', 
+                        fontSize: '16px', 
+                    }}
+                >
+                    {itemData.map((item, index) => (
+                        <option key={item.name}>{item.name}</option>
+                    ))}
+                </select>
+                {/*<input type="text" placeholder="Enter item name" onChange={e => setItemName(e.target.value)} />*/}
+                <button onClick={handleItemPlayer} style={{ marginTop: '10px' }}>Give</button>
             </div>
             <h1 className='i-p'>Gamewise: See a possible ally</h1>
             <div className='npc-player'>
@@ -152,7 +163,7 @@ const Player = () => {
                         Honor: {singlePlayer.honor}<br/>
                         Gold: {singlePlayer.gold}<br/>
                         Email: {singlePlayer.email}<br/>
-                        Created At: {singlePlayer.createdAt}<br/>
+                        Created At: {new Date(singlePlayer.createdAt).toLocaleString('en-GB', { hour12: false })}<br/>
                         Achievement Points: {singlePlayer.achievementPoints}<br/>
                     </div>
             </div>

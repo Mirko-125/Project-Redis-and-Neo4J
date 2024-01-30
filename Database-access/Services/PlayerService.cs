@@ -47,7 +47,7 @@ namespace Services
                 name = player.Name,
                 email = player.Email,
                 bio = player.Bio,
-                createdAt = player.CreatedAt,
+                createdAt = DateTime.Now,
                 password = player.Password,
                 cls = player.Class
             };

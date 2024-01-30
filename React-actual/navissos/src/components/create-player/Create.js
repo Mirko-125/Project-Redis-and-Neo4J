@@ -6,7 +6,6 @@ function Create() {
     const [email, setEmail] = useState('');
     const [name, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [createdAt, setCreatedAt] = useState('');
     const [bio, setBio] = useState('');
     const [className, setClassName] = useState('');
     const [classData, setClassData] = useState([]);
@@ -25,7 +24,6 @@ function Create() {
             email: email,
             name: name,
             password: password,
-            createdAt: createdAt,
             bio: bio,
             class: className
         };
@@ -56,11 +54,11 @@ function Create() {
     return (
         <div className="whole-wrap">    
             <div className='create-frame'>
-                <div className='all-class-data'> In-game classes: 
+                {/*<div className='all-class-data'> In-game classes: 
                     {classData.map(classData => (
                             <p>{classData.name}</p>
                         ))}
-                </div>
+                    </div>*/}
                 <h1 className='create-title'>The Elder Scrolls: Navissos</h1>
                     <h2 className='create-subtitle'>Start your journey into a land of nosql databases</h2>
                     <input
@@ -87,13 +85,6 @@ function Create() {
                     <input
                         className='create-input'
                         type="text"
-                        placeholder="Created at"
-                        value={createdAt}
-                        onChange={(e) => setCreatedAt(e.target.value)}
-                    />
-                    <input
-                        className='create-input'
-                        type="text"
                         placeholder="Bio"
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
@@ -102,6 +93,11 @@ function Create() {
                         className='create-input'
                         value={className}
                         onChange={(e) => setClassName(e.target.value)}
+                        style={{
+                            width: '320px', 
+                            height: '35px', 
+                            fontSize: '14px', 
+                        }}
                     >
                         {classData.map(classItem => (
                             <option key={classItem.id} value={classItem.name}>{classItem.name}</option>
