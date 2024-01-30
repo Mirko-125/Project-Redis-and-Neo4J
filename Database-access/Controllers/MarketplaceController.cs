@@ -43,8 +43,8 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                await _marketplaceService.AddItem(zoneName, itemName);
-                return Ok();          
+                var result = await _marketplaceService.AddItem(zoneName, itemName);
+                return Ok(result);          
             }
             catch (Exception ex)
             {

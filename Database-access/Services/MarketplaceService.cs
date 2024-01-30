@@ -65,13 +65,12 @@ namespace Services
                 WITH {item}
                     MATCH ({_key}:{type} {{zone: $zone}})
                     MERGE ({_key})-[:HAS]->({item}) 
-                    SET ({_key}).itemCount = COALESCE(({_key}).itemCount, 0) + 1";
-            //string returnQuery = ItemQueryBuilder.CollectItemsWith(type, _key);
-            string query = itemQuery + addItemQuery;// + returnQuery;
+                    SET {_key}.itemCount = COALESCE({_key}.itemCount, 0) + 1
+                    ";
+            string returnQuery = ItemQueryBuilder.ReturnSpecificObjectWithItems(type, _key);
+            string query = itemQuery + addItemQuery + returnQuery;
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, parameters);
-            Console.WriteLine("prvi");
-            ///ne radiiiiiii
             var record = await cursor.SingleAsync();
             Marketplace market = BuildMarketplace(record);
             await _cache.SetDataAsync(_key + zoneName, market, 60);
