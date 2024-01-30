@@ -40,8 +40,8 @@ namespace Services
                 requesterGold=tradeDto.RequesterGold,
                 startedAt=DateTime.Now,
                 endedAt="--",
-                receiverID=tradeDto.ReceiverID,
-                requesterID=tradeDto.RequesterID,
+                receiverName=tradeDto.ReceiverName,
+                requesterName=tradeDto.RequesterName,
                 receiverItemNames=tradeDto.ReceiverItemNames,
                 requesterItemNames=tradeDto.RequesterItemNames
             };
@@ -49,7 +49,7 @@ namespace Services
             if(tradeDto.RequesterItemNames.Length>0){
                 var playerRequesterQuery=$@"
                     MATCH(playerRequester:Player)-[:OWNS]->(inventoryRequester: Inventory)
-                        WHERE ID(playerRequester)=$requesterID
+                        WHERE playerRequester.name=$requesterName
                                 
                     MATCH (requesterItem :Item)
                         WHERE requesterItem.name
@@ -69,14 +69,14 @@ namespace Services
 
             var query = $@"
                 MATCH (playerReceiver_:Player)
-                    WHERE id(playerReceiver_)=$receiverID
+                    WHERE playerReceiver_.name=$receiverName
                             
                 MATCH (receiverItem: Item)
                     WHERE receiverItem.name IN $receiverItemNames
                 WITH playerReceiver_, collect(receiverItem) as receiverItemsList
                         
                 MATCH (playerRequester_:Player)
-                    WHERE id(playerRequester_)=$requesterID
+                    WHERE playerRequester_.name=$requesterName
                             
                 MATCH (requesterItem: Item)
                     WHERE requesterItem.name IN $requesterItemNames
