@@ -17,10 +17,12 @@ namespace Databaseaccess.Controllers
     public class TradeController : ControllerBase
     {
         private readonly TradeService _tradeService;
+        private readonly PlayerService _playerService;
 
-        public TradeController(TradeService tradeService, RedisCache redisCache)
+        public TradeController(TradeService tradeService, RedisCache redisCache, PlayerService playerService)
         {
             _tradeService = tradeService;
+            _playerService = playerService;
         }
 
         [HttpPost] 
@@ -28,7 +30,7 @@ namespace Databaseaccess.Controllers
         {
             try
             {
-                await _tradeService.CreateAsync(dto);
+                Trade trade = await _tradeService.CreateAsync(dto);
                 return Ok();
             }
             catch (Exception ex)
@@ -68,12 +70,42 @@ namespace Databaseaccess.Controllers
         
 
         [HttpPut("Finalize")]
-        public async Task<IActionResult> Finalize(TradeUpdateDto trade)
+        public async Task<IActionResult> Finalize(int tradeID)
         {
             try
             {
-                var result = await _tradeService.FinalizeAsync(trade);
-                return Ok(result);
+                Trade trade = await _tradeService.FinalizeAsync(tradeID);
+                
+                if (trade.RequesterGold < 0 || trade.ReceiverGold < 0)
+                {
+                    throw new Exception ("You can't trade negative gold!");
+                }
+                
+                if (trade.RequesterItems.Count > 0)
+                {
+                    foreach(Item item in trade.RequesterItems)
+                    {
+                        await _playerService.AddItemAsync(item.Name, trade.Receiver.Name);
+                        await _playerService.RemoveItem(item.Name, trade.Requester.Name);
+                    }
+                }
+                
+                if (trade.ReceiverItems.Count > 0)
+                {
+                    foreach(Item item in trade.ReceiverItems)
+                    {
+                        await _playerService.AddItemAsync(item.Name, trade.Requester.Name);
+                        await _playerService.RemoveItem(item.Name, trade.Receiver.Name);
+                    }
+                }
+
+                int reqGold = trade.ReceiverGold - trade.RequesterGold;
+                int recGold =  trade.RequesterGold - trade.ReceiverGold;
+                await _playerService.AddGold(trade.Receiver.Name, recGold);
+                await _playerService.AddGold(trade.Requester.Name, reqGold);
+                trade.Receiver.Gold += recGold;
+                trade.Requester.Gold += reqGold;
+                return Ok(trade);
             }
             catch (Exception ex)
             {

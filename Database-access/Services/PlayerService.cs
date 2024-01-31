@@ -261,5 +261,32 @@ namespace Services
 
             return false;
         }
+
+        public async Task<IResultCursor> RemoveItem(string itemName, string playerName)
+        {
+            var session = _driver.AsyncSession();
+            var query = $@"
+                MATCH (player:Player)-[:OWNS]->(inventory:Inventory) 
+                    WHERE player.name = $playerName
+                MATCH (inventory)-[relation:CONTAINS]->(item:Item)
+                    WHERE item.name = $itemName
+                DELETE relation
+                ";
+            var parameters = new { itemName, playerName };
+            Console.WriteLine(query);
+            return await session.RunAsync(query, parameters);
+        }
+        public async Task<IResultCursor> AddGold(string name, int gold)
+        {
+            var session = _driver.AsyncSession();
+            var query = $@"
+                MATCH (p:Player)
+                    WHERE p.name = $name
+                SET p.gold = p.gold + $gold 
+                ";
+            var result = await session.RunAsync(query, new {name, gold});
+            return result;
+        }
+
     }
 }

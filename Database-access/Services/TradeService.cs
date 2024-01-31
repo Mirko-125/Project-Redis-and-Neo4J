@@ -69,14 +69,14 @@ namespace Services
 
             var query = $@"
                 MATCH (playerReceiver_:Player)
-                    WHERE playerReceiver_.name=$receiverName
+                    WHERE playerReceiver_.name = $receiverName
                             
                 MATCH (receiverItem: Item)
                     WHERE receiverItem.name IN $receiverItemNames
                 WITH playerReceiver_, collect(receiverItem) as receiverItemsList
                         
                 MATCH (playerRequester_:Player)
-                    WHERE playerRequester_.name=$requesterName
+                    WHERE playerRequester_.name = $requesterName
                             
                 MATCH (requesterItem: Item)
                     WHERE requesterItem.name IN $requesterItemNames
@@ -211,32 +211,52 @@ namespace Services
             return trades;      
         }
 
-        public async Task<IResultCursor> FinalizeAsync(TradeUpdateDto tradeDto)
+        public async Task<Trade> FinalizeAsync(int tradeID)
         {
             var session = _driver.AsyncSession();
-            bool tradeExist = await TradeExist(tradeDto.TradeID);
+            bool tradeExist = await TradeExist(tradeID);
             if(!tradeExist)
             {
                 throw new Exception($"Trade with this ID doesn't exist.");
             }
             var parameters = new
             {
-                tradeID = tradeDto.TradeID,
-                receiverGold = tradeDto.ReceiverGold,
-                requesterGold = tradeDto.RequesterGold,
+                tradeID,
                 isFinalized = true, 
                 endedAt = DateTime.Now
             };
 
             string query = @$"
-                MATCH (n:{type}) WHERE ID(n)=$tradeID
-                    SET n.receiverGold = $receiverGold
-                    SET n.requesterGold = $requesterGold
-                    SET n.isFinalized = $isFinalized
-                    SET n.endedAt=$endedAt
-                RETURN n";
-            await _cache.DeleteAsync(_key + tradeDto.TradeID);
-            return await session.RunAsync(query, parameters);
+                MATCH (trade:{type}) WHERE ID(trade)=$tradeID AND trade.isFinalized = false
+                    SET trade.isFinalized = $isFinalized
+                    SET trade.endedAt=$endedAt
+
+                WITH trade
+
+                MATCH (receiver:Player)<-[relReceiver:RECEIVER]-(trade:Trade)-[relRequester:REQUESTER]->(requester:Player),
+                       (recItem:Item)<-[relReceiverItem:RECEIVER_ITEM]-(trade)-[relRequesterItem:REQUESTER_ITEM]->(reqItem:Item)
+                WHERE Id(trade) = $tradeID
+                OPTIONAL MATCH (recItem)-[r:HAS]->(recA:Attributes)
+                OPTIONAL MATCH (reqItem)-[r:HAS]->(reqA:Attributes)
+                RETURN 
+                trade as tradeInfo, 
+                requester, 
+                receiver, 
+                COLLECT({{ item: recItem,
+                           attributes: CASE WHEN recItem:Gear THEN recA ELSE NULL END
+                        }}) AS itemsRec,
+
+                COLLECT({{ item: reqItem,
+                           attributes: CASE WHEN reqItem:Gear THEN reqA ELSE NULL END
+                        }}) AS itemsReq
+                ";
+
+            var cursor = await session.RunAsync(query, parameters);
+            var record = await cursor.SingleAsync();
+            Console.WriteLine(query);
+            Trade trade = BuildTrade(record);
+            await _cache.DeleteAsync(_key + tradeID);
+            return trade;
         }
 
         public async Task<IResultCursor> DeleteAsync(int tradeID)
