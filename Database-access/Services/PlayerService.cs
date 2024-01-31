@@ -117,7 +117,8 @@ namespace Services
                     WHERE player.name = $playerName
                 MATCH (player)-[:IS]->(class)
                 MATCH (class)-[:LEVEL_GAINS_ATTRIBUTES]->({levelGainAttributes})
-                MATCH (player)-[:HAS]->({attributeIdentifier})";
+                MATCH (player)-[:HAS]->({attributeIdentifier})
+                SET {attributeIdentifier}.experience = {attributeIdentifier}.experience - 1000 ";
             query += AttributeQueryBuilder.AttributeAddition(attributeIdentifier, levelGainAttributes + ".");
 
             var result = await session.RunAsync(query, new {playerName});
@@ -133,7 +134,7 @@ namespace Services
                 MATCH (player:Player)-[:OWNS]->(inventory:Inventory)
                     WHERE player.name = $playerName
                     
-                MERGE (inventory)-[:CONTAINS]->(item)";
+                CREATE (inventory)-[:CONTAINS]->(item)";
             
             string query = findItemQuery + findPlayerQuery;
             Console.WriteLine(query);
@@ -161,7 +162,7 @@ namespace Services
                 WITH n, attributes, achievements, abilities, inventory, class, equipment, ";
             query += ItemQueryBuilder.CollectItems("inventoryItem", "inventoryA", "inventoryItems")
                 + ", \n "
-                + ItemQueryBuilder.CollectItems("equippedItem", "equipmentA", "equippedItems") + " \n "
+                + ItemQueryBuilder.CollectDistinctItems("equippedItem", "equipmentA", "equippedItems") + " \n "
                 + "return n, attributes, achievements, abilities, inventory, class, equipment, inventoryItems, equippedItems";
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, new {name});  
@@ -193,13 +194,6 @@ namespace Services
             double currentExperience = record["currentExperience"].As<double>();
             if(currentExperience > 1000)
             {
-                Console.WriteLine("vece");
-                var query2 = $@"
-                MATCH (p:Player)-[:HAS]->(a:Attributes)
-                    WHERE p.name = $name
-                SET a.experience = a.experience - 1000 
-                ";
-                await session.RunAsync(query2, new {name});
                 cursor = await LevelUpAsync(name);
             }
             return cursor;

@@ -24,6 +24,17 @@ namespace Services
             
             return query;
         }
+         public static string CollectDistinctItems(string itemIdentifier = "i", string attributeIdentifier="a", string itemsName="items")
+        {
+            string query = "";
+            query += $@"
+                COLLECT(DISTINCT{{
+                    item: {itemIdentifier},
+                    attributes: CASE WHEN {itemIdentifier}:Gear THEN {attributeIdentifier} ELSE NULL END
+                }}) AS {itemsName} ";
+            
+            return query;
+        }
 
         public static List<Item> BuildItemList(List<Dictionary<string, INode>> itemsNodeList)
         {

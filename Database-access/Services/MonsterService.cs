@@ -21,6 +21,40 @@ namespace Services{
             _driver = driver;
         }
 
+        public static readonly List<string> props =
+        [
+            "name",
+            "zone",
+            "type",
+            "imageURL",
+            "status"
+        ];
+
+        public static object SetParams(MonsterCreateDto dto, string oldName="")
+        {
+             if (oldName == "")
+            {
+                oldName = dto.Name;
+            }
+            
+            return new 
+            {
+                name = dto.Name,
+                zone = dto.Zone,
+                type = dto.Type,
+                imageURL = dto.ImageURL,
+                status = dto.Status,
+                strength = dto.Attributes.Strength,
+                agility = dto.Attributes.Agility,
+                intelligence = dto.Attributes.Intelligence,
+                stamina = dto.Attributes.Stamina,
+                faith = dto.Attributes.Faith,
+                experience = dto.Attributes.Experience,
+                level = dto.Attributes.Level,
+                possibleLootItems =  dto.PossibleLootNames
+            };
+        }
+
         public async Task<IResultCursor> CreateAsync(MonsterCreateDto monsterDto)
         {
             var session = _driver.AsyncSession();
@@ -28,15 +62,7 @@ namespace Services{
             {
                 throw new Exception("Monster already exists.");
             }
-            var parameters = new
-            {
-                name = monsterDto.Name,
-                zone = monsterDto.Zone,
-                type = monsterDto.Type,
-                imageURL= monsterDto.ImageURL,
-                status = monsterDto.Status,
-                possibleLootItems = monsterDto.PossibleLootNames    
-            };
+            var parameters = SetParams(monsterDto);
             if (monsterDto.PossibleLootNames.Length > 0)
             {
                 var possibleLootQuery =@"
@@ -51,16 +77,9 @@ namespace Services{
                 if (possibleLootItems.Count != monsterDto.PossibleLootNames.Length)
                     throw new Exception("Some of the items don't exist");
             }
-            string query = $@"
-                CREATE ({_key}:{type} {{
-                    name: $name,
-                    zone: $zone,
-                    type: $type,
-                    imageURL: $imageURL,
-                    status: $status
-                }})
-                WITH {_key}";
-            query+=AttributesService.CreateAttributes(monsterDto.Attributes);
+            string query = CreateQuery();
+            query +=$"WITH {_key} \n";
+            query+= AttributeQueryBuilder.CreateAttributes("attributes");
             query+=$@"
                 WITH {_key}, attributes
                 CREATE ({_key})-[:HAS]->(attributes)
@@ -78,7 +97,6 @@ namespace Services{
             {
                 throw new Exception("Monster with this name doesn't exist.");
             }
-
             var parameters = new 
             { 
                 oldName = monster.OldName,
@@ -87,15 +105,18 @@ namespace Services{
                 zone = monster.Zone,
                 imageURL= monster.ImageURL,
                 status = monster.Status,
+                strength = monster.Attributes.Strength,
+                agility = monster.Attributes.Agility,
+                intelligence = monster.Attributes.Intelligence,
+                stamina = monster.Attributes.Stamina,
+                faith = monster.Attributes.Faith,
+                experience = monster.Attributes.Experience,
+                level = monster.Attributes.Level,
             };
             string query = @$"
-                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE n.name=$oldName
-                SET n.name = $name
-                SET n.zone= $zone
-                SET n.type = $type
-                SET n.imageURL= $imageURL
-                SET n.status= $status";
-            query += AttributesService.UpdateAttributes(monster.Attributes);
+                MATCH (n:{type})-[:HAS]->(m:Attributes) WHERE n.name = $oldName";
+            query += SetQuery("n");
+            query += AttributeQueryBuilder.SetAttributes("m");
             query += "RETURN n";
             var result= await session.RunAsync(query, parameters);
             return result;
@@ -156,7 +177,27 @@ namespace Services{
             query+= $@",m";
             return query;
         }
+        public static string CreateQuery(string identifier="monster", string prefix="$")
+        {
+            string query = $"CREATE ({identifier}:Monster {{";
 
+            foreach (var prop in props)
+            {
+                query += $" {prop}: {prefix}{prop},";
+            }
+
+            query = query.TrimEnd(',') + " })";
+            return query;
+        }
+         public static string SetQuery(string identifier="", string prefix="$")
+        {
+            string query = " ";
+            foreach (var prop in props)
+            {
+                query += $"SET {identifier}.{prop} = {prefix}{prop} \n";
+            }
+            return query;
+        }
         public static async Task<bool> MonsterExist(string name, IAsyncSession sessions)
         {
             var session = sessions;
