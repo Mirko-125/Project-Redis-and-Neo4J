@@ -138,7 +138,8 @@ const Class = () => {
                         height: '100px',
                         border: 'none',
                         cursor: 'pointer',
-                        margin: '3rem'
+                        margin: '3rem',
+                        color: 'black'
                     }}>{classData.id} - {classData.name}</div>
                 ))}
             </div>

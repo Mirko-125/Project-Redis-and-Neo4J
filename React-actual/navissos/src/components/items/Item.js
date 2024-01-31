@@ -3,7 +3,6 @@ import './Item.css';
 
 const Item = () => {
     const [items, setItem] = useState([]);
-    const [itemType, setItemType] = useState('');
     const [gearId, setGearId] = useState('');
     const [gearName, setGearName] = useState('');
     const [gearType, setGearType] = useState('');
@@ -26,7 +25,7 @@ const Item = () => {
     const [consumableDimensions, setConsumableDimensions] = useState(0);
     const [consumableValue, setConsumableValue] = useState(0);
     const [consumableEffect, setConsumableEffect] = useState('');
-    
+    const [itemName, setItemName] = useState('');
 
     const createGearData = () => {
         const gearData = {
@@ -78,6 +77,21 @@ const Item = () => {
             });
     };
 
+    const handleDeleteItem = () => {
+        fetch(`http://localhost:5236/api/Item?name=${itemName}`, {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response data if needed
+                console.log(data);
+            })
+            .catch(error => {
+                // Handle the error if needed
+                console.error(error);
+            });
+    };
+
     const handleCreateConsumable = () => {
         const consumableData = {
             name: consumableName,
@@ -105,12 +119,6 @@ const Item = () => {
                 console.error(error);
             });
     };
-
-    const handleItemType = () => {
-        fetch(`http://localhost:5236/api/Item/GetItemByType?type=${itemType}`) 
-            .then(response => response.json())
-            .then(data => setItem(data));
-    }
 
     useEffect(() => {
         fetch('http://localhost:5236/api/Item/GetAll') 
@@ -168,7 +176,6 @@ const Item = () => {
             });
     };
 
-
     return (
         <div>
             <h1 className='i-a'>Items</h1>
@@ -176,7 +183,7 @@ const Item = () => {
                 {items.map(item => (
                     <button key={item.name} 
                     style={{
-                        backgroundColor: item.$type === 'Gear' ? '#FF0000' : '#0000FF',
+                        backgroundColor: item.$type === 'Gear' ? '#043399' : '#C95000',
                         backgroundSize: 'cover',
                         width: '200px',
                         height: '200px', 
@@ -205,6 +212,11 @@ const Item = () => {
                         )}
                     </button>
             ))}
+            </div>
+            <h1 className='i-m'>Admin: Remove an item</h1>
+            <div className='delete-item'>
+                <input type="text" placeholder="Enter item name" onChange={e => setItemName(e.target.value)} />
+                <button onClick={handleDeleteItem}>Remove item</button>
             </div>
             <div className='split'>
                 <div className='gear'>
