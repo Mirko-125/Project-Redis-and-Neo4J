@@ -9,6 +9,17 @@
     flex-wrap: wrap;
 }
 
+.wrap-m
+{
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    background-image: url('../../assets/shop.png');
+    color: #462d1e;
+    text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white, 2px 2px 0 white;
+    height: 100%;
+}
+
 .create-marketplace
 {
     display: flex;

@@ -140,7 +140,7 @@ const Class = () => {
                         cursor: 'pointer',
                         margin: '3rem',
                         color: 'black'
-                    }}>{classData.id} - {classData.name}</div>
+                    }}>{classData.name}</div>
                 ))}
             </div>
             <h1 className='i-c'>Admin: Create a new playable class</h1>

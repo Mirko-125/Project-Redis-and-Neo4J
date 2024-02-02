@@ -101,7 +101,7 @@ function Marketplace() {
     };
 
     return (
-        <div>
+        <div className="wrap-m">
             <h1 className='i-mp'>Markets</h1>
                 <div className="markets">
                     {marketplace.map(marketplace => (

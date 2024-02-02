@@ -109,7 +109,7 @@ const Ability = () => {
             .then(data => setAbilities(data));
     }, []);
     return (
-        <div>
+        <div className='wrap-ap'>
             <h1 className='i-abs'>All abilites</h1>
             <div className='people'>
             {ability.map(ability => (

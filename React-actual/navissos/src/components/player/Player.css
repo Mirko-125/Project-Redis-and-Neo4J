@@ -11,13 +11,11 @@
     width: 25%;
 }
 
-
 .delete-player input[type="text"] {
     width: 100%;
     padding: 0.5rem;
     margin-bottom: 1rem;
 }
-
 
 .delete-player input[type="number"] {
     width: 100%;
@@ -31,8 +29,12 @@
     display: flex;
     flex-direction: column;
     background-image: url('../../assets/oo.gif');
-    color: #550d0e;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    width: 100%;
+    color: white;
     height: 100%;
+    background-attachment: fixed;
 }
 
 
@@ -65,7 +67,7 @@
 }
 
 .level-player button {
-    background-color: rgb(116, 255, 197);
+    background-color: rgb(230, 175, 105);
     color: white;
     padding: 0.5rem 1rem;
     border: none;
@@ -114,7 +116,7 @@
 }
 
 .npc-player button {
-    background-color: rgb(145, 106, 0);
+    background-color: rgb(76, 116, 248);
     color: white;
     padding: 0.5rem 1rem;
     border: none;

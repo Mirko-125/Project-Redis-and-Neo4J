@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TitleMenu.css';
 
-function TitleMenu() {
+function TitleMenu() 
+{
   let navigate = useNavigate();
 
   return (

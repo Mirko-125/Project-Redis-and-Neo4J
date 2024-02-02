@@ -15,7 +15,8 @@
     display: flex;
     flex-direction: column;
     background-image: url('../../assets/map.png');
-    color: #82f0b0;
+    color: #94af8c;
+    text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white, 2px 2px 0 white;
     height: 100%;
 }
 

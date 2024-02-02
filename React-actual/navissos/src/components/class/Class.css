@@ -49,5 +49,7 @@
 .class-wrap
 {
     background-image: url('../../assets/map.png');
-    color: brown;
+    background-attachment: fixed;
+    color: #550d0e;
+    text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white, 2px 2px 0 white;
 }
