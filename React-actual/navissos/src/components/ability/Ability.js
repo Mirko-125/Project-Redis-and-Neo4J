@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Ability.css';
+import '../../styling/CrudContainer.css'
 
 const Ability = () => {
     const [playerName, setPlayerName] = useState('');
@@ -132,102 +133,97 @@ const Ability = () => {
                 </button>
             ))}
             </div>
-            <h1 className='i-a'>Create an ability</h1>
-            <div className='create-ability'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Name"
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Damage"
-                    onChange={(e) => setDamage(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Cooldown"
-                    onChange={(e) => setCooldown(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Range"
-                    onChange={(e) => setRange(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Special"
-                    onChange={(e) => setSpecial(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Heal"
-                    onChange={(e) => setHeal(e.target.value)}
-                />
-                <button className='create-btn' onClick={handleCreateAbility}>Create an ability</button>
-            </div>
-            <h1 className='i-a'>Update an ability</h1>
-            <div className='update-ability'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Name"
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Damage"
-                    onChange={(e) => setDamage(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Cooldown"
-                    onChange={(e) => setCooldown(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Range"
-                    onChange={(e) => setRange(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Special"
-                    onChange={(e) => setSpecial(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Heal"
-                    onChange={(e) => setHeal(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Current Name"
-                    onChange={(e) => setOldName(e.target.value)}
-                />
-                <button className='create-btn' onClick={handleUpdateAbility}>Edit an ability</button>
-            </div>
-            <h1 className='i-a'>Admin: Delete an ability</h1>
-            <div className='delete-ability'>
-                <input type="text" placeholder="Ability name" onChange={e => setName(e.target.value)} />
-                <button onClick={handleDeleteAbility}>Delete an Ability</button>
-            </div>
-            <h1 className='i-a'>Admin: Assign an ability</h1>
-            <div className='assign-ability'>
-                <input type="text" placeholder="Ability name..." onChange={e => setName(e.target.value)} />
-                <input type="text" placeholder="Player name..." onChange={e => setPlayerName(e.target.value)} />
-                <button onClick={handleAssignAbility}>Assign</button>
+            <div className='crud-container'>
+                <div>
+                    <h1 className='i-a'>Create an ability</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Damage"
+                            onChange={(e) => setDamage(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Cooldown"
+                            onChange={(e) => setCooldown(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Range"
+                            onChange={(e) => setRange(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Special"
+                            onChange={(e) => setSpecial(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Heal"
+                            onChange={(e) => setHeal(e.target.value)}
+                        />
+                        <button className='green-bg' onClick={handleCreateAbility}>Create an ability</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-a'>Update an ability</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Damage"
+                            onChange={(e) => setDamage(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Cooldown"
+                            onChange={(e) => setCooldown(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Range"
+                            onChange={(e) => setRange(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Special"
+                            onChange={(e) => setSpecial(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Heal"
+                            onChange={(e) => setHeal(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Current Name"
+                            onChange={(e) => setOldName(e.target.value)}
+                        />
+                        <button className='blue-bg' onClick={handleUpdateAbility}>Edit an ability</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-a'>Admin: Delete an ability</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Ability name" onChange={e => setName(e.target.value)} />
+                        <button className='red-bg' onClick={handleDeleteAbility}>Delete an Ability</button>
+                    </div>
+                    <h1 className='i-a'>Admin: Assign an ability</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Ability name..." onChange={e => setName(e.target.value)} />
+                        <input type="text" placeholder="Player name..." onChange={e => setPlayerName(e.target.value)} />
+                        <button className='violet-bg' onClick={handleAssignAbility}>Assign</button>
+                    </div>
+                </div>
             </div>
         </div>
     );

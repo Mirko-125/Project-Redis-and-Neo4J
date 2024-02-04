@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './NPCs.css';
+import '../../styling/CrudContainer.css'
 
 const NPCs = () => {
     const [npcs, setNPCs] = useState([]);
@@ -115,101 +116,99 @@ const NPCs = () => {
                 </button>
             ))}
             </div>
-            <h1 className='i-n'>Admin: Create a new non playable character</h1>
-            <div className='create-npc'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter npc name"
-                    onChange={(e) => setNPCName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter npc affinity"
-                    onChange={(e) => setNPCAffinity(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter npc image url"
-                    onChange={(e) => setNPCImageURL(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter npc zone"
-                    onChange={(e) => setNPCZone(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter npc mood"
-                    onChange={(e) => setNPCMood(e.target.value)}
-                />
-                <button onClick={handleCreateNPC}>Create a new NPC</button>
-            </div>
-            <h1 className='i-n'>Admin: Delete a NPC</h1>
-            <div className='delete-npc'>
-                <input type="text" placeholder="Enter npc's name" onChange={e => setNPCName(e.target.value)} />
-                <button onClick={handleDeleteNPC}>Delete a NPC</button>
-            </div>
-            <h1 className='i-n'>Admin: Update your non playable character</h1>
-            <div className='update-npc'>
-                <input
-                    className='update-input'
-                    type="text"
-                    placeholder="Enter npc name"
-                    onChange={(e) => setNPCName(e.target.value)}
-                />
-                <input
-                    className='update-input'
-                    type="text"
-                    placeholder="Enter npc affinity"
-                    onChange={(e) => setNPCAffinity(e.target.value)}
-                />
-                <input
-                    className='update-input'
-                    type="text"
-                    placeholder="Enter npc image url"
-                    onChange={(e) => setNPCImageURL(e.target.value)}
-                />
-                <input
-                    className='update-input'
-                    type="text"
-                    placeholder="Enter npc zone"
-                    onChange={(e) => setNPCZone(e.target.value)}
-                />
-                <input
-                    className='update-input'
-                    type="text"
-                    placeholder="Enter npc mood"
-                    onChange={(e) => setNPCMood(e.target.value)}
-                />
-                <button onClick={handleUpdateNPC}>Update NPC</button>
-            </div>
-            <h1 className='i-p'>Gamewise: See a the certain NPC</h1>
-            <div className='npc-player'>
-                <input type="text" placeholder="NPC's name is..." onChange={e => setNPCName(e.target.value)} />
-                <button onClick={handleFindNPC}>Call</button>
-                <div className='players'>
-                    <div style={{
-                        backgroundColor: 'black',
-                        backgroundSize: 'cover',
-                        width: '200px',
-                        height: '200px', 
-                        border: 'none',
-                        cursor: 'pointer',
-                        margin: '3rem',
-                        color: 'white'
-                    }}
-                    >
-                        Name: {singleNPC.name}<br/>
-                        Affinity: {singleNPC.affinity}<br/>
-                        Image source: {singleNPC.imageURL}<br/>
-                        Zone: {singleNPC.zone}<br/>
-                        Mood: {singleNPC.mood}<br/>
+            <div className='crud-container'>
+                <div>
+                    <h1 className='i-n'>Admin: Create a new non playable character</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Enter npc name"
+                            onChange={(e) => setNPCName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc affinity"
+                            onChange={(e) => setNPCAffinity(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc image url"
+                            onChange={(e) => setNPCImageURL(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc zone"
+                            onChange={(e) => setNPCZone(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc mood"
+                            onChange={(e) => setNPCMood(e.target.value)}
+                        />
+                        <button className='green-bg' onClick={handleCreateNPC}>Create a new NPC</button>
                     </div>
+                </div>
+                <div>
+                    <h1 className='i-n'>Admin: Update your non playable character</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Enter npc name"
+                            onChange={(e) => setNPCName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc affinity"
+                            onChange={(e) => setNPCAffinity(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc image url"
+                            onChange={(e) => setNPCImageURL(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc zone"
+                            onChange={(e) => setNPCZone(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter npc mood"
+                            onChange={(e) => setNPCMood(e.target.value)}
+                        />
+                        <button className='cream-bg' onClick={handleUpdateNPC}>Update NPC</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-n'>Admin: Delete a NPC</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Enter npc's name" onChange={e => setNPCName(e.target.value)} />
+                        <button className='red-bg' onClick={handleDeleteNPC}>Delete a NPC</button>
+                    </div>
+                    <h1 className='i-p'>Gamewise: See a the certain NPC</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="NPC's name is..." onChange={e => setNPCName(e.target.value)} />
+                        <button className='green-bg' onClick={handleFindNPC}>Call</button>
+                        <div className='players'>
+                            <div style={{
+                                backgroundColor: 'black',
+                                backgroundSize: 'cover',
+                                width: '200px',
+                                height: '200px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                margin: '3rem',
+                                color: 'white'
+                            }}
+                            >
+                                Name: {singleNPC.name}<br/>
+                                Affinity: {singleNPC.affinity}<br/>
+                                Image source: {singleNPC.imageURL}<br/>
+                                Zone: {singleNPC.zone}<br/>
+                                Mood: {singleNPC.mood}<br/>
+                            </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

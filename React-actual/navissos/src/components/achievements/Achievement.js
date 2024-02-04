@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Achievement.css';
+import '../../styling/CrudContainer.css';
 
 const Achievement = () => { 
     const [playerName, setPlayerName] = useState(0);
@@ -126,78 +127,77 @@ const Achievement = () => {
                     </button>
                 ))}
             </div>
-            <h1 className='i-a'>Admin: Create an achievement</h1>
-            <div className='create-achievement'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter achievement name"
-                    onChange={(e) => setAchievementName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter achievement type"
-                    onChange={(e) => setAchievementType(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter achievement points"
-                    onChange={(e) => setAchievementPoints(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter achievement conditions"
-                    onChange={(e) => setAchievementConditions(e.target.value)}
-                />
-                <button onClick={handleCreateAchievement}>Create Achievement</button>
-            </div>
-            <h1 className='i-a'>Admin: Edit an achievement</h1>
-            <div className='update-achievement'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Current name"
-                    onChange={(e) => setAchievementOldName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="New name"
-                    onChange={(e) => setAchievementName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter achievement type"
-                    onChange={(e) => setAchievementType(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter achievement points"
-                    onChange={(e) => setAchievementPoints(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter achievement conditions"
-                    onChange={(e) => setAchievementConditions(e.target.value)}
-                />
-                <button onClick={handleUpdateAchievement}>Edit Achievement</button>
-            </div>
-            <h1 className='i-m'>Admin: Remove an achievement</h1>
-            <div className='delete-achievement'>
-                <input type="text" placeholder="Enter achievement Name" onChange={e => setAchievementName(e.target.value)} />
-                <button onClick={handleDeleteAchievement}>Remove achievement</button>
-            </div>
-            <h1 className='i-m'>Admin: Give an achievement</h1>
-            <div className='give-achievement'>
-                <input type="text" placeholder="To player" onChange={e => setPlayerName(e.target.value)} />
-                <input type="text" placeholder="Give achivement" onChange={e => setAchievementName(e.target.value)} />
-                <button onClick={handleGiveAchievment}>Give</button>
+            <div className='crud-container'>
+                <div>
+                    <h1 className='i-a'>Admin: Create an achievement</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Enter achievement name"
+                            onChange={(e) => setAchievementName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter achievement type"
+                            onChange={(e) => setAchievementType(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Enter achievement points"
+                            onChange={(e) => setAchievementPoints(parseInt(e.target.value))}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter achievement conditions"
+                            onChange={(e) => setAchievementConditions(e.target.value)}
+                        />
+                        <button className='blue-bg' onClick={handleCreateAchievement}>Create Achievement</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-a'>Admin: Edit an achievement</h1>
+                    <div className='input-container'>
+                        <input
+                            type="text"
+                            placeholder="Current name"
+                            onChange={(e) => setAchievementOldName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="New name"
+                            onChange={(e) => setAchievementName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter achievement type"
+                            onChange={(e) => setAchievementType(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Enter achievement points"
+                            onChange={(e) => setAchievementPoints(parseInt(e.target.value))}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter achievement conditions"
+                            onChange={(e) => setAchievementConditions(e.target.value)}
+                        />
+                        <button className='green-bg' onClick={handleUpdateAchievement}>Edit Achievement</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-m'>Admin: Remove an achievement</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Enter achievement Name" onChange={e => setAchievementName(e.target.value)} />
+                        <button className='red-bg' onClick={handleDeleteAchievement}>Remove achievement</button>
+                    </div>
+                    <h1 className='i-m'>Admin: Give an achievement</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="To player" onChange={e => setPlayerName(e.target.value)} />
+                        <input type="text" placeholder="Give achivement" onChange={e => setAchievementName(e.target.value)} />
+                        <button className='cream-bg' onClick={handleGiveAchievment}>Give</button>
+                    </div>
+                </div>
             </div>
         </div>
     );

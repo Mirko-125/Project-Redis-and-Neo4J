@@ -16,6 +16,7 @@ function Trade() {
     const [playerItemNames, setPlayerItemNames] = useState(["string"]);
     const [marketItemNames, setMarketItemNames] = useState(["string"]);
     const [selectedMarketTrade, setMarketTrade] = useState([]);
+    
     const handleCreateTrade = () => {
         const tradeData = {
             receiverGold: receiverGold,

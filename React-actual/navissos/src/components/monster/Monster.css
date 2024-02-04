@@ -9,83 +9,16 @@
     flex-wrap: wrap;
 }
 
-.delete-monster {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 2rem;
-    width: 25%;
-}
-
-.delete-monster input[type="text"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.delete-monster button {
+.delete-button {
     background-color: rgb(153, 4, 4);
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    cursor: pointer;
 }
 
-
-.create-monster {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 2rem;
-    width: 25%;
-}
-
-.create-monster input[type="text"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.create-monster input[type="number"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.create-monster button {
+.create-button {
     background-color: rgb(153, 4, 4);
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    cursor: pointer;
 }
 
-.update-monster {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 2rem;
-    width: 25%;
-}
-
-.update-monster input[type="text"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.update-monster input[type="number"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.update-monster button {
+.update-button {
     background-color: rgb(158, 84, 0);
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    cursor: pointer;
 }
 
 .dungeon-wrap

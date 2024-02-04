@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Class.css';
+import '../../styling/CrudContainer.css';
 
 const Class = () => {
     const [classOldName, setClassOldName] = useState('');
@@ -19,6 +20,9 @@ const Class = () => {
     const [levelGainFaith, setLevelGainFaith] = useState(0);
     const [levelGainExperience, setLevelGainExperience] = useState(0);
     const [levelGainLevel, setLevelGainLevel] = useState(0);
+    const [abilityName, setAbilityName] = useState('');
+    const [level, setAbilityLevel] = useState(0);
+
 
     const handleDeleteClass = () => 
     {
@@ -35,6 +39,33 @@ const Class = () => {
                 console.error(error);
             });
     };
+
+    const handleAssignAbility = () => {
+        const data = {
+            className,
+            abilityName,
+            level
+        }
+        const dataJson = JSON.stringify(data);
+        console.log(dataJson);
+        
+        fetch(`http://localhost:5236/api/Class/CreateAbilityPermissions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataJson)
+        })  
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response data if needed
+                console.log(data);
+            })
+            .catch(error => {
+                // Handle the error if needed
+                console.error(error);
+            });
+    }
 
 
     const handleEditClass = () => {
@@ -143,204 +174,219 @@ const Class = () => {
                     }}>{classData.name}</div>
                 ))}
             </div>
-            <h1 className='i-c'>Admin: Create a new playable class</h1>
-            <div className='create-class'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter name"
-                    onChange={(e) => setClassName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base strength"
-                    onChange={(e) => setBaseStrength(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base agility"
-                    onChange={(e) => setBaseAgility(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base intelligence"
-                    onChange={(e) => setBaseIntelligence(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base stamina"
-                    onChange={(e) => setBaseStamina(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base faith"
-                    onChange={(e) => setBaseFaith(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base experience"
-                    onChange={(e) => setBaseExperience(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base level"
-                    onChange={(e) => setBaseLevel(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain strength"
-                    onChange={(e) => setLevelGainStrength(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain agility"
-                    onChange={(e) => setLevelGainAgility(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain intelligence"
-                    onChange={(e) => setLevelGainIntelligence(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain stamina"
-                    onChange={(e) => setLevelGainStamina(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain faith"
-                    onChange={(e) => setLevelGainFaith(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain experience"
-                    onChange={(e) => setLevelGainExperience(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain level"
-                    onChange={(e) => setLevelGainLevel(parseInt(e.target.value))}
-                />
-                <button onClick={handleCreateClass}>Create class</button>
-            </div>
-            <h1 className='i-c'>Admin: Edit a new playable class</h1>
-            <div className='create-class'>
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter class' old name"
-                    onChange={(e) => setClassOldName(e.target.value)}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base strength"
-                    onChange={(e) => setBaseStrength(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base agility"
-                    onChange={(e) => setBaseAgility(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base intelligence"
-                    onChange={(e) => setBaseIntelligence(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base stamina"
-                    onChange={(e) => setBaseStamina(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base faith"
-                    onChange={(e) => setBaseFaith(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base experience"
-                    onChange={(e) => setBaseExperience(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter base level"
-                    onChange={(e) => setBaseLevel(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain strength"
-                    onChange={(e) => setLevelGainStrength(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain agility"
-                    onChange={(e) => setLevelGainAgility(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain intelligence"
-                    onChange={(e) => setLevelGainIntelligence(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain stamina"
-                    onChange={(e) => setLevelGainStamina(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain faith"
-                    onChange={(e) => setLevelGainFaith(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain experience"
-                    onChange={(e) => setLevelGainExperience(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="number"
-                    placeholder="Enter level gain level"
-                    onChange={(e) => setLevelGainLevel(parseInt(e.target.value))}
-                />
-                <input
-                    className='create-input'
-                    type="text"
-                    placeholder="Enter class' new name"
-                    onChange={(e) => setClassName(e.target.value)}
-                />
-                <button onClick={handleEditClass}>Edit class</button>
-            </div>
-            <h1 className='i-n'>Admin: Delete a class</h1>
-            <div className='create-class'>
-                <input type="text" placeholder="Enter class name" onChange={e => setClassName(e.target.value)} />
-                <button onClick={handleDeleteClass}>Delete class</button>
+            <div className='crud-container'>
+                <div>
+                    <h1 className='i-c'>Admin: Create a new playable class</h1>
+                    <div className='input-container'>
+                        <input
+                            className='create-input'
+                            type="text"
+                            placeholder="Enter name"
+                            onChange={(e) => setClassName(e.target.value)}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base strength"
+                            onChange={(e) => setBaseStrength(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base agility"
+                            onChange={(e) => setBaseAgility(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base intelligence"
+                            onChange={(e) => setBaseIntelligence(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base stamina"
+                            onChange={(e) => setBaseStamina(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base faith"
+                            onChange={(e) => setBaseFaith(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base experience"
+                            onChange={(e) => setBaseExperience(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base level"
+                            onChange={(e) => setBaseLevel(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain strength"
+                            onChange={(e) => setLevelGainStrength(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain agility"
+                            onChange={(e) => setLevelGainAgility(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain intelligence"
+                            onChange={(e) => setLevelGainIntelligence(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain stamina"
+                            onChange={(e) => setLevelGainStamina(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain faith"
+                            onChange={(e) => setLevelGainFaith(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain experience"
+                            onChange={(e) => setLevelGainExperience(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain level"
+                            onChange={(e) => setLevelGainLevel(parseInt(e.target.value))}
+                        />
+                        <button className='green-bg' onClick={handleCreateClass}>Create class</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-c'>Admin: Edit a new playable class</h1>
+                    <div className='input-container'>
+                        <input
+                            className='create-input'
+                            type="text"
+                            placeholder="Enter class' old name"
+                            onChange={(e) => setClassOldName(e.target.value)}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base strength"
+                            onChange={(e) => setBaseStrength(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base agility"
+                            onChange={(e) => setBaseAgility(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base intelligence"
+                            onChange={(e) => setBaseIntelligence(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base stamina"
+                            onChange={(e) => setBaseStamina(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base faith"
+                            onChange={(e) => setBaseFaith(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base experience"
+                            onChange={(e) => setBaseExperience(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter base level"
+                            onChange={(e) => setBaseLevel(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain strength"
+                            onChange={(e) => setLevelGainStrength(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain agility"
+                            onChange={(e) => setLevelGainAgility(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain intelligence"
+                            onChange={(e) => setLevelGainIntelligence(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain stamina"
+                            onChange={(e) => setLevelGainStamina(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain faith"
+                            onChange={(e) => setLevelGainFaith(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain experience"
+                            onChange={(e) => setLevelGainExperience(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="number"
+                            placeholder="Enter level gain level"
+                            onChange={(e) => setLevelGainLevel(parseInt(e.target.value))}
+                        />
+                        <input
+                            className='create-input'
+                            type="text"
+                            placeholder="Enter class' new name"
+                            onChange={(e) => setClassName(e.target.value)}
+                        />
+                        <button className='violet-bg' onClick={handleEditClass}>Edit class</button>
+                    </div>
+                </div>
+                <div>
+                    <h1 className='i-n'>Admin: Delete a class</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Enter class name" onChange={e => setClassName(e.target.value)} />
+                        <button className='red-bg' onClick={handleDeleteClass}>Delete class</button>
+                    </div>
+                    <h1 className='i-n'>Admin: Assign Ability</h1>
+                    <div className='input-container'>
+                        <input type="text" placeholder="Enter class name" onChange={e => setClassName(e.target.value)} />
+                        <input type="text" placeholder="Enter ability name" onChange={e => setAbilityName(e.target.value)} />
+                        <input type="number" placeholder="Enter level" onChange={e => setAbilityLevel(e.target.value)} />
+                        <button className='blue-bg' onClick={handleAssignAbility}>Assign Ability</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

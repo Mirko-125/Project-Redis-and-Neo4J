@@ -29,36 +29,66 @@ namespace Cache
         public async Task<bool> CheckKeyAsync(string key)
         {
             var redisClient = await _redisClientManager.GetClientAsync();
-            var keyExists = await redisClient.ContainsKeyAsync(key);
-            return keyExists;
+            try
+            {
+                var keyExists = await redisClient.ContainsKeyAsync(key);
+                return keyExists;
+            }
+            finally
+            {
+                await redisClient.DisposeAsync();
+            }
         }
 
         public async Task<T> GetDataAsync < T > (string key) 
         {
             var redisClient = await _redisClientManager.GetClientAsync();
-            var keyExists = await redisClient.ContainsKeyAsync(key);
-            if (keyExists)
+            try
             {
-                var res = await redisClient.GetAsync<string>(key);
-                return JsonSerializer.DeserializeFromString<T>(res);
+                var keyExists = await redisClient.ContainsKeyAsync(key);
+                if (keyExists)
+                {
+                    var res = await redisClient.GetAsync<string>(key);
+                    return JsonSerializer.DeserializeFromString<T>(res);
+                }
+                return default;
             }
-            return default;
+            finally
+            {
+                await redisClient.DisposeAsync();
+            }
         }
 
         public async Task<bool> SetDataAsync < T > (string key, T value, int expirationtime)
         {
             var redisClient = await _redisClientManager.GetClientAsync();
-            var stringData = JsonSerializer.SerializeToString(value);
-            TimeSpan time = TimeSpan.FromSeconds(expirationtime);
-            var success = await redisClient.SetAsync(key, stringData, time);
-            return success;
+            try
+            {
+                 var stringData = JsonSerializer.SerializeToString(value);
+                TimeSpan time = TimeSpan.FromSeconds(expirationtime);
+                var success = await redisClient.SetAsync(key, stringData, time);
+                return success;
+            }
+            finally
+            {
+                await redisClient.DisposeAsync();
+            }
+           
         }
 
         public async Task<bool> DeleteAsync(string key)
         {
             var redisClient = await _redisClientManager.GetClientAsync();
-            var success = await redisClient.RemoveAsync(key);
-            return success;
+            try 
+            {
+                var success = await redisClient.RemoveAsync(key);
+                return success;
+            }
+            finally
+            {
+                await redisClient.DisposeAsync();
+            }
+
         }
     }
 }
