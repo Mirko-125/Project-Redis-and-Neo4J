@@ -77,7 +77,7 @@ namespace Services
             query += $@"
                 OPTIONAL MATCH ({identifier}:{type})-[:{relationName}]->(i:Item) 
                     OPTIONAL MATCH (i)-[:HAS]->(a:Attributes)
-                RETURN {identifier} as n, COLLECT(DISTINCT{{
+                RETURN {identifier} as n, COLLECT({{
                     item: i,
                     attributes: CASE WHEN i:Gear THEN a ELSE NULL END
                 }}) AS items";

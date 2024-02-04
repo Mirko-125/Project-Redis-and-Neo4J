@@ -64,7 +64,7 @@ namespace Services
             string addItemQuery = @$"
                 WITH {item}
                     MATCH ({_key}:{type} {{zone: $zone}})
-                    MERGE ({_key})-[:HAS]->({item}) 
+                    CREATE ({_key})-[:HAS]->({item}) 
                     SET {_key}.itemCount = COALESCE({_key}.itemCount, 0) + 1
                     ";
             string returnQuery = ItemQueryBuilder.ReturnSpecificObjectWithItems(type, _key);
@@ -103,6 +103,7 @@ namespace Services
 
             foreach (Marketplace market in marketplaces)
             {
+                Console.WriteLine(market.Zone);
                 await _cache.SetDataAsync(_key + market.Zone, market, 100);
             }
             await _cache.SetDataAsync(_pluralKey, marketplaces, 100);

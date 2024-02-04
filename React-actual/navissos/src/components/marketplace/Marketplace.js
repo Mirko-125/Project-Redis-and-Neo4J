@@ -8,7 +8,7 @@ function Marketplace() {
     const [itemCount, setItemCount] = useState(0);
     const [restockCycle, setRestockCycle] = useState(0);
     const [itemName, setItemName] = useState('');
-    const [marketZone, setMarketZone] = useState(0); 
+    const [marketZone, setMarketZone] = useState(''); 
     const [marketplaceID, setMarketplaceID] = useState(0);
     const [items, setItems] = useState([]);
     
@@ -113,7 +113,7 @@ function Marketplace() {
             <h1 className='i-mp'>Markets</h1>
                 <div className="markets">
                     {marketplace.map(marketplace => (
-                        <button key={marketplace.id} onClick={() => handleMarketClick(marketplace)} 
+                        <button key={marketplace.name} onClick={() => handleMarketClick(marketplace)} 
                         style={{
                             backgroundSize: 'cover',
                             width: '200px', 
@@ -184,7 +184,7 @@ function Marketplace() {
                         <input
                             type="text"
                             placeholder="Enter market's zone"
-                            onChange={(e) => setMarketZone(parseInt(e.target.value))}
+                            onChange={(e) => setMarketZone(e.target.value)}
                         />
                         <button className='violet-bg' onClick={handleAddItemToMarketplace}>Add item</button>
                     </div>
@@ -195,7 +195,7 @@ function Marketplace() {
                         <input
                             type="text"
                             placeholder="Enter zone"
-                            onChange={(e) => setZone(e.target.value)}
+                            onChange={(e) => setMarketZone(e.target.value)}
                         />
                         <button className='red-bg' onClick={handleDeleteMarketplace}>Delete marketplace</button>
                     </div>
@@ -203,8 +203,8 @@ function Marketplace() {
             </div>        
             <h1 className='i-a'>Items</h1>
             <div className='items'>
-                {items.map(item => (
-                    <button key={item.name} 
+                {items.map((item, idx) => (
+                    <button key={idx} 
                     style={{
                         backgroundColor: item.$type === 'Gear' ? '#043399' : '#C95000',
                         backgroundSize: 'cover',
