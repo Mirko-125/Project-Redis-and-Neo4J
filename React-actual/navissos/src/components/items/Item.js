@@ -3,7 +3,6 @@ import './Item.css';
 
 const Item = () => {
     const [items, setItem] = useState([]);
-    const [gearId, setGearId] = useState('');
     const [gearName, setGearName] = useState('');
     const [gearType, setGearType] = useState('');
     const [gearWeight, setGearWeight] = useState(0);
@@ -18,7 +17,6 @@ const Item = () => {
     const [gearStamina, setGearStamina] = useState(0);
     const [gearFaith, setGearFaith] = useState(0);
     const [gearExperience, setGearExperience] = useState(0);
-    const [consumableId, setConsumableId] = useState('');
     const [consumableName, setConsumableName] = useState('');
     const [consumableType, setConsumableType] = useState('');
     const [consumableWeight, setConsumableWeight] = useState(0);
@@ -51,7 +49,7 @@ const Item = () => {
     }
 
     const updateGearData = () => {
-        const gearData = {...createGearData(), gearId: gearId};
+        const gearData = {...createGearData()};
         return gearData;
     }
 
@@ -129,7 +127,7 @@ const Item = () => {
     const handleUpdateGear = () => {
         const gearData = updateGearData();
 
-        fetch('http://localhost:5236/api/Gear/UpdateGear', {
+        fetch('http://localhost:5236/api/Gear/Update', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -149,7 +147,6 @@ const Item = () => {
 
     const handleUpdateConsumable = () => {
         const consumableData = {
-            consumableId: consumableId,
             name: consumableName,
             type: consumableType,
             weight: consumableWeight,
@@ -158,7 +155,7 @@ const Item = () => {
             effect: consumableEffect
         };
 
-        fetch('http://localhost:5236/api/Gear/UpdateGear', {
+        fetch('http://localhost:5236/api/Consumable/Update', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -242,7 +239,6 @@ const Item = () => {
                         
                     <div className='create-gear'>
                         <h1 className='i-n'>Modify Gear</h1>
-                        <input className='create-input' type="number" placeholder="Enter gear ID" onChange={e => setGearId(e.target.value)} />
                         <input className='create-input' type="text" placeholder="Enter gear name" onChange={(e) => setGearName(e.target.value)} />
                         <input className='create-input' type="text" placeholder="Enter gear type" onChange={(e) => setGearType(e.target.value)} />
                         <input className='create-input' type="number" placeholder="Enter gear weight" onChange={(e) => setGearWeight(e.target.value)} />
@@ -277,7 +273,6 @@ const Item = () => {
                 
                 <div className='create-consumable'>
                     <h1 className='i-n'>Mod Cons.</h1>
-                    <input className='create-input' type="number" placeholder="Enter consumable ID" onChange={e => setConsumableId(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter consumable name" onChange={(e) => setConsumableName(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter consumable type" onChange={(e) => setConsumableType(e.target.value)} />
                     <input className='create-input' type="number" placeholder="Enter consumable weight" onChange={(e) => setConsumableWeight(e.target.value)} />

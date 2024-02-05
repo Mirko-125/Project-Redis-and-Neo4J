@@ -6,8 +6,8 @@ import '../../styling/CrudContainer.css';
 function Trade() {
     const [receiverGold, setReceiverGold] = useState(0);
     const [requesterGold, setRequesterGold] = useState(0);
-    const [receiverID, setReceiverID] = useState(0);
-    const [requesterID, setRequesterID] = useState(0);
+    const [receiverName, setReceiverName] = useState(0);
+    const [requesterName, setRequesterName] = useState(0);
     const [receiverItemNames, setReceiverItemNames] = useState([]);
     const [requesterItemNames, setRequesterItemNames] = useState([]);
     const [tradeID, setTradeID] = useState(0);
@@ -24,8 +24,8 @@ function Trade() {
         const tradeData = {
             receiverGold: receiverGold,
             requesterGold: requesterGold,
-            receiverID: receiverID,
-            requesterID: requesterID,
+            receiverName,
+            requesterName,
             receiverItemNames: receiverItemNames,
             requesterItemNames: requesterItemNames
         };
@@ -126,8 +126,8 @@ function Trade() {
                         <div className='input-container'>
                             <input className='create-input' type="number" placeholder="Enter receiver gold" onChange={(e) => setReceiverGold(e.target.value)} />
                             <input className='create-input' type="number" placeholder="Enter requester gold" onChange={(e) => setRequesterGold(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter receiver ID" onChange={(e) => setReceiverID(e.target.value)} />
-                            <input className='create-input' type="number" placeholder="Enter requester ID" onChange={(e) => setRequesterID(e.target.value)} />
+                            <input className='create-input' type="text" placeholder="Enter receiver Name" onChange={(e) => setReceiverName(e.target.value)} />
+                            <input className='create-input' type="text" placeholder="Enter requester Name" onChange={(e) => setRequesterName(e.target.value)} />
                             <input className='create-input' type="text" placeholder="Enter receiver item names" onChange={(e) => setReceiverItemNames([e.target.value])} />
                             <input className='create-input' type="text" placeholder="Enter requester item names" onChange={(e) => setRequesterItemNames([e.target.value])} />
                             <br/>
