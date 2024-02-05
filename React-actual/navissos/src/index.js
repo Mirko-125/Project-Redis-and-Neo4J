@@ -12,7 +12,7 @@ import Monster from './components/monster/Monster';
 import NPCs from './components/npcs/NPCs';
 import Player from './components/player/Player';
 import Trade from './components/trade/Trade';
-
+import PlayerProfile from './components/player/PlayerProfile';
 import reportWebVitals from './reportWebVitals';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
@@ -36,7 +36,8 @@ const router = createBrowserRouter([
   { path: '/monster', element: <Monster></Monster> },
   { path: '/npcs', element: <NPCs></NPCs> },
   { path: '/player', element: <Player></Player> },
-  { path: '/trade', element: <Trade></Trade> }
+  { path: '/trade', element: <Trade></Trade> },
+  { path: '/player/*', element: <PlayerProfile></PlayerProfile>}
 ]);
 
 

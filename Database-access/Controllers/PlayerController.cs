@@ -102,8 +102,10 @@ namespace Databaseaccess.Controllers
                 Item item = await _itemService.GetByNameAsync(gearName);
                 if (item is Gear newGear)
                 {
+                    Console.WriteLine(newGear.Name, newGear.Slot);
                     foreach(Gear oldGear in player.Equipment.EquippedGear)
                     {
+                        Console.WriteLine(oldGear.Name, oldGear.Slot);
                         if(oldGear.Slot == newGear.Slot)
                         {
                             await _playerService.UnequipGear(oldGear.Name, playerName);

@@ -54,8 +54,8 @@ namespace Services
                 MATCH (m:Player) WHERE m.name = '{playerName}'
 
                 CREATE (m)-[:KNOWS]->(n)";
-            
             await session.RunAsync(query);
+            await session.DisposeAsync();
         }
         public async Task DeleteAsync(string abilityName)
         {

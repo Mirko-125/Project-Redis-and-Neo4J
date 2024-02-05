@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './Trade.css';
+import '../../styling/CrudContainer.css';
+
+
 function Trade() {
     const [receiverGold, setReceiverGold] = useState(0);
     const [requesterGold, setRequesterGold] = useState(0);
@@ -117,10 +120,10 @@ function Trade() {
     };
     return (
         <div>
-            <div className='split-t'>
-                <div className='player-t'>
+            <div className='crud-container'>
+                <div>
                     <h1 className='i-t'>Make a trade</h1>
-                        <div className='create-trade'>
+                        <div className='input-container'>
                             <input className='create-input' type="number" placeholder="Enter receiver gold" onChange={(e) => setReceiverGold(e.target.value)} />
                             <input className='create-input' type="number" placeholder="Enter requester gold" onChange={(e) => setRequesterGold(e.target.value)} />
                             <input className='create-input' type="number" placeholder="Enter receiver ID" onChange={(e) => setReceiverID(e.target.value)} />
@@ -128,26 +131,31 @@ function Trade() {
                             <input className='create-input' type="text" placeholder="Enter receiver item names" onChange={(e) => setReceiverItemNames([e.target.value])} />
                             <input className='create-input' type="text" placeholder="Enter requester item names" onChange={(e) => setRequesterItemNames([e.target.value])} />
                             <br/>
-                            <button className='create-input' onClick={handleCreateTrade}>Make new trade</button>
+                            <button className='violet-bg' onClick={handleCreateTrade}>Make new trade</button>
                         </div>
-                            <h1 className='i-t'>Finalize trade</h1>
-                            <div className='create-trade'>
-                                <input className='create-input' type="number" placeholder="Enter trade ID" onChange={(e) => setTradeID(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter receiver gold" onChange={(e) => setReceiverGold(e.target.value)} />
-                                <input className='create-input' type="number" placeholder="Enter requester gold" onChange={(e) => setRequesterGold(e.target.value)} />
-                                <br/>
-                                <button className='create-input' onClick={handleFinalizeTrade}>Finalize trade</button>
-                            </div>
-                            <h1 className='i-n'>Remove trade</h1>
-                            <div className='create-trade'>
-                                <input className='create-input' type="number" placeholder="Enter trade ID" onChange={(e) => setTradeID(e.target.value)} />
-                                <br/>
-                                <button className='create-input' onClick={handleRemoveTrade}>Remove a trade</button>
-                            </div>        
                 </div>
+                    <div>
+                        <h1 className='i-t'>Finalize trade</h1>
+                        <div className='input-container'>
+                            <input className='create-input' type="number" placeholder="Enter trade ID" onChange={(e) => setTradeID(e.target.value)} />
+                            <input className='create-input' type="number" placeholder="Enter receiver gold" onChange={(e) => setReceiverGold(e.target.value)} />
+                            <input className='create-input' type="number" placeholder="Enter requester gold" onChange={(e) => setRequesterGold(e.target.value)} />
+                            <br/>
+                            <button className='violet-bg' onClick={handleFinalizeTrade}>Finalize trade</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 className='i-n'>Remove trade</h1>
+                        <div className='input-container'>
+                            <input className='create-input' type="number" placeholder="Enter trade ID" onChange={(e) => setTradeID(e.target.value)} />
+                            <br/>
+                            <button className='violet-bg' onClick={handleRemoveTrade}>Remove a trade</button>
+                        </div>      
+                    </div>  
+                
                 <div className='market-t'>
                 <h1 className='i-n'>Make a trade with a market</h1>
-                <div className='create-trade'>
+                <div className='input-container'>
                     <input className='create-input' type="number" placeholder="Enter market gold" onChange={(e) => setMarketGold(e.target.value)} />
                     <input className='create-input' type="number" placeholder="Enter player gold" onChange={(e) => setPlayerGold(e.target.value)} />
                     <input className='create-input' type="text" placeholder="Enter date" onChange={(e) => setDate(e.target.value)} />
@@ -156,14 +164,16 @@ function Trade() {
                     <input className='create-input' type="text" placeholder="Enter player item names" onChange={(e) => setPlayerItemNames([e.target.value])} />
                     <input className='create-input' type="text" placeholder="Enter market item names" onChange={(e) => setMarketItemNames([e.target.value])} />
                     <br/>
-                    <button className='create-input' onClick={handleMarketTrade}>Trade with the market</button>
+                    <button className='violet-bg' onClick={handleMarketTrade}>Trade with the market</button>
                 </div>
+                </div>
+                <div className='market-t'>
                 <h1 className='i-n'>Trades visualized</h1>
-                <div className='create-trade'>
+                <div className='input-container'>
                     <input className='create-input' type="number" placeholder="Enter marketplace ID" onChange={(e) => setMarketplaceID(e.target.value)} />
                     <input className='create-input' type="number" placeholder="Enter player ID" onChange={(e) => setPlayerID(e.target.value)} />
                     <br/>
-                    <button className='create-input' onClick={handleShowMarketTrade}>Visualize</button>
+                    <button className='violet-bg' onClick={handleShowMarketTrade}>Visualize</button>
                     <div className='showroom'>
                         {selectedMarketTrade.map(trade => (
                             <button key={trade.id} 
@@ -189,7 +199,7 @@ function Trade() {
                             </button>
                         ))}
                     </div>
-                </div>
+                    </div>
                 </div>
             </div>
         </div>

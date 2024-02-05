@@ -21,13 +21,9 @@ namespace Databaseaccess.Models
         public Attributes Attributes { get; set; }
         public Inventory Inventory { get; set; }
         public Equipment Equipment { get; set; }
-        [JsonIgnore]
         public List<Achievement> Achievements { get; set; }
-        [JsonIgnore]
         public List<Ability> Abilities { get; set; }
-        [JsonIgnore]
         public Class Class { get; set; }
-        [JsonIgnore]
         public List<NPC> NPCs { get; set; } // Peđa
 
         private void BasePlayer(INode node)

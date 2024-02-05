@@ -41,8 +41,7 @@ function Create() {
                 // Player created successfully, navigate to title menu
                 navigate('/title-menu');
             } else {
-                // Handle error response
-                // You can display an error message or perform any other action here
+
             }
         })
         .catch(error => {

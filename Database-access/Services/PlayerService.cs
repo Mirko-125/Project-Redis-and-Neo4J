@@ -40,7 +40,13 @@ namespace Services
 
         public async Task<IResultCursor> CreateAsync(PlayerDto player)
         {
+            
             var session = _driver.AsyncSession();
+
+            if (await PlayerExist(player.Name, session))
+            {
+                throw new Exception("This name is already taken");
+            }
 
             var parameters = new
             {
@@ -144,26 +150,34 @@ namespace Services
         public async Task<Player> GetPlayerAsync(string name)
         {
             var session = _driver.AsyncSession();
-            string query = $@"
+            string query = @"
                 MATCH (n:Player) WHERE n.name = $name
                 MATCH (n)-[:HAS]->(attributes)
-                OPTIONAL MATCH (n)-[:ACHIEVED]->(achievement)
-                OPTIONAL MATCH (n)-[:KNOWS]->(ability)
-                WITH n, attributes, COLLECT(achievement) AS achievements, COLLECT(ability) AS abilities
+                WITH n, attributes
+                    OPTIONAL MATCH (n)-[:ACHIEVED]->(achievement)
+                WITH n, attributes, COLLECT(achievement) as achievements
+                    OPTIONAL MATCH (n)-[:KNOWS]->(ability)
+                WITH n, attributes, achievements, COLLECT(ability) AS abilities
 
                 MATCH (n)-[:OWNS]->(inventory)
                         OPTIONAL MATCH (inventory)-[:CONTAINS]->(inventoryItem:Item)
                                 OPTIONAL MATCH (inventoryItem)-[:HAS]->(inventoryA:Attributes)
+                WITH n, attributes, achievements, abilities, inventory,
+                COLLECT({
+                    item: inventoryItem,
+                    attributes: CASE WHEN inventoryItem:Gear THEN inventoryA ELSE NULL END
+                }) AS inventoryItems
 
                 MATCH (n)-[:IS]->(class)
                 MATCH (n)-[:WEARS]->(equipment)
                         OPTIONAL MATCH (equipment)-[:CONTAINS]->(equippedItem:Item)
                                 OPTIONAL MATCH (equippedItem)-[:HAS]->(equipmentA:Attributes)
-                WITH n, attributes, achievements, abilities, inventory, class, equipment, ";
-            query += ItemQueryBuilder.CollectItems("inventoryItem", "inventoryA", "inventoryItems")
-                + ", \n "
-                + ItemQueryBuilder.CollectDistinctItems("equippedItem", "equipmentA", "equippedItems") + " \n "
-                + "return n, attributes, achievements, abilities, inventory, class, equipment, inventoryItems, equippedItems";
+                WITH n, attributes, achievements, abilities, inventory, class, equipment, inventoryItems,
+                COLLECT(DISTINCT{
+                    item: equippedItem,
+                    attributes: CASE WHEN equippedItem:Gear THEN equipmentA ELSE NULL END
+                }) AS equippedItems
+            return n, attributes, achievements, abilities, inventory, class, equipment, inventoryItems, equippedItems";
             Console.WriteLine(query);
             var cursor = await session.RunAsync(query, new {name});  
             var record = await cursor.SingleAsync();

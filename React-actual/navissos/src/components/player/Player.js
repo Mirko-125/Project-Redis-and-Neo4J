@@ -24,7 +24,9 @@ const Player = () => {
     }, []);
 
     const handleEquipItem = () => {
-        fetch(`http://localhost:5236/api/EquipGear?gearName=${gearName}&playerName=${playerName}`)
+        fetch(`http://localhost:5236/api/Player/EquipGear?gearName=${gearName}&playerName=${playerName}`, {
+            method: 'PUT'
+        })
             .then(response => response.json())
             .then(data => {
                 window.location.reload();
@@ -158,7 +160,7 @@ const Player = () => {
                         >
                             {itemData.map((item, index) => (
                                 item.$type === 'Gear' && (
-                                <option key={item.name}>{item.name}</option>
+                                <option key={item.name + index}>{item.name}</option>
                                 )
                             ))}
                         </select>
